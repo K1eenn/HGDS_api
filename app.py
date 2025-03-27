@@ -21,6 +21,7 @@ import uuid
 from openai import OpenAI
 import shutil
 import tempfile
+from httpx import Client as HttpxClient
 
 # Tải biến môi trường
 dotenv.load_dotenv()
@@ -54,6 +55,29 @@ CHAT_HISTORY_FILE = "chat_history.json"
 # Thư mục lưu trữ tạm thời
 TEMP_DIR = "temp_files"
 os.makedirs(TEMP_DIR, exist_ok=True)
+
+# Hàm tạo OpenAI client
+def create_openai_client(api_key):
+    """
+    Tạo OpenAI client với cấu hình đúng
+    """
+    # Kiểm tra nếu cần proxy từ biến môi trường
+    http_proxy = os.getenv("HTTP_PROXY")
+    https_proxy = os.getenv("HTTPS_PROXY")
+    
+    if http_proxy or https_proxy:
+        # Sử dụng proxy nếu có
+        proxies = {}
+        if http_proxy:
+            proxies["http://"] = http_proxy
+        if https_proxy:
+            proxies["https://"] = https_proxy
+            
+        httpx_client = HttpxClient(proxies=proxies)
+        return OpenAI(api_key=api_key, http_client=httpx_client)
+    else:
+        # Không sử dụng proxy
+        return OpenAI(api_key=api_key)
 
 # Danh sách domain tin tức Việt Nam
 VIETNAMESE_NEWS_DOMAINS = [
@@ -622,7 +646,7 @@ def process_audio(message_dict, api_key):
             f.write(audio_data)
         
         # Chuyển đổi âm thanh thành văn bản
-        client = OpenAI(api_key=api_key)
+        client = create_openai_client(api_key)
         with open(temp_audio_file, "rb") as audio_file:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1", 
@@ -942,7 +966,7 @@ def search_and_summarize(tavily_api_key, query, openai_api_key, include_domains=
 
 
         # Tổng hợp thông tin sử dụng OpenAI
-        client = OpenAI(api_key=openai_api_key)
+        client = create_openai_client(openai_api_key)
 
         prompt = f"""
         Dưới đây là nội dung trích xuất từ các trang tin tức liên quan đến câu hỏi: "{query}"
@@ -1005,7 +1029,7 @@ def detect_search_intent(query, api_key):
                is_news_query: True nếu là tin tức/thời sự, False nếu khác
     """
     try:
-        client = OpenAI(api_key=api_key)
+        client = create_openai_client(api_key)
         current_date_str = datetime.datetime.now().strftime("%Y-%m-%d")
 
         system_prompt = f"""
@@ -1164,7 +1188,7 @@ def generate_dynamic_suggested_questions(api_key, member_id=None, max_questions=
             Trả về chính xác {max_questions} câu gợi ý.
             """
             
-            client = OpenAI(api_key=api_key)
+            client = create_openai_client(api_key)
             response = client.chat.completions.create(
                 model=openai_model,
                 messages=[
@@ -1461,7 +1485,7 @@ def generate_chat_summary(messages, api_key):
     
     # Gọi API để tạo tóm tắt
     try:
-        client = OpenAI(api_key=api_key)
+        client = create_openai_client(api_key)
         response = client.chat.completions.create(
             model=openai_model,
             messages=[
@@ -1771,7 +1795,7 @@ async def analyze_image_endpoint(
         img_base64 = get_image_base64(img)
         
         # Xử lý với OpenAI API
-        client = OpenAI(api_key=openai_api_key)
+        client = create_openai_client(openai_api_key)
         response = client.chat.completions.create(
             model=openai_model,
             messages=[
@@ -1813,7 +1837,7 @@ async def transcribe_audio_endpoint(
             f.write(audio_content)
         
         # Chuyển đổi âm thanh thành văn bản
-        client = OpenAI(api_key=openai_api_key)
+        client = create_openai_client(openai_api_key)
         with open(temp_audio_path, "rb") as audio_file:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1", 
