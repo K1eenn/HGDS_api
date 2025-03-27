@@ -1,0 +1,55 @@
+{
+  "1": {
+    "session_id": "1",
+    "current_member": null,
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "xin chào"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Xin chào! Tôi có thể giúp bạn điều gì hôm nay?"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch sinh nhật mẹ vào ngày mai"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Tôi đã thêm sự kiện sinh nhật của mẹ vào ngày mai. \n\n##ADD_EVENT:{\"title\":\"Sinh nhật mẹ\",\"date\":\"2025-03-28\",\"time\":\"08:00\",\"description\":\"Chúc mừng sinh nhật mẹ!\",\"participants\":[\"Mẹ\"]}## \n\nNếu bạn cần thêm thông tin gì khác, hãy cho tôi biết nhé!"
+          }
+        ]
+      }
+    ],
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {
+      "suggested_questions_None_2025-03-27_11": [
+        "- \"Top 10 sách self-help nổi bật nhất năm 2023, mang lại nguồn cảm hứng cho bạn.\"",
+        "- \"Cách làm trà sữa thơm ngon tại nhà với nguyên liệu đơn giản và dễ tìm.\"",
+        "- \"Những địa điểm du lịch hấp dẫn nhất châu Á mà bạn không thể bỏ lỡ trong năm nay.\"",
+        "- \"Công thức salad giảm cân với các loại rau củ tươi ngon và hương vị tuyệt vời.\"",
+        "- \"Các xu hướng thời trang nổi bật mùa thu 2023, từ màu sắc đến kiểu dáng.\""
+      ]
+    }
+  }
+}
