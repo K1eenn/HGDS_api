@@ -58,10 +58,13 @@ app.add_middleware(
 )
 
 # --------- Các model dữ liệu ---------
+class ImageUrl(BaseModel):
+    url: str
+
 class MessageContent(BaseModel):
     type: str  # "text", "image_url"
     text: Optional[str] = None
-    image_url: Optional[Dict[str, str]] = None
+    image_url: Optional[Union[ImageUrl, Dict[str, str]]] = None
 
 class Message(BaseModel):
     role: str
@@ -654,11 +657,25 @@ def generate_chat_summary(messages, api_key):
     # Chuẩn bị dữ liệu cho API
     content_texts = []
     for message in messages:
-        if "content" in message:
-            # Xử lý cả tin nhắn văn bản và hình ảnh
-            for content in message["content"]:
+        # Kiểm tra nếu message là Pydantic model hay dict
+        if hasattr(message, "role") and hasattr(message, "content"):  # Nếu là Pydantic model
+            role = message.role
+            message_content = message.content
+        elif isinstance(message, dict) and "content" in message:  # Nếu là dict
+            role = message.get("role", "")
+            message_content = message["content"]
+        else:
+            continue
+            
+        # Xử lý cả tin nhắn văn bản và hình ảnh
+        for content in message_content:
+            # Kiểm tra nếu content là Pydantic model hay dict
+            if hasattr(content, "type"):  # Nếu là Pydantic model
+                if content.type == "text":
+                    content_texts.append(f"{role.upper()}: {content.text}")
+            elif isinstance(content, dict) and "type" in content:  # Nếu là dict
                 if content["type"] == "text":
-                    content_texts.append(f"{message['role'].upper()}: {content['text']}")
+                    content_texts.append(f"{role.upper()}: {content['text']}")
     
     # Ghép tất cả nội dung lại
     full_content = "\n".join(content_texts)
@@ -949,12 +966,27 @@ async def generate_llm_response(api_key, tavily_api_key, messages, current_membe
     last_user_message = ""
     last_message = None
     for message in reversed(messages):
-        if message["role"] == "user":
-            for content in message["content"]:
-                if content["type"] == "text":
-                    last_user_message = content["text"]
-                    last_message = message
-                    break
+        # Kiểm tra nếu message là Pydantic model hay dict
+        if hasattr(message, "role"):  # Nếu là Pydantic model
+            role = message.role
+            message_content = message.content
+        else:  # Nếu là dict
+            role = message["role"]
+            message_content = message["content"]
+            
+        if role == "user":
+            for content in message_content:
+                # Kiểm tra nếu content là Pydantic model hay dict
+                if hasattr(content, "type"):  # Nếu là Pydantic model
+                    if content.type == "text":
+                        last_user_message = content.text
+                        last_message = message
+                        break
+                else:  # Nếu là dict
+                    if content["type"] == "text":
+                        last_user_message = content["text"]
+                        last_message = message
+                        break
             if last_user_message:
                 break
     
@@ -1062,17 +1094,37 @@ async def generate_llm_response(api_key, tavily_api_key, messages, current_membe
     # Thêm tất cả tin nhắn trước đó vào cuộc trò chuyện
     for message in messages:
         # Xử lý các tin nhắn trước chuyển đổi sang định dạng API
-        api_message = {"role": message["role"]}
+        # Kiểm tra nếu message là Pydantic model hay dict
+        if hasattr(message, "role"):  # Nếu là Pydantic model
+            role = message.role
+            message_content = message.content
+        else:  # Nếu là dict
+            role = message["role"]
+            message_content = message["content"]
+            
+        api_message = {"role": role}
         
         contents = []
-        for content_item in message["content"]:
-            if content_item["type"] == "text":
-                contents.append({"type": "text", "text": content_item["text"]})
-            elif content_item["type"] == "image_url":
-                contents.append({
-                    "type": "image_url",
-                    "image_url": {"url": content_item["image_url"]["url"]}
-                })
+        for content_item in message_content:
+            # Kiểm tra nếu content_item là Pydantic model hay dict
+            if hasattr(content_item, "type"):  # Nếu là Pydantic model
+                item_type = content_item.type
+                if item_type == "text":
+                    contents.append({"type": "text", "text": content_item.text})
+                elif item_type == "image_url":
+                    contents.append({
+                        "type": "image_url",
+                        "image_url": {"url": content_item.image_url.url if hasattr(content_item.image_url, "url") else content_item.image_url["url"]}
+                    })
+            else:  # Nếu là dict
+                item_type = content_item["type"]
+                if item_type == "text":
+                    contents.append({"type": "text", "text": content_item["text"]})
+                elif item_type == "image_url":
+                    contents.append({
+                        "type": "image_url", 
+                        "image_url": {"url": content_item["image_url"]["url"]}
+                    })
         
         api_message["content"] = contents
         api_messages.append(api_message)
@@ -1154,11 +1206,12 @@ async def chat_text(text_request: TextRequest, api_keys: ApiKeys):
     if current_member:
         session.current_member = current_member
     
-    # Thêm tin nhắn người dùng vào lịch sử
-    session.messages.append({
-        "role": "user",
-        "content": [{"type": "text", "text": text}]
-    })
+    # Thêm tin nhắn người dùng vào lịch sử - sử dụng đối tượng Pydantic
+    user_message = Message(
+        role="user",
+        content=[MessageContent(type="text", text=text)]
+    )
+    session.messages.append(user_message)
     
     # Tạo phản hồi từ LLM
     response_data = await generate_llm_response(
@@ -1168,11 +1221,12 @@ async def chat_text(text_request: TextRequest, api_keys: ApiKeys):
         session.current_member
     )
     
-    # Thêm phản hồi trợ lý vào lịch sử
-    session.messages.append({
-        "role": "assistant",
-        "content": [{"type": "text", "text": response_data["response"]}]
-    })
+    # Thêm phản hồi trợ lý vào lịch sử - sử dụng đối tượng Pydantic
+    assistant_message = Message(
+        role="assistant",
+        content=[MessageContent(type="text", text=response_data["response"])]
+    )
+    session.messages.append(assistant_message)
     
     # Lưu lịch sử nếu có người dùng hiện tại
     if session.current_member:
@@ -1224,19 +1278,27 @@ async def chat_image(
             session.current_member = current_member
         
         # Thêm tin nhắn hình ảnh vào lịch sử
-        message_content = [{
-            "type": "image_url",
-            "image_url": {"url": f"data:{img_type};base64,{img_base64}"}
-        }]
+        # Tạo danh sách nội dung message
+        message_contents = []
+        
+        # Thêm hình ảnh
+        image_content = MessageContent(
+            type="image_url",
+            image_url=ImageUrl(url=f"data:{img_type};base64,{img_base64}")
+        )
+        message_contents.append(image_content)
         
         # Thêm caption nếu có
         if caption:
-            message_content.append({"type": "text", "text": caption})
+            text_content = MessageContent(type="text", text=caption)
+            message_contents.append(text_content)
         
-        session.messages.append({
-            "role": "user",
-            "content": message_content
-        })
+        # Tạo và thêm message
+        user_message = Message(
+            role="user",
+            content=message_contents
+        )
+        session.messages.append(user_message)
         
         # Tạo phản hồi từ LLM
         response_data = await generate_llm_response(
@@ -1246,11 +1308,12 @@ async def chat_image(
             session.current_member
         )
         
-        # Thêm phản hồi trợ lý vào lịch sử
-        session.messages.append({
-            "role": "assistant",
-            "content": [{"type": "text", "text": response_data["response"]}]
-        })
+        # Thêm phản hồi trợ lý vào lịch sử - sử dụng đối tượng Pydantic
+        assistant_message = Message(
+            role="assistant",
+            content=[MessageContent(type="text", text=response_data["response"])]
+        )
+        session.messages.append(assistant_message)
         
         # Lưu lịch sử nếu có người dùng hiện tại
         if session.current_member:
@@ -1327,11 +1390,12 @@ async def chat_audio(
         if current_member:
             session.current_member = current_member
         
-        # Thêm tin nhắn văn bản (từ âm thanh) vào lịch sử
-        session.messages.append({
-            "role": "user",
-            "content": [{"type": "text", "text": transcribed_text}]
-        })
+        # Thêm tin nhắn văn bản (từ âm thanh) vào lịch sử - sử dụng đối tượng Pydantic
+        user_message = Message(
+            role="user",
+            content=[MessageContent(type="text", text=transcribed_text)]
+        )
+        session.messages.append(user_message)
         
         # Tạo phản hồi từ LLM
         response_data = await generate_llm_response(
@@ -1341,11 +1405,12 @@ async def chat_audio(
             session.current_member
         )
         
-        # Thêm phản hồi trợ lý vào lịch sử
-        session.messages.append({
-            "role": "assistant",
-            "content": [{"type": "text", "text": response_data["response"]}]
-        })
+        # Thêm phản hồi trợ lý vào lịch sử - sử dụng đối tượng Pydantic
+        assistant_message = Message(
+            role="assistant",
+            content=[MessageContent(type="text", text=response_data["response"])]
+        )
+        session.messages.append(assistant_message)
         
         # Lưu lịch sử nếu có người dùng hiện tại
         if session.current_member:

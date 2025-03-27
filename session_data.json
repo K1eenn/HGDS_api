@@ -8,7 +8,8 @@
         "content": [
           {
             "type": "text",
-            "text": "xin chào"
+            "text": "xin chào",
+            "image_url": null
           }
         ]
       },
@@ -17,7 +18,8 @@
         "content": [
           {
             "type": "text",
-            "text": "Xin chào! Tôi có thể giúp bạn điều gì hôm nay?"
+            "text": "Xin chào! Tôi có thể giúp bạn điều gì hôm nay?",
+            "image_url": null
           }
         ]
       },
@@ -26,7 +28,8 @@
         "content": [
           {
             "type": "text",
-            "text": "Đặt lịch sinh nhật mẹ vào ngày mai"
+            "text": "Đặt lịch sinh nhật mẹ vào ngày mai",
+            "image_url": null
           }
         ]
       },
@@ -35,7 +38,48 @@
         "content": [
           {
             "type": "text",
-            "text": "Tôi đã thêm sự kiện sinh nhật của mẹ vào ngày mai. \n\n##ADD_EVENT:{\"title\":\"Sinh nhật mẹ\",\"date\":\"2025-03-28\",\"time\":\"08:00\",\"description\":\"Chúc mừng sinh nhật mẹ!\",\"participants\":[\"Mẹ\"]}## \n\nNếu bạn cần thêm thông tin gì khác, hãy cho tôi biết nhé!"
+            "text": "Tôi đã thêm sự kiện sinh nhật của mẹ vào ngày mai. \n\n##ADD_EVENT:{\"title\":\"Sinh nhật mẹ\",\"date\":\"2025-03-28\",\"time\":\"08:00\",\"description\":\"Chúc mừng sinh nhật mẹ!\",\"participants\":[\"Mẹ\"]}## \n\nNếu bạn cần thêm thông tin gì khác, hãy cho tôi biết nhé!",
+            "image_url": null
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "tin tức hôm nay",
+            "image_url": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Xin lỗi, tôi gặp vấn đề khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.",
+            "image_url": null
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "tin tức hôm nay",
+            "image_url": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Dưới đây là tin tức hôm nay, 27 tháng 3 năm 2025:\n\n### 1. Thời tiết tại Hà Nội\n- **Nhiệt độ**: Hà Nội đang trải qua thời tiết giảm nhiệt, chuẩn bị đón gió lạnh. Sáng sớm có sương mù, nhiệt độ dự kiến sẽ tăng lên 28 độ vào 10 giờ sáng và đạt 33 độ vào giữa trưa. Đến tối, nhiệt độ sẽ giảm xuống còn khoảng 23-24 độ. Cảnh báo sức khỏe cho người dân khi thời tiết chuyển đột ngột từ nóng sang lạnh, có thể gây sốc nhiệt và các bệnh lý nguy hiểm. [Nguồn: HTV - Đài Hà Nội](https://www.youtube.com/watch?v=6E42dPJPVd4)\n\n### 2. Sự kiện văn hóa\n- **Dạ hội cựu sinh viên thủ đô 2025**: Sự kiện này sẽ diễn ra vào chiều tối ngày 12 tháng 4 năm 2025 tại khuôn viên trường Đại học Khoa học Tự nhiên, với sự tham gia của hơn 100 ca sĩ và ban nhạc cựu sinh viên. Đây là dịp để các cựu sinh viên gặp gỡ và ôn lại kỷ niệm thời sinh viên. [Nguồn: HTV - Đài Hà Nội](https://www.youtube.com/watch?v=6E42dPJPVd4)\n\n### 3. Tin tức kinh tế tại Úc\n- **Thị trường chứng khoán**: Thị trường chứng khoán ASX đã tăng vọt ngày thứ 5 liên tiếp, với chỉ số ASX 200 tăng 0.71% lên 7999 điểm. Lạm phát trong tháng 2 được công bố ở mức 2.7%, thấp hơn dự đoán, tạo kỳ vọng về việc giảm lãi suất trong tháng 4. [Nguồn: Viet TV Australia](https://www.youtube.com/watch?v=_rUKq-G-tAA)\n\n- **Chính trị**: Lãnh tụ Đảng Tự do Peter Dutton cam kết giảm 50% thuế nhiên liệu nếu đắc cử, nhằm giúp các gia đình tiết kiệm chi phí sinh hoạt. Tuy nhiên, biện pháp này có thể làm thất thu ngân sách khoảng 6 tỷ đô la trong một năm. [Nguồn: Viet TV Australia](https://www.youtube.com/watch?v=_rUKq-G-tAA)\n\n### 4. An toàn thực phẩm\n- **Cảnh báo từ Bộ Y tế**: Bộ Y tế cảnh báo về nguy cơ từ thực phẩm không an toàn, đặc biệt là các món nướng \"xiên bẩn\". Cục An toàn thực phẩm đã yêu cầu tăng cường kiểm soát an toàn thực phẩm tại các cơ sở kinh doanh thức ăn đường phố và xung quanh trường học. [Nguồn: HTV - Đài Hà Nội](https://www.youtube.com/watch?v=GwVu4oydqe8)\n\n### 5. Phong trào \"bình dân học vụ số\"\n- **Khởi động phong trào**: Cả nước đang hưởng ứng phong trào \"bình dân học vụ số\", nhằm giúp người dân tiếp cận công nghệ và nâng cao năng lực số. Thủ tướng Chính phủ Phạm Minh Chính đã nhấn mạnh tầm quan trọng của phong trào này trong việc phát triển chính phủ số và xã hội số. [Nguồn: HTV - Đài Hà Nội](https://www.youtube.com/watch?v=GwVu4oydqe8)\n\n### Kết luận\nNgày 27 tháng 3 năm 2025, Hà Nội đang chuẩn bị đón gió lạnh với nhiều hoạt động văn hóa diễn ra, trong khi tại Úc, thị trường chứng khoán có dấu hiệu tích cực và các chính sách thuế đang được thảo luận. Các vấn đề an toàn thực phẩm cũng được chú trọng, cùng với phong trào nâng cao kiến thức công nghệ cho người dân.\n\n**Nguồn thông tin:**\n- [HTV - Đài Hà Nội](https://www.youtube.com/watch?v=6E42dPJPVd4)\n- [Viet TV Australia](https://www.youtube.com/watch?v=_rUKq-G-tAA)\n- [HTV - Đài Hà Nội](https://www.youtube.com/watch?v=GwVu4oydqe8)",
+            "image_url": null
           }
         ]
       }
@@ -49,6 +93,13 @@
         "- \"Những địa điểm du lịch hấp dẫn nhất châu Á mà bạn không thể bỏ lỡ trong năm nay.\"",
         "- \"Công thức salad giảm cân với các loại rau củ tươi ngon và hương vị tuyệt vời.\"",
         "- \"Các xu hướng thời trang nổi bật mùa thu 2023, từ màu sắc đến kiểu dáng.\""
+      ],
+      "suggested_questions_None_2025-03-27_14": [
+        "- \"5 mẹo chăm sóc cây cảnh trong nhà giúp cây phát triển khỏe mạnh và xanh tươi.\"",
+        "- \"Công thức sinh tố xanh bổ dưỡng giúp tăng cường sức đề kháng và cải thiện làn da.\"",
+        "- \"Top 10 cuốn sách hay nhất về phát triển bản thân không thể bỏ lỡ trong năm nay.\"",
+        "- \"Các bước đơn giản để bắt đầu một chế độ ăn chay lành mạnh và cân bằng dinh dưỡng.\"",
+        "- \"Những địa điểm du lịch bí ẩn và hấp dẫn ở Việt Nam mà bạn nhất định phải ghé thăm.\""
       ]
     }
   }
