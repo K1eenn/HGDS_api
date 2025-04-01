@@ -210,6 +210,8 @@ class ChatResponse(BaseModel):
     session_id: str
     messages: List[Message]
     suggested_questions: Optional[List[str]] = None
+    audio_response: Optional[str] = None  # Base64 encoded audio data
+    audio_response: Optional[str] = None  # Base64 encoded audio data
 
 class MemberModel(BaseModel):
     name: str
@@ -285,7 +287,7 @@ async def chat_endpoint(chat_request: ChatRequest):
             system_prompt += search_result_for_prompt
         
         # Khởi tạo OpenAI client
-        client = OpenAI(api_key=openai_api_key, base_url=None)
+        client = OpenAI(api_key=openai_api_key)
         
         # Chuẩn bị messages cho OpenAI API
         openai_messages = [{"role": "system", "content": system_prompt}]
@@ -353,11 +355,15 @@ async def chat_endpoint(chat_request: ChatRequest):
             max_questions=5
         )
         
+        # Chuyển đổi văn bản thành giọng nói - CHỈ chuyển đổi nội dung phản hồi
+        audio_response = text_to_speech(assistant_response, openai_api_key)
+        
         # Trả về kết quả
         return ChatResponse(
             session_id=chat_request.session_id,
             messages=session["messages"],
-            suggested_questions=suggested_questions
+            suggested_questions=suggested_questions,
+            audio_response=audio_response
         )
         
     except Exception as e:
@@ -414,7 +420,7 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
                 system_prompt += search_result_for_prompt
             
             # Khởi tạo OpenAI client
-            client = OpenAI(api_key=openai_api_key, base_url=None, timeout=None)
+            client = OpenAI(api_key=openai_api_key)
             
             # Chuẩn bị messages cho OpenAI API
             openai_messages = [{"role": "system", "content": system_prompt}]
@@ -496,7 +502,8 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
             # Gửi câu hỏi gợi ý ở cuối
             yield json.dumps({
                 "complete": True,
-                "suggested_questions": suggested_questions
+                "suggested_questions": suggested_questions,
+                "audio_response": text_to_speech(full_response, openai_api_key)
             }) + "\n"
             
         except Exception as e:
@@ -942,7 +949,7 @@ def search_and_summarize(tavily_api_key, query, openai_api_key, include_domains=
 
 
         # Tổng hợp thông tin sử dụng OpenAI
-        client = OpenAI(api_key=openai_api_key, base_url=None, timeout=None)
+        client = OpenAI(api_key=openai_api_key)
 
         prompt = f"""
         Dưới đây là nội dung trích xuất từ các trang tin tức liên quan đến câu hỏi: "{query}"
@@ -1499,6 +1506,77 @@ def save_chat_history(member_id, messages, summary=None):
     # Lưu vào file
     save_data(CHAT_HISTORY_FILE, chat_history)
 
+# Hàm chuyển đổi text thành speech
+def text_to_speech(text, api_key, voice="alloy"):
+    """
+    Chuyển đổi văn bản thành giọng nói sử dụng OpenAI TTS API
+    
+    Args:
+        text (str): Văn bản cần chuyển đổi
+        api_key (str): OpenAI API key
+        voice (str): Giọng nói (alloy, echo, fable, onyx, nova, shimmer)
+        
+    Returns:
+        str: Base64 encoded audio data
+    """
+    try:
+        client = OpenAI(api_key=api_key)
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice=voice,
+            input=text
+        )
+        
+        # Lấy dữ liệu audio dưới dạng bytes
+        audio_data = response.content
+        
+        # Chuyển đổi thành base64
+        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+        
+        return audio_base64
+    except Exception as e:
+        logger.error(f"Lỗi khi chuyển đổi văn bản thành giọng nói: {str(e)}")
+        return None
+
+# Hàm chuyển đổi text thành speech
+def text_to_speech(text, api_key, voice="nova", speed=0.8, max_length=4096):
+    """
+    Chuyển đổi văn bản thành giọng nói sử dụng OpenAI TTS API
+    
+    Args:
+        text (str): Văn bản cần chuyển đổi
+        api_key (str): OpenAI API key
+        voice (str): Giọng nói (alloy, echo, fable, onyx, nova, shimmer)
+        speed (float): Tốc độ nói (0.5-1.5, mặc định 0.8 hơi chậm hơn bình thường)
+        max_length (int): Độ dài tối đa của văn bản (tính bằng ký tự)
+        
+    Returns:
+        str: Base64 encoded audio data
+    """
+    try:
+        # Giới hạn độ dài văn bản để tránh lỗi
+        if len(text) > max_length:
+            text = text[:max_length] + "..."
+            
+        client = OpenAI(api_key=api_key)
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice=voice,
+            input=text,
+            speed=speed  # Thêm tham số tốc độ nói
+        )
+        
+        # Lấy dữ liệu audio dưới dạng bytes
+        audio_data = response.content
+        
+        # Chuyển đổi thành base64
+        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+        
+        return audio_base64
+    except Exception as e:
+        logger.error(f"Lỗi khi chuyển đổi văn bản thành giọng nói: {str(e)}")
+        return None
+
 # Hàm chuyển đổi hình ảnh sang base64
 def get_image_base64(image_raw):
     buffered = BytesIO()
@@ -1771,7 +1849,7 @@ async def analyze_image_endpoint(
         img_base64 = get_image_base64(img)
         
         # Xử lý với OpenAI API
-        client = OpenAI(api_key=openai_api_key, base_url=None, timeout=None)
+        client = OpenAI(api_key=openai_api_key)
         response = client.chat.completions.create(
             model=openai_model,
             messages=[
@@ -1813,7 +1891,7 @@ async def transcribe_audio_endpoint(
             f.write(audio_content)
         
         # Chuyển đổi âm thanh thành văn bản
-        client = OpenAI(api_key=openai_api_key, base_url=None, timeout=None)
+        client = OpenAI(api_key=openai_api_key)
         with open(temp_audio_path, "rb") as audio_file:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1", 
@@ -1830,19 +1908,27 @@ async def transcribe_audio_endpoint(
         logger.error(f"Lỗi khi xử lý file âm thanh: {e}")
         raise HTTPException(status_code=500, detail=f"Lỗi khi xử lý file âm thanh: {str(e)}")
 
-@app.post("/suggested_questions")
-async def get_suggested_questions(
-    openai_api_key: str,
-    member_id: Optional[str] = None,
-    max_questions: int = 5
+@app.post("/tts")
+async def text_to_speech_endpoint(
+    text: str = Form(...),
+    openai_api_key: str = Form(...),
+    voice: str = Form(default="alloy")
 ):
-    """Endpoint tạo câu hỏi gợi ý"""
-    questions = generate_dynamic_suggested_questions(
-        openai_api_key,
-        member_id,
-        max_questions
-    )
-    return {"questions": questions}
+    """Endpoint chuyển đổi văn bản thành giọng nói"""
+    try:
+        audio_base64 = text_to_speech(text, openai_api_key, voice)
+        if audio_base64:
+            return {
+                "audio_data": audio_base64,
+                "format": "mp3",
+                "voice": voice
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Không thể chuyển đổi văn bản thành giọng nói")
+    except Exception as e:
+        logger.error(f"Lỗi trong text_to_speech_endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi xử lý: {str(e)}")
+
 
 # ----- Khởi động server -----
 if __name__ == "__main__":
