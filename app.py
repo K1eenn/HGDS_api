@@ -212,11 +212,11 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     session_id: str
-    messages: List[Message]
-    # suggested_questions: Optional[List[str]] = None
+    messages: List[Message]  # Ahora solo contendrá mensajes del asistente
     audio_response: Optional[str] = None
-    response_format: Optional[str] = "html"  # Thêm trường chỉ định format
-    content_type: Optional[str] = "text"  # THÊM TRƯỜNG MỚI: phản hồi lại loại content
+    response_format: Optional[str] = "html"
+    content_type: Optional[str] = "text"
+
 
 class MemberModel(BaseModel):
     name: str
@@ -370,10 +370,13 @@ async def chat_endpoint(chat_request: ChatRequest):
         # Chuyển đổi văn bản thành giọng nói
         audio_response = text_to_speech_google(assistant_response)
         
+        # THAY ĐỔI: Chỉ giữ lại tin nhắn từ assistant trong response
+        assistant_messages = [msg for msg in session["messages"] if msg["role"] == "assistant"]
+        
         # Trả về kết quả (không còn suggested_questions)
         return ChatResponse(
             session_id=chat_request.session_id,
-            messages=session["messages"],
+            messages=assistant_messages,  # Chỉ trả về tin nhắn của trợ lý
             audio_response=audio_response,
             response_format="html",
             content_type=chat_request.content_type  # Trả về loại content đã nhận
@@ -513,13 +516,15 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
                 summary = generate_chat_summary(session["messages"], openai_api_key)
                 save_chat_history(session["current_member"], session["messages"], summary)
             
+            # THAY ĐỔI: Chỉ giữ lại tin nhắn từ assistant trong response
+            assistant_messages = [msg for msg in session["messages"] if msg["role"] == "assistant"]
             
-            # Gửi câu hỏi gợi ý ở cuối
+            # Gửi tin nhắn phản hồi cuối cùng
             yield json.dumps({
                 "complete": True,
-                # "suggested_questions": suggested_questions,
+                "messages": assistant_messages,  # Chỉ trả về tin nhắn của trợ lý
                 "audio_response": text_to_speech_google(full_response),
-                "content_type": chat_request.content_type  # Trả về loại content đã nhận
+                "content_type": chat_request.content_type
             }) + "\n"
             
         except Exception as e:
