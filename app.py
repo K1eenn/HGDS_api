@@ -189,8 +189,9 @@ verify_data_structure()
 # ------- Request & Response Models ------------
 
 class MessageContent(BaseModel):
-    type: str  # "text", "image_url", "audio"
+    type: str  # "text", "image_url", "audio", "html" - Thêm loại "html"
     text: Optional[str] = None
+    html: Optional[str] = None  # Thêm trường này để chứa nội dung HTML
     image_url: Optional[Dict[str, str]] = None
     audio_data: Optional[str] = None
 
@@ -210,8 +211,8 @@ class ChatResponse(BaseModel):
     session_id: str
     messages: List[Message]
     suggested_questions: Optional[List[str]] = None
-    audio_response: Optional[str] = None  # Base64 encoded audio data
-    audio_response: Optional[str] = None  # Base64 encoded audio data
+    audio_response: Optional[str] = None
+    response_format: Optional[str] = "html"  # Thêm trường chỉ định format
 
 class MemberModel(BaseModel):
     name: str
@@ -340,7 +341,7 @@ async def chat_endpoint(chat_request: ChatRequest):
         # Thêm phản hồi vào danh sách tin nhắn
         session["messages"].append({
             "role": "assistant",
-            "content": [{"type": "text", "text": assistant_response}]
+            "content": [{"type": "html", "html": assistant_response}]  # Thay đổi type từ "text" thành "html"
         })
         
         # Lưu lịch sử chat nếu có current_member
@@ -356,14 +357,16 @@ async def chat_endpoint(chat_request: ChatRequest):
         )
         
         # Chuyển đổi văn bản thành giọng nói - CHỈ chuyển đổi nội dung phản hồi
-        audio_response = text_to_speech(assistant_response, openai_api_key)
+        # Sử dụng model facebook/mms-tts-vie từ Hugging Face
+        audio_response = text_to_speech_huggingface(assistant_response)
         
         # Trả về kết quả
         return ChatResponse(
             session_id=chat_request.session_id,
             messages=session["messages"],
             suggested_questions=suggested_questions,
-            audio_response=audio_response
+            audio_response=audio_response,
+            response_format="html"  # Chỉ định format là HTML
         )
         
     except Exception as e:
@@ -473,7 +476,7 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
                 
                 # Trả về từng phần phản hồi dưới dạng JSON lines
                 if chunk_text:
-                    yield json.dumps({"chunk": chunk_text}) + "\n"
+                    yield json.dumps({"chunk": chunk_text, "type": "html"}) + "\n"
                     
                     # Đảm bảo chunk được gửi ngay lập tức
                     await asyncio.sleep(0)
@@ -484,7 +487,7 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
             # Lưu phản hồi vào session
             session["messages"].append({
                 "role": "assistant",
-                "content": [{"type": "text", "text": full_response}]
+                "content": [{"type": "html", "html": full_response}]
             })
             
             # Lưu lịch sử chat
@@ -656,7 +659,19 @@ def process_audio(message_dict, api_key):
 def build_system_prompt(current_member_id=None):
     system_prompt = f"""
     Bạn là trợ lý gia đình thông minh. Nhiệm vụ của bạn là giúp quản lý thông tin về các thành viên trong gia đình, 
-    sở thích của họ, các sự kiện, ghi chú, và phân tích hình ảnh liên quan đến gia đình. Khi người dùng yêu cầu, bạn phải thực hiện ngay các hành động sau:
+    sở thích của họ, các sự kiện, ghi chú, và phân tích hình ảnh liên quan đến gia đình.
+    
+    ĐỊNH DẠNG PHẢN HỒI:
+    Phản hồi của bạn phải được định dạng bằng HTML đơn giản. Sử dụng các thẻ HTML thích hợp để định dạng:
+    - Sử dụng thẻ <p> cho đoạn văn
+    - Sử dụng thẻ <b> hoặc <strong> cho văn bản in đậm
+    - Sử dụng thẻ <i> hoặc <em> cho văn bản in nghiêng
+    - Sử dụng thẻ <h3>, <h4> cho tiêu đề
+    - Sử dụng thẻ <ul> và <li> cho danh sách không có thứ tự
+    - Sử dụng thẻ <ol> và <li> cho danh sách có thứ tự
+    - Sử dụng thẻ <br> để xuống dòng trong đoạn văn
+    
+    Khi người dùng yêu cầu, bạn phải thực hiện ngay các hành động sau:
     
     1. Thêm thông tin về thành viên gia đình (tên, tuổi, sở thích)
     2. Cập nhật sở thích của thành viên gia đình
@@ -1506,7 +1521,82 @@ def save_chat_history(member_id, messages, summary=None):
     # Lưu vào file
     save_data(CHAT_HISTORY_FILE, chat_history)
 
-# Hàm chuyển đổi text thành speech
+# Hàm chuyển đổi text thành speech sử dụng facebook/mms-tts-vie từ Hugging Face
+def text_to_speech_huggingface(text, speed=1.0, max_length=1000):
+    """
+    Chuyển đổi văn bản thành giọng nói sử dụng mô hình facebook/mms-tts-vie
+    
+    Args:
+        text (str): Văn bản cần chuyển đổi
+        speed (float): Hệ số tốc độ (0.5-2.0)
+        max_length (int): Độ dài tối đa của văn bản
+        
+    Returns:
+        str: Base64 encoded audio data
+    """
+    try:
+        # Giới hạn độ dài văn bản
+        if len(text) > max_length:
+            text = text[:max_length] + "..."
+        
+        # Import thư viện cần thiết
+        from transformers import VitsModel, AutoTokenizer
+        import torch
+        import io
+        import soundfile as sf
+        import numpy as np
+        
+        # Tải mô hình và tokenizer
+        model = VitsModel.from_pretrained("facebook/mms-tts-vie")
+        tokenizer = AutoTokenizer.from_pretrained("facebook/mms-tts-vie")
+        
+        # Tokenize và chuyển đổi thành waveform
+        inputs = tokenizer(text, return_tensors="pt")
+        with torch.no_grad():
+            output = model(**inputs).waveform
+        
+        # Chuyển đổi tốc độ (resampling)
+        if speed != 1.0:
+            # Chuyển về numpy array để xử lý
+            waveform_np = output.squeeze().numpy()
+            
+            # Số lượng mẫu mới dựa trên tốc độ
+            new_length = int(len(waveform_np) / speed)
+            
+            # Resampling đơn giản
+            indices = np.linspace(0, len(waveform_np) - 1, new_length)
+            waveform_np_resampled = np.interp(indices, np.arange(len(waveform_np)), waveform_np)
+            
+            # Chuyển lại thành tensor để xử lý tiếp
+            waveform_resampled = torch.from_numpy(waveform_np_resampled).unsqueeze(0)
+        else:
+            waveform_resampled = output
+        
+        # Chuẩn bị buffer để lưu dữ liệu
+        audio_buffer = io.BytesIO()
+        
+        # Lấy thông tin từ waveform
+        sample_rate = 16000  # Sample rate mặc định của mô hình
+        waveform_np = waveform_resampled.squeeze().numpy()
+        
+        # Lưu vào buffer dưới dạng WAV
+        sf.write(audio_buffer, waveform_np, sample_rate, format='WAV')
+        
+        # Chuyển con trỏ về đầu buffer
+        audio_buffer.seek(0)
+        
+        # Lấy dữ liệu và mã hóa base64
+        audio_data = audio_buffer.read()
+        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+        
+        return audio_base64
+        
+    except Exception as e:
+        logger.error(f"Lỗi khi sử dụng mô hình Hugging Face TTS: {str(e)}")
+        logger.error(f"Chi tiết lỗi:", exc_info=True)
+        return None
+
+# Hàm chuyển đổi text thành speech sử dụng OpenAI API (giữ để backup)
 def text_to_speech(text, api_key, voice="alloy"):
     """
     Chuyển đổi văn bản thành giọng nói sử dụng OpenAI TTS API
