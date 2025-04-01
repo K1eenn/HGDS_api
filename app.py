@@ -204,9 +204,11 @@ class ChatRequest(BaseModel):
     session_id: str  # ID phiên làm việc
     member_id: Optional[str] = None  # ID thành viên (nếu có)
     message: MessageContent  # Tin nhắn mới nhất
+    content_type: str = "text"  # THÊM TRƯỜNG MỚI: "text", "image", "audio"
     openai_api_key: Optional[str] = None
     tavily_api_key: Optional[str] = None
     messages: Optional[List[Message]] = None  # Optional để tương thích ngược
+
 
 class ChatResponse(BaseModel):
     session_id: str
@@ -214,6 +216,7 @@ class ChatResponse(BaseModel):
     # suggested_questions: Optional[List[str]] = None
     audio_response: Optional[str] = None
     response_format: Optional[str] = "html"  # Thêm trường chỉ định format
+    content_type: Optional[str] = "text"  # THÊM TRƯỜNG MỚI: phản hồi lại loại content
 
 class MemberModel(BaseModel):
     name: str
@@ -274,9 +277,17 @@ async def chat_endpoint(chat_request: ChatRequest):
     # Xử lý tin nhắn mới
     message_dict = chat_request.message.dict()
     
+    # Ghi log loại content để debug
+    logger.info(f"Nhận request với content_type: {chat_request.content_type}")
+    
     # Xử lý âm thanh nếu có
-    if message_dict["type"] == "audio" and message_dict.get("audio_data"):
+    if chat_request.content_type == "audio" and message_dict.get("type") == "audio" and message_dict.get("audio_data"):
         message_dict = process_audio(message_dict, openai_api_key)
+        logger.info(f"Đã xử lý audio thành text: {message_dict.get('text', '')[:50]}...")
+    
+    # Xử lý hình ảnh - không thay đổi message_dict nhưng ghi log
+    elif chat_request.content_type == "image" and message_dict.get("type") == "image_url":
+        logger.info(f"Đã nhận hình ảnh để xử lý: {message_dict.get('image_url', {}).get('url', '')[:50]}...")
     
     # Thêm tin nhắn vào danh sách messages
     session["messages"].append({
@@ -364,7 +375,8 @@ async def chat_endpoint(chat_request: ChatRequest):
             session_id=chat_request.session_id,
             messages=session["messages"],
             audio_response=audio_response,
-            response_format="html"
+            response_format="html",
+            content_type=chat_request.content_type  # Trả về loại content đã nhận
         )
         
     except Exception as e:
@@ -399,9 +411,17 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
     # Xử lý tin nhắn mới
     message_dict = chat_request.message.dict()
     
+    # Ghi log loại content để debug
+    logger.info(f"Nhận streaming request với content_type: {chat_request.content_type}")
+    
     # Xử lý âm thanh nếu có
-    if message_dict["type"] == "audio" and message_dict.get("audio_data"):
+    if chat_request.content_type == "audio" and message_dict.get("type") == "audio" and message_dict.get("audio_data"):
         message_dict = process_audio(message_dict, openai_api_key)
+        logger.info(f"Đã xử lý audio thành text: {message_dict.get('text', '')[:50]}...")
+    
+    # Xử lý hình ảnh - không thay đổi message_dict nhưng ghi log
+    elif chat_request.content_type == "image" and message_dict.get("type") == "image_url":
+        logger.info(f"Đã nhận hình ảnh để xử lý: {message_dict.get('image_url', {}).get('url', '')[:50]}...")
     
     # Thêm tin nhắn vào danh sách messages
     session["messages"].append({
@@ -474,7 +494,7 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
                 
                 # Trả về từng phần phản hồi dưới dạng JSON lines
                 if chunk_text:
-                    yield json.dumps({"chunk": chunk_text, "type": "html"}) + "\n"
+                    yield json.dumps({"chunk": chunk_text, "type": "html", "content_type": chat_request.content_type}) + "\n"
                     
                     # Đảm bảo chunk được gửi ngay lập tức
                     await asyncio.sleep(0)
@@ -498,13 +518,14 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
             yield json.dumps({
                 "complete": True,
                 # "suggested_questions": suggested_questions,
-                "audio_response": text_to_speech_google(full_response)
+                "audio_response": text_to_speech_google(full_response),
+                "content_type": chat_request.content_type  # Trả về loại content đã nhận
             }) + "\n"
             
         except Exception as e:
             logger.error(f"Lỗi trong quá trình stream: {str(e)}")
             error_msg = f"Có lỗi xảy ra: {str(e)}"
-            yield json.dumps({"error": error_msg}) + "\n"
+            yield json.dumps({"error": error_msg, "content_type": chat_request.content_type}) + "\n"
     
     # Trả về StreamingResponse
     return StreamingResponse(
@@ -2045,10 +2066,14 @@ async def analyze_image_endpoint(
     file: UploadFile = File(...),
     openai_api_key: str = Form(...),
     member_id: Optional[str] = Form(None),
-    prompt: Optional[str] = Form("Describe what you see in this image")
+    prompt: Optional[str] = Form("Describe what you see in this image"),
+    content_type: str = Form("image")  # THÊM TRƯỜNG MỚI
 ):
     """Endpoint phân tích hình ảnh"""
     try:
+        # Ghi log nội dung loại request
+        logger.info(f"Nhận yêu cầu phân tích ảnh với content_type: {content_type}")
+        
         # Đọc file hình ảnh
         image_content = await file.read()
         
@@ -2078,10 +2103,23 @@ async def analyze_image_endpoint(
         # Xóa file tạm sau khi xử lý
         os.remove(temp_img_path)
         
+        # Chuyển đổi phân tích thành âm thanh nếu cần
+        analysis_text = response.choices[0].message.content
+        audio_response = None
+        
+        # Tạo phản hồi âm thanh nếu cần
+        try:
+            audio_response = text_to_speech_google(analysis_text)
+            logger.info("Đã tạo âm thanh từ phân tích hình ảnh")
+        except Exception as audio_err:
+            logger.error(f"Không thể tạo âm thanh từ phân tích: {str(audio_err)}")
+        
         # Trả về kết quả phân tích
         return {
-            "analysis": response.choices[0].message.content,
-            "member_id": member_id
+            "analysis": analysis_text,
+            "member_id": member_id,
+            "content_type": content_type,
+            "audio_response": audio_response
         }
         
     except Exception as e:
