@@ -190,10 +190,8 @@ verify_data_structure()
 # ------- Request & Response Models ------------
 
 class MessageContent(BaseModel):
-    type: str  # "text", "image_url", "audio", "html" - Thêm loại "html"
     text: Optional[str] = None
-    html: Optional[str] = None  # Thêm trường này để chứa nội dung HTML
-    image_url: Optional[Dict[str, str]] = None
+    html: Optional[str] = None
     audio_data: Optional[str] = None
 
 class Message(BaseModel):
@@ -212,9 +210,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     session_id: str
-    messages: List[Message]  # Ahora solo contendrá mensajes del asistente
-    audio_response: Optional[str] = None
-    response_format: Optional[str] = "html"
+    messages: MessageContent
     content_type: Optional[str] = "text"
 
 
@@ -370,16 +366,18 @@ async def chat_endpoint(chat_request: ChatRequest):
         # Chuyển đổi văn bản thành giọng nói
         audio_response = text_to_speech_google(assistant_response)
         
-        # THAY ĐỔI: Chỉ giữ lại tin nhắn từ assistant trong response
-        assistant_messages = [msg for msg in session["messages"] if msg["role"] == "assistant"]
+        # THAY ĐỔI: Tạo response đơn giản hơn với tin nhắn HTML và audio
+        simplified_response = MessageContent(
+            text=None,
+            html=assistant_response,
+            audio_data=audio_response
+        )
         
-        # Trả về kết quả (không còn suggested_questions)
+        # Trả về kết quả đơn giản hơn
         return ChatResponse(
             session_id=chat_request.session_id,
-            messages=assistant_messages,  # Chỉ trả về tin nhắn của trợ lý
-            audio_response=audio_response,
-            response_format="html",
-            content_type=chat_request.content_type  # Trả về loại content đã nhận
+            messages=simplified_response,
+            content_type=chat_request.content_type
         )
         
     except Exception as e:
@@ -516,14 +514,18 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
                 summary = generate_chat_summary(session["messages"], openai_api_key)
                 save_chat_history(session["current_member"], session["messages"], summary)
             
-            # THAY ĐỔI: Chỉ giữ lại tin nhắn từ assistant trong response
-            assistant_messages = [msg for msg in session["messages"] if msg["role"] == "assistant"]
+            # Tạo response dạng audio
+            audio_response = text_to_speech_google(full_response)
             
-            # Gửi tin nhắn phản hồi cuối cùng
+            # THAY ĐỔI: Gửi tin nhắn phản hồi cuối cùng với định dạng đơn giản hơn
             yield json.dumps({
                 "complete": True,
-                "messages": assistant_messages,  # Chỉ trả về tin nhắn của trợ lý
-                "audio_response": text_to_speech_google(full_response),
+                "session_id": chat_request.session_id,
+                "messages": {
+                    "text": None,
+                    "html": full_response,
+                    "audio_data": audio_response
+                },
                 "content_type": chat_request.content_type
             }) + "\n"
             
