@@ -21,6 +21,7 @@ import uuid
 from openai import OpenAI
 import shutil
 import tempfile
+from gtts import gTTS
 
 # Tải biến môi trường
 dotenv.load_dotenv()
@@ -210,7 +211,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     session_id: str
     messages: List[Message]
-    suggested_questions: Optional[List[str]] = None
+    # suggested_questions: Optional[List[str]] = None
     audio_response: Optional[str] = None
     response_format: Optional[str] = "html"  # Thêm trường chỉ định format
 
@@ -236,6 +237,12 @@ class SearchRequest(BaseModel):
     tavily_api_key: str
     openai_api_key: str
     is_news_query: Optional[bool] = None
+
+class SuggestedQuestionsResponse(BaseModel):
+    session_id: str
+    member_id: Optional[str] = None
+    suggested_questions: List[str]
+    timestamp: str  
 
 # ------- API Endpoints -------------
 
@@ -341,7 +348,7 @@ async def chat_endpoint(chat_request: ChatRequest):
         # Thêm phản hồi vào danh sách tin nhắn
         session["messages"].append({
             "role": "assistant",
-            "content": [{"type": "html", "html": assistant_response}]  # Thay đổi type từ "text" thành "html"
+            "content": [{"type": "html", "html": assistant_response}]
         })
         
         # Lưu lịch sử chat nếu có current_member
@@ -349,24 +356,15 @@ async def chat_endpoint(chat_request: ChatRequest):
             summary = generate_chat_summary(session["messages"], openai_api_key)
             save_chat_history(session["current_member"], session["messages"], summary)
         
-        # Tạo câu hỏi gợi ý
-        suggested_questions = generate_dynamic_suggested_questions(
-            openai_api_key,
-            session["current_member"],
-            max_questions=5
-        )
+        # Chuyển đổi văn bản thành giọng nói
+        audio_response = text_to_speech_google(assistant_response)
         
-        # Chuyển đổi văn bản thành giọng nói - CHỈ chuyển đổi nội dung phản hồi
-        # Sử dụng model facebook/mms-tts-vie từ Hugging Face
-        audio_response = text_to_speech_huggingface(assistant_response)
-        
-        # Trả về kết quả
+        # Trả về kết quả (không còn suggested_questions)
         return ChatResponse(
             session_id=chat_request.session_id,
             messages=session["messages"],
-            suggested_questions=suggested_questions,
             audio_response=audio_response,
-            response_format="html"  # Chỉ định format là HTML
+            response_format="html"
         )
         
     except Exception as e:
@@ -495,18 +493,12 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
                 summary = generate_chat_summary(session["messages"], openai_api_key)
                 save_chat_history(session["current_member"], session["messages"], summary)
             
-            # Tạo câu hỏi gợi ý và gửi ở cuối stream
-            suggested_questions = generate_dynamic_suggested_questions(
-                openai_api_key, 
-                session["current_member"], 
-                max_questions=5
-            )
             
             # Gửi câu hỏi gợi ý ở cuối
             yield json.dumps({
                 "complete": True,
-                "suggested_questions": suggested_questions,
-                "audio_response": text_to_speech(full_response, openai_api_key)
+                # "suggested_questions": suggested_questions,
+                "audio_response": text_to_speech_google(full_response)
             }) + "\n"
             
         except Exception as e:
@@ -617,6 +609,78 @@ async def delete_session(session_id: str):
     if session_manager.delete_session(session_id):
         return {"status": "success"}
     raise HTTPException(status_code=404, detail="Phiên làm việc không tồn tại")
+
+@app.get("/suggested_questions")
+async def get_suggested_questions(
+    session_id: str,
+    member_id: Optional[str] = None,
+    openai_api_key: Optional[str] = None
+):
+    """
+    Endpoint riêng biệt để lấy câu hỏi gợi ý cho người dùng
+    """
+    # Xác thực API key
+    api_key = openai_api_key or os.getenv("OPENAI_API_KEY", "")
+    
+    if not api_key or "sk-" not in api_key:
+        raise HTTPException(status_code=400, detail="OpenAI API key không hợp lệ")
+    
+    # Lấy session nếu tồn tại
+    session = session_manager.get_session(session_id)
+    
+    # Nếu member_id được cung cấp, sử dụng nó. Nếu không, thử dùng member_id từ session
+    current_member_id = member_id or session.get("current_member")
+    
+    # Tạo câu hỏi gợi ý
+    suggested_questions = generate_dynamic_suggested_questions(
+        api_key,
+        current_member_id,
+        max_questions=5
+    )
+    
+    # Tạo timestamp hiện tại
+    current_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Lưu câu hỏi gợi ý vào session (để có thể tái sử dụng nếu cần)
+    session["suggested_question"] = suggested_questions
+    session["question_timestamp"] = current_timestamp
+    
+    # Trả về kết quả
+    return SuggestedQuestionsResponse(
+        session_id=session_id,
+        member_id=current_member_id,
+        suggested_questions=suggested_questions,
+        timestamp=current_timestamp
+    )
+
+# 6. Thêm endpoint để lấy các câu hỏi gợi ý đã tạo trước đó (nếu có)
+
+@app.get("/cached_suggested_questions")
+async def get_cached_suggested_questions(session_id: str):
+    """
+    Lấy câu hỏi gợi ý đã tạo trước đó trong session, nếu có
+    """
+    session = session_manager.get_session(session_id)
+    
+    suggested_questions = session.get("suggested_question", [])
+    timestamp = session.get("question_timestamp", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    
+    if not suggested_questions:
+        # Nếu không có câu hỏi đã lưu, trả về danh sách trống
+        return SuggestedQuestionsResponse(
+            session_id=session_id,
+            member_id=session.get("current_member"),
+            suggested_questions=[],
+            timestamp=timestamp
+        )
+    
+    # Nếu có câu hỏi đã lưu, trả về chúng
+    return SuggestedQuestionsResponse(
+        session_id=session_id,
+        member_id=session.get("current_member"),
+        suggested_questions=suggested_questions,
+        timestamp=timestamp
+    )
 
 # ------- Các hàm xử lý từ ứng dụng Streamlit gốc -------------
 
@@ -1521,6 +1585,62 @@ def save_chat_history(member_id, messages, summary=None):
     # Lưu vào file
     save_data(CHAT_HISTORY_FILE, chat_history)
 
+def text_to_speech_google(text, lang='vi', slow=False, max_length=5000):
+    """
+    Chuyển đổi văn bản thành giọng nói sử dụng Google Text-to-Speech
+    
+    Args:
+        text (str): Văn bản cần chuyển đổi (có thể chứa HTML)
+        lang (str): Ngôn ngữ (mặc định: 'vi' cho tiếng Việt)
+        slow (bool): True để nói chậm hơn, False cho tốc độ bình thường
+        max_length (int): Độ dài tối đa của văn bản
+        
+    Returns:
+        str: Base64 encoded audio data
+    """
+    try:
+        # Loại bỏ các thẻ HTML từ văn bản
+        import re
+        from html import unescape
+        
+        # Loại bỏ các thẻ HTML
+        clean_text = re.sub(r'<[^>]*>', ' ', text)
+        
+        # Thay thế các ký tự đặc biệt như &nbsp;, &quot;, &amp;, ...
+        clean_text = unescape(clean_text)
+        
+        # Loại bỏ khoảng trắng thừa
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+        
+        logger.info(f"Đã chuyển đổi văn bản HTML thành plain text để TTS")
+        
+        # Giới hạn độ dài văn bản
+        if len(clean_text) > max_length:
+            clean_text = clean_text[:max_length] + "..."
+        
+        # Tạo buffer để lưu audio
+        audio_buffer = BytesIO()
+        
+        # Khởi tạo gTTS
+        tts = gTTS(text=clean_text, lang=lang, slow=slow)
+        
+        # Lưu vào buffer
+        tts.write_to_fp(audio_buffer)
+        
+        # Chuyển con trỏ về đầu buffer
+        audio_buffer.seek(0)
+        
+        # Lấy dữ liệu và mã hóa base64
+        audio_data = audio_buffer.read()
+        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+        
+        return audio_base64
+        
+    except Exception as e:
+        logger.error(f"Lỗi khi sử dụng Google TTS: {str(e)}")
+        logger.error(f"Chi tiết lỗi:", exc_info=True)
+        return None
+
 # Hàm chuyển đổi text thành speech sử dụng facebook/mms-tts-vie từ Hugging Face
 def text_to_speech_huggingface(text, speed=1.0, max_length=1000):
     """
@@ -1627,6 +1747,7 @@ def text_to_speech(text, api_key, voice="alloy"):
     except Exception as e:
         logger.error(f"Lỗi khi chuyển đổi văn bản thành giọng nói: {str(e)}")
         return None
+
 
 # Hàm chuyển đổi text thành speech
 def text_to_speech(text, api_key, voice="nova", speed=0.8, max_length=4096):
@@ -1902,6 +2023,8 @@ async def root():
         "endpoints": [
             "/chat - Endpoint chính để tương tác với trợ lý",
             "/chat/stream - Phiên bản streaming của endpoint chat",
+            "/suggested_questions - Tạo và lấy câu hỏi gợi ý cho người dùng",
+            "/cached_suggested_questions - Lấy câu hỏi gợi ý đã tạo trước đó",
             "/family_members - Quản lý thành viên gia đình",
             "/events - Quản lý sự kiện",
             "/notes - Quản lý ghi chú",
@@ -2001,17 +2124,18 @@ async def transcribe_audio_endpoint(
 @app.post("/tts")
 async def text_to_speech_endpoint(
     text: str = Form(...),
-    openai_api_key: str = Form(...),
-    voice: str = Form(default="alloy")
+    lang: str = Form(default="vi"),
+    slow: bool = Form(default=False)
 ):
-    """Endpoint chuyển đổi văn bản thành giọng nói"""
+    """Endpoint chuyển đổi văn bản thành giọng nói sử dụng Google TTS"""
     try:
-        audio_base64 = text_to_speech(text, openai_api_key, voice)
+        audio_base64 = text_to_speech_google(text, lang, slow)
         if audio_base64:
             return {
                 "audio_data": audio_base64,
                 "format": "mp3",
-                "voice": voice
+                "lang": lang,
+                "provider": "Google TTS"
             }
         else:
             raise HTTPException(status_code=500, detail="Không thể chuyển đổi văn bản thành giọng nói")

@@ -1,6 +1,168 @@
 {
     "1": [
         {
+            "timestamp": "2025-04-01 14:45:49",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Xin chào",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Xin chào!</strong> Tôi là trợ lý gia đình của bạn. Tôi có thể giúp gì cho bạn hôm nay?</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
+            "timestamp": "2025-04-01 14:40:52",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Xin chào",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Xin chào! Tôi là trợ lý gia đình thông minh. Tôi có thể giúp gì cho bạn hôm nay?</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
+            "timestamp": "2025-04-01 14:35:31",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Xin chào",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Xin chào! Tôi có thể giúp gì cho bạn hôm nay? Nếu bạn cần thêm thông tin về thành viên gia đình, sự kiện, ghi chú hoặc bất kỳ điều gì khác, hãy cho tôi biết!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
+            "timestamp": "2025-04-01 14:33:03",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Xin chào",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Xin chào! Tôi có thể giúp gì cho bạn hôm nay? Nếu bạn cần thêm thông tin về gia đình, sự kiện, ghi chú hoặc bất kỳ yêu cầu nào khác, hãy cho tôi biết!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
+            "timestamp": "2025-04-01 14:30:16",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Xin chào",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Xin chào!</strong> Tôi là trợ lý gia đình thông minh của bạn. Bạn cần giúp gì hôm nay?</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
+            "timestamp": "2025-04-01 13:58:36",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Xin chào",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Xin chào!</strong> Tôi là trợ lý gia đình thông minh của bạn. Tôi có thể giúp gì cho bạn hôm nay?</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
             "timestamp": "2025-04-01 11:29:47",
             "messages": [
                 {
@@ -104,184 +266,6 @@
                 }
             ],
             "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
-        },
-        {
-            "timestamp": "2025-04-01 10:12:16",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "xin chào",
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Chào bạn! Tôi có thể giúp gì cho bạn hôm nay?"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
-        },
-        {
-            "timestamp": "2025-04-01 09:54:45",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Thêm lịch học tiếng anh vào sáng mai",
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Tôi đã thêm sự kiện \"Lịch học tiếng Anh\" vào sáng mai. \n\n##ADD_EVENT:{\"title\":\"Lịch học tiếng Anh\",\"date\":\"2025-04-02\",\"time\":\"19:00\",\"description\":\"Học tiếng Anh\",\"participants\":[]}## \n\nSự kiện đã được ghi nhận thành công!"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
-        },
-        {
-            "timestamp": "2025-03-28 16:49:51",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "xin chào",
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Xin chào! Bạn cần giúp gì hôm nay?"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
-        },
-        {
-            "timestamp": "2025-03-27 15:54:48",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Tin tức hôm nay có gì đáng chú ý không?",
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Hôm nay, ngày 27/03/2025, có một số tin tức đáng chú ý như sau:\n\n1. **Giá vàng tăng mạnh**: Giá vàng trên thị trường quốc tế đã tăng trở lại, với giá vàng thế giới giao ngay đạt 3.037,7 USD/ounce, tăng 14 USD/ounce so với đầu giờ sáng. Tại Việt Nam, giá vàng SJC và nhẫn tròn cũng điều chỉnh tăng, với giá vàng nhẫn tròn trơn lên tới 99,5 triệu đồng/lượng. Giá vàng 9999 của SJC được niêm yết ở mức 97,2-98,7 triệu đồng/lượng (mua vào - bán ra) (Nguồn: [VietnamNet](https://vietnamnet.vn/gia-vang-hom-nay-27-3-2025-the-gioi-van-bat-on-sjc-va-nhan-tron-giam-hay-tang-2384802.html)).\n\n2. **Hà Nội xử phạt xe chở quá tải**: Từ ngày 1/3 đến nay, lực lượng CSGT Hà Nội đã phát hiện và xử lý hơn 100 trường hợp xe chở quá tải, với tổng số tiền phạt gần 1 tỷ đồng. Tình trạng này đang gia tăng, gây mất an toàn giao thông và ô nhiễm môi trường, đặc biệt là ở các khu vực ngoại thành (Nguồn: [VTV](https://vtv.vn/xa-hoi/ha-noi-phat-gan-1-ty-dong-hon-100-xe-cho-qua-tai-o-ngoai-thanh-tu-1-3-20250327123042121.htm)).\n\n3. **Tin tức quốc tế**: Tổng thống Mỹ Donald Trump đã công bố kế hoạch áp thuế nhập khẩu ô tô lên đến 25% đối với các xe không sản xuất tại Mỹ, có hiệu lực từ ngày 2/4. Ông cũng đang xem xét việc giảm thuế cho Trung Quốc để hoàn tất thương vụ mua lại TikTok tại Mỹ. Trong khi đó, Mỹ đang cân nhắc các điều kiện của Nga cho thỏa thuận ngừng bắn ở Biển Đen (Nguồn: [Tuổi Trẻ](https://tuoitre.vn/tin-tuc-the-gioi-27-3-ong-trump-dung-la-bai-thue-voi-trung-quoc-de-lay-cho-duoc-tiktok-20250327065214285.htm)).\n\nNgày hôm nay ghi nhận nhiều sự kiện quan trọng liên quan đến kinh tế và chính trị."
-                        }
-                    ]
-                }
-            ],
-            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
-        },
-        {
-            "timestamp": "2025-03-27 14:35:54",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Tin tức hôm nay có gì đáng chú ý không?",
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Hôm nay, 27 tháng 3 năm 2025, có một số tin tức đáng chú ý như sau:\n\n1. **Giá điện có thể tăng từ 2-5%**: Bộ Công Thương Việt Nam đã đề xuất cơ chế điều chỉnh giá điện bán lẻ bình quân 3 tháng một lần, cho phép Tập đoàn Điện lực Việt Nam (EVN) tự quyết định tăng hoặc giảm giá điện trong một số trường hợp. Đề xuất này nhằm tạo ra sự linh hoạt hơn trong việc điều chỉnh giá điện theo biến động thị trường. [Nguồn: Tuổi Trẻ](https://tuoitre.vn/gia-dien-tang-tu-2-5-evn-co-the-duoc-tu-quyet-trong-3-thang-lan-20250327113732881.htm)\n\n2. **Giá vàng duy trì ở mức cao**: Giá vàng trong nước hôm nay dao động quanh mức 98,4 triệu đồng/lượng, với vàng nhẫn Doji đạt 100 triệu đồng/lượng. Dự báo giá vàng có thể tiếp tục tăng trong thời gian tới. [Nguồn: VietnamNet](https://vietnamnet.vn/gia-vang-hom-nay-27-3-2025-the-gioi-van-bat-on-sjc-va-nhan-tron-giam-hay-tang-2384802.html)\n\n3. **Tin thể thao**: Alexander Zverev, hạt giống số 1 tại Miami Open 2025, đã bị loại sau thất bại trước Arthur Fils. Đây là một cú sốc lớn cho Zverev, người được kỳ vọng sẽ giành danh hiệu đầu tiên trong năm nay. [Nguồn: Tuổi Trẻ](https://tuoitre.vn/tin-tuc-the-thao-sang-27-3-zverev-bi-loai-khoi-miami-open-2025-20250327061404435.htm)\n\nNhững thông tin này phản ánh tình hình kinh tế và thể thao hiện tại, đáng chú ý cho người dân và các nhà đầu tư."
-                        }
-                    ]
-                }
-            ],
-            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
-        },
-        {
-            "timestamp": "2025-03-27 14:31:13",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Chào trợ lý!",
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Xin chào! Tôi là trợ lý gia đình của bạn. Tôi có thể giúp gì cho bạn hôm nay?",
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Tin tức hôm nay có gì đáng chú ý không?",
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Bản tin ngày 27 tháng 3 năm 2025 có một số tin tức đáng chú ý như sau:\n\n1. **Giá điện có thể tăng từ 2-5%**: Bộ Công Thương đã đề xuất cơ chế điều chỉnh giá điện mới, cho phép Tập đoàn Điện lực Việt Nam (EVN) tự quyết định điều chỉnh giá bán lẻ điện bình quân 3 tháng/lần. Đề xuất này nhằm đảm bảo tính minh bạch và phản ánh đúng chi phí sản xuất điện. (Nguồn: [Tuổi Trẻ](https://tuoitre.vn/gia-dien-tang-tu-2-5-evn-co-the-duoc-tu-quyet-trong-3-thang-lan-20250327113732881.htm))\n\n2. **Giá vàng trong nước ổn định**: Vào ngày hôm nay, giá vàng SJC và nhẫn tròn trơn giữ nguyên ở mức 98,4 triệu đồng/lượng, trong khi nhẫn trơn Doji đã tăng lên 100 triệu đồng/lượng. (Nguồn: [VietnamNet](https://vietnamnet.vn/gia-vang-hom-nay-27-3-2025-the-gioi-van-bat-on-sjc-va-nhan-tron-giam-hay-tang-2384802.html))\n\n3. **Tin tức thể thao**: Alexander Zverev, hạt giống số 1 của giải quần vợt Miami Open 2025, đã bất ngờ bị loại ở vòng 4 bởi hạt giống số 17 Arthur Fils. (Nguồn: [Tuổi Trẻ](https://tuoitre.vn/tin-tuc-the-thao-sang-27-3-zverev-bi-loai-khoi-miami-open-2025-20250327061404435.htm))\n\nNhững thông tin này phản ánh tình hình kinh tế và xã hội hiện tại, cũng như sự quan tâm của công chúng đối với các sự kiện thể thao lớn. Nếu bạn cần thêm thông tin gì khác, hãy cho tôi biết!"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Người dùng hỏi về tin tức đáng chú ý trong ngày, và trợ lý đã cung cấp ba thông tin chính: khả năng tăng giá điện từ 2-5% do đề xuất của Bộ Công Thương, giá vàng trong nước ổn định, và tin thể thao về việc Alexander Zverev bị loại khỏi Miami Open 2025. Trợ lý cũng mời người dùng yêu cầu thêm thông tin nếu cần."
         }
     ]
 }
