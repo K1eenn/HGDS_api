@@ -218,6 +218,17 @@ class ChatResponse(BaseModel):
     content_type: Optional[str] = "text"
 
 
+class SimplifiedMessageContent(BaseModel):
+    """Nội dung tin nhắn được đơn giản hóa cho response"""
+    text: Optional[str] = None  # Giữ lại phòng trường hợp cần text thuần
+    html: Optional[str] = None  # Nội dung HTML chính
+    audio_data: Optional[str] = None # Dữ liệu audio base64
+
+class SimplifiedChatResponse(BaseModel):
+    """Response được đơn giản hóa cho endpoint chat"""
+    session_id: str
+    messages: SimplifiedMessageContent # Thay List[Message] bằng object này
+
 class MemberModel(BaseModel):
     name: str
     age: Optional[str] = None
@@ -351,37 +362,37 @@ async def chat_endpoint(chat_request: ChatRequest):
         )
         
         # Lấy kết quả phản hồi
-        assistant_response = response.choices[0].message.content
-        
+        assistant_response = response.choices[0].message.content # Đây là nội dung HTML
+
         # Xử lý lệnh đặc biệt trong phản hồi
         process_assistant_response(assistant_response, session["current_member"])
-        
-        # Thêm phản hồi vào danh sách tin nhắn
+
+        # Thêm phản hồi vào danh sách tin nhắn session (vẫn lưu đầy đủ để giữ ngữ cảnh)
         session["messages"].append({
             "role": "assistant",
             "content": [{"type": "html", "html": assistant_response}]
         })
-        
+
         # Lưu lịch sử chat nếu có current_member
         if session["current_member"]:
             summary = generate_chat_summary(session["messages"], openai_api_key)
             save_chat_history(session["current_member"], session["messages"], summary)
-        
+
         # Chuyển đổi văn bản thành giọng nói
-        audio_response = text_to_speech_google(assistant_response)
-        
-        # THAY ĐỔI: Chỉ giữ lại tin nhắn từ assistant trong response
-        assistant_messages = [msg for msg in session["messages"] if msg["role"] == "assistant"]
-        
-        # Trả về kết quả (không còn suggested_questions)
-        return ChatResponse(
-            session_id=chat_request.session_id,
-            messages=assistant_messages,  # Chỉ trả về tin nhắn của trợ lý
-            audio_response=audio_response,
-            response_format="html",
-            content_type=chat_request.content_type  # Trả về loại content đã nhận
+        audio_base64_response = text_to_speech_google(assistant_response)
+
+        # TẠO RESPONSE ĐƠN GIẢN HÓA
+        simplified_content = SimplifiedMessageContent(
+            html=assistant_response, # Nội dung chính là HTML
+            audio_data=audio_base64_response # Dữ liệu audio
         )
-        
+
+        # Trả về kết quả theo cấu trúc mới
+        return SimplifiedChatResponse(
+            session_id=chat_request.session_id,
+            messages=simplified_content
+        )
+
     except Exception as e:
         logger.error(f"Lỗi trong quá trình xử lý chat: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Lỗi xử lý: {str(e)}")
@@ -494,48 +505,60 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
             for chunk in stream:
                 chunk_text = chunk.choices[0].delta.content or ""
                 full_response += chunk_text
-                
-                # Trả về từng phần phản hồi dưới dạng JSON lines
+
+                # Trả về từng phần phản hồi dưới dạng JSON lines (giữ nguyên cấu trúc chunk)
                 if chunk_text:
                     yield json.dumps({"chunk": chunk_text, "type": "html", "content_type": chat_request.content_type}) + "\n"
-                    
-                    # Đảm bảo chunk được gửi ngay lập tức
                     await asyncio.sleep(0)
-            
+
             # Khi stream kết thúc, xử lý phản hồi đầy đủ
             process_assistant_response(full_response, session["current_member"])
-            
-            # Lưu phản hồi vào session
+
+            # Lưu phản hồi vào session (vẫn lưu đầy đủ)
             session["messages"].append({
                 "role": "assistant",
                 "content": [{"type": "html", "html": full_response}]
             })
-            
+
             # Lưu lịch sử chat
             if session["current_member"]:
                 summary = generate_chat_summary(session["messages"], openai_api_key)
                 save_chat_history(session["current_member"], session["messages"], summary)
-            
-            # THAY ĐỔI: Chỉ giữ lại tin nhắn từ assistant trong response
-            assistant_messages = [msg for msg in session["messages"] if msg["role"] == "assistant"]
-            
-            # Gửi tin nhắn phản hồi cuối cùng
+
+            # Chuyển đổi văn bản thành giọng nói SAU KHI có full_response
+            audio_base64_response = text_to_speech_google(full_response)
+
+            # TẠO MESSAGE CUỐI CÙNG ĐƠN GIẢN HÓA
+            simplified_content = SimplifiedMessageContent(
+                html=full_response, # Nội dung HTML đầy đủ
+                audio_data=audio_base64_response # Dữ liệu audio
+            )
+
+            # Gửi tin nhắn phản hồi cuối cùng theo cấu trúc mới
             yield json.dumps({
                 "complete": True,
-                "messages": assistant_messages,  # Chỉ trả về tin nhắn của trợ lý
-                "audio_response": text_to_speech_google(full_response),
-                "content_type": chat_request.content_type
+                "session_id": chat_request.session_id, # Thêm session_id vào đây
+                "messages": simplified_content.dict() # Gửi object message đơn giản
             }) + "\n"
-            
+
         except Exception as e:
             logger.error(f"Lỗi trong quá trình stream: {str(e)}")
             error_msg = f"Có lỗi xảy ra: {str(e)}"
-            yield json.dumps({"error": error_msg, "content_type": chat_request.content_type}) + "\n"
-    
+            # Có thể trả về lỗi theo cấu trúc mới nếu muốn
+            simplified_error_content = SimplifiedMessageContent(text=error_msg)
+            yield json.dumps({
+                 "complete": True, # Đánh dấu là hoàn thành dù có lỗi
+                 "session_id": chat_request.session_id,
+                 "error": error_msg, # Giữ lại trường error riêng
+                 "messages": simplified_error_content.dict()
+            }) + "\n"
+            # Hoặc chỉ trả về lỗi đơn giản
+            # yield json.dumps({"error": error_msg, "session_id": chat_request.session_id}) + "\n"
+
     # Trả về StreamingResponse
     return StreamingResponse(
         response_stream_generator(),
-        media_type="application/x-ndjson"
+        media_type="application/x-ndjson" # Giữ nguyên media type
     )
 
 @app.get("/family_members")
