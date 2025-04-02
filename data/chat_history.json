@@ -1,0 +1,102 @@
+{
+    "1": [
+        {
+            "timestamp": "2025-04-02 14:07:23",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "xin chào tôi là kiên",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Xin chào Kiên!</strong> Rất vui được gặp bạn. Bạn cần tôi giúp gì hôm nay?</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tên tôi là gì",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Tên của bạn là Kiên.</strong></p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng giới thiệu tên là Kiên và hỏi về tên của mình.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-02 14:06:17",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "xin chào tôi là kiên",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Xin chào Kiên!</strong> Rất vui được gặp bạn. Bạn cần tôi giúp gì hôm nay?</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tên tôi là gì",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Tên của bạn là Kiên.</strong></p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ]
+}

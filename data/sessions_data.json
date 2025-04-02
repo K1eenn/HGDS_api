@@ -1,0 +1,54 @@
+{
+  "555": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "xin chào tôi là kiên",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "<p><strong>Xin chào Kiên!</strong> Rất vui được gặp bạn. Bạn cần tôi giúp gì hôm nay?</p>"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Tên tôi là gì",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "<p><strong>Tên của bạn là Kiên.</strong></p>"
+          }
+        ]
+      }
+    ],
+    "current_member": "1",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 14:06:13",
+    "last_updated": "2025-04-02 14:07:23"
+  }
+}

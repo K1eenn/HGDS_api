@@ -46,15 +46,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+DATA_DIR = os.environ.get("DATA_DIR", "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
 # Đường dẫn file lưu trữ dữ liệu
-FAMILY_DATA_FILE = "family_data.json"
-EVENTS_DATA_FILE = "events_data.json"
-NOTES_DATA_FILE = "notes_data.json"
-CHAT_HISTORY_FILE = "chat_history.json"
+FAMILY_DATA_FILE = os.path.join(DATA_DIR, "family_data.json")
+EVENTS_DATA_FILE = os.path.join(DATA_DIR, "events_data.json")
+NOTES_DATA_FILE = os.path.join(DATA_DIR, "notes_data.json")
+CHAT_HISTORY_FILE = os.path.join(DATA_DIR, "chat_history.json")
+SESSIONS_DATA_FILE = os.path.join(DATA_DIR, "sessions_data.json")
 
 # Thư mục lưu trữ tạm thời
-TEMP_DIR = "temp_files"
+TEMP_DIR = os.path.join(DATA_DIR, "temp_files")
 os.makedirs(TEMP_DIR, exist_ok=True)
+
+
 
 # Danh sách domain tin tức Việt Nam
 VIETNAMESE_NEWS_DOMAINS = [
@@ -79,10 +85,37 @@ openai_model = "gpt-4o-mini"
 # ------- Classes & Models -------------
 
 class SessionManager:
-    """Quản lý session và trạng thái cho mỗi client"""
+    """Quản lý session và trạng thái cho mỗi client với khả năng lưu trạng thái"""
     
-    def __init__(self):
+    def __init__(self, sessions_file="sessions_data.json"):
         self.sessions = {}
+        self.sessions_file = sessions_file
+        self._load_sessions()
+        
+    def _load_sessions(self):
+        """Tải dữ liệu session từ file"""
+        try:
+            if os.path.exists(self.sessions_file):
+                with open(self.sessions_file, "r", encoding="utf-8") as f:
+                    loaded_sessions = json.load(f)
+                    if isinstance(loaded_sessions, dict):
+                        self.sessions = loaded_sessions
+                        logger.info(f"Đã tải {len(self.sessions)} session từ {self.sessions_file}")
+                    else:
+                        logger.warning(f"Dữ liệu session trong {self.sessions_file} không hợp lệ, khởi tạo lại")
+        except Exception as e:
+            logger.error(f"Lỗi khi tải session: {e}")
+    
+    def _save_sessions(self):
+        """Lưu dữ liệu session vào file"""
+        try:
+            with open(self.sessions_file, "w", encoding="utf-8") as f:
+                json.dump(self.sessions, f, ensure_ascii=False, indent=2)
+            logger.info(f"Đã lưu {len(self.sessions)} session vào {self.sessions_file}")
+            return True
+        except Exception as e:
+            logger.error(f"Lỗi khi lưu session: {e}")
+            return False
         
     def get_session(self, session_id):
         """Lấy session hoặc tạo mới nếu chưa tồn tại"""
@@ -92,14 +125,20 @@ class SessionManager:
                 "current_member": None,
                 "suggested_question": None,
                 "process_suggested": False,
-                "question_cache": {}
+                "question_cache": {},
+                "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
+            self._save_sessions()
         return self.sessions[session_id]
     
     def update_session(self, session_id, data):
         """Cập nhật dữ liệu session"""
         if session_id in self.sessions:
             self.sessions[session_id].update(data)
+            # Cập nhật thời gian sửa đổi gần nhất
+            self.sessions[session_id]["last_updated"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self._save_sessions()
             return True
         return False
     
@@ -107,12 +146,37 @@ class SessionManager:
         """Xóa session"""
         if session_id in self.sessions:
             del self.sessions[session_id]
+            self._save_sessions()
             return True
         return False
+    
+    def cleanup_old_sessions(self, days_threshold=30):
+        """Xóa các session cũ không hoạt động sau số ngày nhất định"""
+        now = datetime.datetime.now()
+        sessions_to_remove = []
+        
+        for session_id, session_data in self.sessions.items():
+            last_updated = session_data.get("last_updated")
+            if last_updated:
+                try:
+                    last_updated_date = datetime.datetime.strptime(last_updated, "%Y-%m-%d %H:%M:%S")
+                    days_inactive = (now - last_updated_date).days
+                    if days_inactive > days_threshold:
+                        sessions_to_remove.append(session_id)
+                except Exception as e:
+                    logger.error(f"Lỗi khi xử lý thời gian cho session {session_id}: {e}")
+        
+        # Xóa các session cũ
+        for session_id in sessions_to_remove:
+            del self.sessions[session_id]
+        
+        if sessions_to_remove:
+            self._save_sessions()
+            logger.info(f"Đã xóa {len(sessions_to_remove)} session cũ")
 
 # Khởi tạo session manager
-session_manager = SessionManager()
-
+#session_manager = SessionManager()
+session_manager = SessionManager(SESSIONS_DATA_FILE)
 # Tải dữ liệu ban đầu
 def load_data(file_path):
     if os.path.exists(file_path):
@@ -268,10 +332,11 @@ async def chat_endpoint(chat_request: ChatRequest):
     # Cập nhật member_id nếu có sự thay đổi
     if chat_request.member_id != session["current_member"]:
         session["current_member"] = chat_request.member_id
-        session["messages"] = []
+        # THAY ĐỔI: Không reset messages khi thay đổi member, để lưu lại lịch sử trò chuyện
+        # session["messages"] = []
     
-    # Nếu client cung cấp messages mới, cập nhật
-    if chat_request.messages is not None:
+    # Nếu client cung cấp messages mới và messages hiện tại trống, cập nhật
+    if chat_request.messages is not None and not session["messages"]:
         session["messages"] = [msg.dict() for msg in chat_request.messages]
     
     # Xử lý tin nhắn mới
@@ -294,6 +359,9 @@ async def chat_endpoint(chat_request: ChatRequest):
         "role": "user",
         "content": [message_dict]
     })
+    
+    # Lưu phiên ngay sau khi cập nhật tin nhắn người dùng
+    session_manager.update_session(chat_request.session_id, {"messages": session["messages"]})
     
     # Xử lý phản hồi từ assistant
     try:
@@ -366,6 +434,9 @@ async def chat_endpoint(chat_request: ChatRequest):
         if session["current_member"]:
             summary = generate_chat_summary(session["messages"], openai_api_key)
             save_chat_history(session["current_member"], session["messages"], summary)
+        
+        # Cập nhật lại session lần cuối với tin nhắn mới nhất
+        session_manager.update_session(chat_request.session_id, {"messages": session["messages"]})
         
         # Chuyển đổi văn bản thành giọng nói
         audio_response = text_to_speech_google(assistant_response)
@@ -1589,16 +1660,17 @@ def generate_chat_summary(messages, api_key):
         return "Không thể tạo tóm tắt vào lúc này."
 
 # Hàm lưu lịch sử trò chuyện cho người dùng hiện tại
-def save_chat_history(member_id, messages, summary=None):
-    """Lưu lịch sử chat cho một thành viên cụ thể"""
+def save_chat_history(member_id, messages, summary=None, session_id=None):
+    """Lưu lịch sử chat cho một thành viên cụ thể và liên kết với session_id"""
     if member_id not in chat_history:
         chat_history[member_id] = []
     
-    # Tạo bản ghi mới
+    # Tạo bản ghi mới với session_id
     history_entry = {
         "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "messages": messages,
-        "summary": summary if summary else ""
+        "summary": summary if summary else "",
+        "session_id": session_id  # Thêm session_id vào bản ghi
     }
     
     # Thêm vào lịch sử và giới hạn số lượng
@@ -1610,6 +1682,27 @@ def save_chat_history(member_id, messages, summary=None):
     
     # Lưu vào file
     save_data(CHAT_HISTORY_FILE, chat_history)
+
+@app.get("/chat_history/session/{session_id}")
+async def get_session_chat_history(session_id: str):
+    """Lấy lịch sử trò chuyện theo session_id"""
+    session_history = []
+    
+    # Tìm trong tất cả lịch sử trò chuyện của tất cả thành viên
+    for member_id, histories in chat_history.items():
+        for history in histories:
+            if history.get("session_id") == session_id:
+                # Thêm thông tin về thành viên
+                history_with_member = history.copy()
+                history_with_member["member_id"] = member_id
+                if member_id in family_data:
+                    history_with_member["member_name"] = family_data[member_id].get("name", "")
+                session_history.append(history_with_member)
+    
+    # Sắp xếp theo thời gian
+    session_history.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    
+    return session_history
 
 def text_to_speech_google(text, lang='vi', slow=False, max_length=5000):
     """
@@ -2036,6 +2129,44 @@ def process_assistant_response(response, current_member=None):
     except Exception as e:
         logger.error(f"Lỗi khi xử lý phản hồi của trợ lý: {e}")
         logger.error(f"Phản hồi gốc: {response[:100]}...")
+
+@app.on_event("startup")
+async def startup_event():
+    """Các tác vụ cần thực hiện khi khởi động server"""
+    logger.info("Khởi động Family Assistant API server")
+    # Đảm bảo tất cả thư mục cần thiết đã được tạo
+    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(TEMP_DIR, exist_ok=True)
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Các tác vụ cần thực hiện khi đóng server"""
+    logger.info("Đóng Family Assistant API server")
+    # Lưu lại tất cả dữ liệu
+    save_data(FAMILY_DATA_FILE, family_data)
+    save_data(EVENTS_DATA_FILE, events_data)
+    save_data(NOTES_DATA_FILE, notes_data)
+    save_data(CHAT_HISTORY_FILE, chat_history)
+
+# Thêm endpoint mới để quản lý session
+@app.get("/sessions")
+async def list_sessions():
+    """Liệt kê tất cả session đang tồn tại"""
+    sessions_info = {}
+    for session_id, session_data in session_manager.sessions.items():
+        sessions_info[session_id] = {
+            "created_at": session_data.get("created_at", "unknown"),
+            "last_updated": session_data.get("last_updated", "unknown"),
+            "member_id": session_data.get("current_member"),
+            "message_count": len(session_data.get("messages", [])),
+        }
+    return sessions_info
+
+@app.delete("/cleanup_sessions")
+async def cleanup_old_sessions(days: int = 30):
+    """Xóa các session cũ không hoạt động quá số ngày chỉ định"""
+    session_manager.cleanup_old_sessions(days_threshold=days)
+    return {"status": "success", "message": f"Đã xóa các session không hoạt động trên {days} ngày"}
 
 # ----- Thêm các endpoint bổ sung -----
 

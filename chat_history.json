@@ -1,6 +1,198 @@
 {
     "1": [
         {
+            "timestamp": "2025-04-02 10:49:09",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "lượng calo của pizza",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Pizza là một món ăn nhanh phổ biến, nhưng nhiều người vẫn băn khoăn về <strong>lượng calo</strong> mà nó chứa. Dưới đây là thông tin tổng hợp về lượng calo trong pizza:</p>\n\n<ul>\n    <li><strong>Lượng calo trung bình:</strong> Trung bình, 100g pizza chứa khoảng 285 calo và 17g chất béo. Một miếng pizza nặng khoảng 107g có thể chứa khoảng 278 calo, với các thành phần như 15,4g chất béo, 640mg natri, 35,7g carbohydrate, 2,5g chất xơ, 13,8g đường và 18,5g protein.</li>\n    \n    <li><strong>Lượng calo theo loại pizza:</strong>\n        <ul>\n            <li>Pizza thịt: 250 - 300 calo/miếng.</li>\n            <li>Pizza cheese: khoảng 312 calo/miếng.</li>\n            <li>Pizza gà: khoảng 380 calo/miếng.</li>\n            <li>Pizza bò băm: khoảng 470 calo/miếng.</li>\n            <li>Pizza cá ngừ: khoảng 393 calo/miếng.</li>\n            <li>Pizza hải sản cỡ nhỏ: khoảng 960 calo.</li>\n        </ul>\n    </li>\n    \n    <li><strong>Tác động đến cân nặng:</strong> Ăn pizza thường xuyên có thể dẫn đến tăng cân do lượng calo và chất béo cao. Tuy nhiên, nếu biết điều chỉnh tần suất và lựa chọn topping hợp lý, bạn vẫn có thể thưởng thức pizza mà không lo ngại về cân nặng. Các chuyên gia dinh dưỡng khuyên rằng nên hạn chế ăn pizza không quá 2 lần mỗi tuần và ưu tiên ăn vào buổi sáng để giảm thiểu nguy cơ tăng cân.</li>\n</ul>\n\n<p>Tóm lại, lượng calo trong pizza rất đa dạng và phụ thuộc vào nhiều yếu tố như kích cỡ và loại topping. Để duy trì sức khỏe, người tiêu dùng nên cân nhắc kỹ lưỡng khi thưởng thức món ăn này.</p>\n\n<p>Thông tin được tham khảo từ các nguồn như <a href=\"https://dominos.vn/blog-detail/pizza-bao-nhieu-calo\">Domino's Pizza</a> và <a href=\"https://bazaarvietnam.vn/1-mieng-pizza-bao-nhieu-calo/\">Bazaar Vietnam</a>.</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Hướng dẫn làm",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Pizza</strong> là một món ăn được yêu thích trên toàn thế giới. Dưới đây là hướng dẫn đơn giản để bạn có thể tự làm pizza tại nhà:</p>\n\n<h3>Nguyên liệu:</h3>\n<ul>\n    <li>250g bột mì</li>\n    <li>150ml nước ấm</li>\n    <li>1 gói men nở (7g)</li>\n    <li>1 muỗng canh dầu oliu</li>\n    <li>1 muỗng cà phê muối</li>\n    <li>200g sốt cà chua</li>\n    <li>200g phô mai mozzarella</li>\n    <li>Các loại topping theo sở thích (pepperoni, rau củ, nấm, v.v.)</li>\n</ul>\n\n<h3>Các bước thực hiện:</h3>\n<ol>\n    <li><strong>Kích hoạt men:</strong> Trộn men nở với nước ấm và để yên trong khoảng 5-10 phút cho đến khi sủi bọt.</li>\n    <li><strong>Trộn bột:</strong> Trong một bát lớn, trộn bột mì, muối và dầu oliu. Sau đó, thêm hỗn hợp men vào và nhào bột cho đến khi mịn.</li>\n    <li><strong>Ủ bột:</strong> Để bột vào bát, phủ bằng khăn ẩm và để ở nơi ấm áp trong khoảng 1 giờ cho đến khi bột nở gấp đôi.</li>\n    <li><strong>Chuẩn bị pizza:</strong> Làm nóng lò đến 220°C. Lấy bột ra, cán mỏng và đặt lên khay nướng. Phết sốt cà chua lên bề mặt bột.</li>\n    <li><strong>Thêm phô mai và topping:</strong> Rắc phô mai mozzarella lên trên và thêm các loại topping theo sở thích của bạn.</li>\n    <li><strong>Nướng pizza:</strong> Nướng trong khoảng 15-20 phút hoặc cho đến khi đế bánh vàng và phô mai chảy.</li>\n</ol>\n\n<p>Chúc bạn thành công và thưởng thức món pizza ngon miệng!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng hỏi về lượng calo của pizza và yêu cầu hướng dẫn làm pizza."
+        },
+        {
+            "timestamp": "2025-04-02 10:48:31",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "lượng calo của pizza",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Pizza là một món ăn nhanh phổ biến, nhưng nhiều người vẫn băn khoăn về <strong>lượng calo</strong> mà nó chứa. Dưới đây là thông tin tổng hợp về lượng calo trong pizza:</p>\n\n<ul>\n    <li><strong>Lượng calo trung bình:</strong> Trung bình, 100g pizza chứa khoảng 285 calo và 17g chất béo. Một miếng pizza nặng khoảng 107g có thể chứa khoảng 278 calo, với các thành phần như 15,4g chất béo, 640mg natri, 35,7g carbohydrate, 2,5g chất xơ, 13,8g đường và 18,5g protein.</li>\n    \n    <li><strong>Lượng calo theo loại pizza:</strong>\n        <ul>\n            <li>Pizza thịt: 250 - 300 calo/miếng.</li>\n            <li>Pizza cheese: khoảng 312 calo/miếng.</li>\n            <li>Pizza gà: khoảng 380 calo/miếng.</li>\n            <li>Pizza bò băm: khoảng 470 calo/miếng.</li>\n            <li>Pizza cá ngừ: khoảng 393 calo/miếng.</li>\n            <li>Pizza hải sản cỡ nhỏ: khoảng 960 calo.</li>\n        </ul>\n    </li>\n    \n    <li><strong>Tác động đến cân nặng:</strong> Ăn pizza thường xuyên có thể dẫn đến tăng cân do lượng calo và chất béo cao. Tuy nhiên, nếu biết điều chỉnh tần suất và lựa chọn topping hợp lý, bạn vẫn có thể thưởng thức pizza mà không lo ngại về cân nặng. Các chuyên gia dinh dưỡng khuyên rằng nên hạn chế ăn pizza không quá 2 lần mỗi tuần và ưu tiên ăn vào buổi sáng để giảm thiểu nguy cơ tăng cân.</li>\n</ul>\n\n<p>Tóm lại, lượng calo trong pizza rất đa dạng và phụ thuộc vào nhiều yếu tố như kích cỡ và loại topping. Để duy trì sức khỏe, người tiêu dùng nên cân nhắc kỹ lưỡng khi thưởng thức món ăn này.</p>\n\n<p>Thông tin được tham khảo từ các nguồn như <a href=\"https://dominos.vn/blog-detail/pizza-bao-nhieu-calo\">Domino's Pizza</a> và <a href=\"https://bazaarvietnam.vn/1-mieng-pizza-bao-nhieu-calo/\">Bazaar Vietnam</a>.</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Hướng dẫn làm",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Pizza</strong> là một món ăn được yêu thích trên toàn thế giới. Dưới đây là hướng dẫn đơn giản để bạn có thể tự làm pizza tại nhà:</p>\n\n<h3>Nguyên liệu:</h3>\n<ul>\n    <li>250g bột mì</li>\n    <li>150ml nước ấm</li>\n    <li>1 gói men nở (7g)</li>\n    <li>1 muỗng canh dầu oliu</li>\n    <li>1 muỗng cà phê muối</li>\n    <li>200g sốt cà chua</li>\n    <li>200g phô mai mozzarella</li>\n    <li>Các loại topping theo sở thích (pepperoni, rau củ, nấm, v.v.)</li>\n</ul>\n\n<h3>Các bước thực hiện:</h3>\n<ol>\n    <li><strong>Kích hoạt men:</strong> Trộn men nở với nước ấm và để yên trong khoảng 5-10 phút cho đến khi sủi bọt.</li>\n    <li><strong>Trộn bột:</strong> Trong một bát lớn, trộn bột mì, muối và dầu oliu. Sau đó, thêm hỗn hợp men vào và nhào bột cho đến khi mịn.</li>\n    <li><strong>Ủ bột:</strong> Để bột vào bát, phủ bằng khăn ẩm và để ở nơi ấm áp trong khoảng 1 giờ cho đến khi bột nở gấp đôi.</li>\n    <li><strong>Chuẩn bị pizza:</strong> Làm nóng lò đến 220°C. Lấy bột ra, cán mỏng và đặt lên khay nướng. Phết sốt cà chua lên bề mặt bột.</li>\n    <li><strong>Thêm phô mai và topping:</strong> Rắc phô mai mozzarella lên trên và thêm các loại topping theo sở thích của bạn.</li>\n    <li><strong>Nướng pizza:</strong> Nướng trong khoảng 15-20 phút hoặc cho đến khi đế bánh vàng và phô mai chảy.</li>\n</ol>\n\n<p>Chúc bạn thành công và thưởng thức món pizza ngon miệng!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
+            "timestamp": "2025-04-02 10:02:07",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tôi là kiên, chào bạn",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Chào Kiên!</strong></p>\n<p>Rất vui được gặp bạn. Bạn cần tôi giúp gì hôm nay?</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tôi là ai",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Chào Kiên! Bạn là người đã giới thiệu tên của mình. Nếu bạn cần thêm thông tin hoặc có yêu cầu gì, hãy cho tôi biết nhé!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng, Kiên, chào hỏi và đặt câu hỏi về danh tính của mình."
+        },
+        {
+            "timestamp": "2025-04-02 10:01:49",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tôi là kiên, chào bạn",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Chào Kiên!</strong></p>\n<p>Rất vui được gặp bạn. Bạn cần tôi giúp gì hôm nay?</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tôi là ai",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Chào Kiên! Bạn là người đã giới thiệu tên của mình. Nếu bạn cần thêm thông tin hoặc có yêu cầu gì, hãy cho tôi biết nhé!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
             "timestamp": "2025-04-02 09:37:44",
             "messages": [
                 {
@@ -240,366 +432,6 @@
                         {
                             "type": "html",
                             "html": "<p><strong>Bản tin dự báo thời tiết hôm nay (2/4/2025)</strong></p>\n\n<p>Hôm nay, thời tiết trên cả nước sẽ có sự phân hóa rõ rệt giữa miền Bắc và miền Nam:</p>\n\n<ul>\n    <li><strong>Miền Bắc</strong>: Chịu tác động của không khí lạnh suy yếu, thời tiết sáng nhiều mây, có mưa rải rác. Nhiệt độ dao động từ 13-16 độ C vào buổi sáng và có thể tăng lên mức cao nhất từ 19-24 độ C vào trưa chiều, khi trời hửng nắng.</li>\n    <li><strong>Miền Trung và Nam Bộ</strong>: Do ảnh hưởng của rãnh xích đạo và nhiễu động gió Đông, các tỉnh từ Đà Nẵng đến Bình Thuận, Tây Nguyên và Nam Bộ sẽ tiếp tục có mưa rào và dông. Nhiệt độ tại khu vực này dao động từ 25-32 độ C.</li>\n    <li><strong>Trên biển</strong>: Gió Đông Bắc mạnh cấp 6-8, biển động với sóng cao từ 1,5-4m. Cần đề phòng lốc xoáy và gió giật mạnh.</li>\n</ul>\n\n<p>Thông tin chi tiết về thời tiết hôm nay được trích dẫn từ nguồn <a href=\"https://nhandan.vn/video-du-bao-thoi-tiet-ngay-142025-post869160.html\">Nhân Dân</a>.</p>"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
-        },
-        {
-            "timestamp": "2025-04-02 09:09:17",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Hôm nay thời tiết ở Hà Nội thế nào?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<h3>Dự báo thời tiết Hà Nội hôm nay</h3>\n\n<p>Hôm nay, Hà Nội sẽ trải qua một ngày thời tiết với nhiều biến động. Theo dự báo, khu vực này sẽ có <strong>mưa phùn và sương mù</strong> vào buổi sáng, kèm theo không khí lạnh tràn về, khiến nhiệt độ giảm xuống. Cụ thể, nhiệt độ thấp nhất có thể đạt khoảng <strong>10 độ C</strong>, và trời sẽ rét đậm trong suốt cả ngày.</p>\n\n<p>Không khí lạnh sẽ tiếp tục ảnh hưởng đến miền Bắc, gây ra tình trạng <strong>rét buốt</strong>, đặc biệt là vào ban đêm. Dự báo thời tiết cho biết rằng Hà Nội sẽ có <strong>mưa nhẹ và trời nhiều mây</strong>, tạo cảm giác lạnh lẽo cho người dân.</p>\n\n<p>Tóm lại, người dân Hà Nội nên chuẩn bị cho một ngày thời tiết lạnh, có mưa phùn và sương mù, với nhiệt độ thấp nhất khoảng <strong>10 độ C</strong>.</p>\n\n<p><strong>Nguồn:</strong></p>\n<ul>\n    <li><a href=\"https://vtv.vn/du-bao-thoi-tiet.htm\">VTV.vn</a></li>\n    <li><a href=\"https://vietnamnet.vn/thoi-tiet-ha-noi-tag11822654884237123845.html\">VietNamNet</a></li>\n</ul>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Giá vàng hôm nay?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Giá vàng hôm nay, ngày 2 tháng 4 năm 2025, ghi nhận sự tăng trưởng mạnh mẽ trên thị trường trong nước. Cụ thể:</p>\n<ul>\n    <li><strong>Giá vàng miếng SJC</strong>: 102,1 triệu đồng/lượng (bán ra), 99,4 triệu đồng/lượng (mua vào).</li>\n    <li><strong>Giá vàng nhẫn SJC 9999</strong>: 101,5 triệu đồng/lượng (bán ra), 99,2 triệu đồng/lượng (mua vào).</li>\n</ul>\n<p><strong>Tình hình:</strong> Xu hướng giá vàng tăng nhẹ, mặc dù có áp lực chốt lời. Các thương hiệu như DOJI và PNJ cũng điều chỉnh giá bán ra lên 102,1 triệu đồng/lượng, cho thấy xu hướng tăng giá vẫn tiếp diễn.</p>\n<p>Thông tin này được tổng hợp từ các nguồn như <a href=\"https://www.qdnd.vn/kinh-te/tin-tuc/gia-vang-hom-nay-2-4-ban-ra-o-muc-102-1-trieu-dong-luong-822185\">Quân Đội Nhân Dân</a> và <a href=\"https://tuoitre.vn/gia-vang-e592.htm\">Tuổi Trẻ</a>.</p>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Chỉ đường từ phạm hùng tới vũ phạm hàm?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Xin lỗi, nhưng tôi không thể chỉ đường cho bạn. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ trực tuyến như Google Maps hoặc Apple Maps để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác và nhanh chóng.</p>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Đường đi từ phạm hùng tới vũ phạm hàm?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Xin lỗi, nhưng tôi không thể cung cấp thông tin chỉ đường cụ thể. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ như Google Maps hoặc chỉ đường trên điện thoại để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác nhất.</p>"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Người dùng hỏi về thời tiết ở Hà Nội, giá vàng hôm nay và yêu cầu chỉ đường từ Phạm Hùng đến Vũ Phạm Hàm."
-        },
-        {
-            "timestamp": "2025-04-02 09:08:42",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Hôm nay thời tiết ở Hà Nội thế nào?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<h3>Dự báo thời tiết Hà Nội hôm nay</h3>\n\n<p>Hôm nay, Hà Nội sẽ trải qua một ngày thời tiết với nhiều biến động. Theo dự báo, khu vực này sẽ có <strong>mưa phùn và sương mù</strong> vào buổi sáng, kèm theo không khí lạnh tràn về, khiến nhiệt độ giảm xuống. Cụ thể, nhiệt độ thấp nhất có thể đạt khoảng <strong>10 độ C</strong>, và trời sẽ rét đậm trong suốt cả ngày.</p>\n\n<p>Không khí lạnh sẽ tiếp tục ảnh hưởng đến miền Bắc, gây ra tình trạng <strong>rét buốt</strong>, đặc biệt là vào ban đêm. Dự báo thời tiết cho biết rằng Hà Nội sẽ có <strong>mưa nhẹ và trời nhiều mây</strong>, tạo cảm giác lạnh lẽo cho người dân.</p>\n\n<p>Tóm lại, người dân Hà Nội nên chuẩn bị cho một ngày thời tiết lạnh, có mưa phùn và sương mù, với nhiệt độ thấp nhất khoảng <strong>10 độ C</strong>.</p>\n\n<p><strong>Nguồn:</strong></p>\n<ul>\n    <li><a href=\"https://vtv.vn/du-bao-thoi-tiet.htm\">VTV.vn</a></li>\n    <li><a href=\"https://vietnamnet.vn/thoi-tiet-ha-noi-tag11822654884237123845.html\">VietNamNet</a></li>\n</ul>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Giá vàng hôm nay?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Giá vàng hôm nay, ngày 2 tháng 4 năm 2025, ghi nhận sự tăng trưởng mạnh mẽ trên thị trường trong nước. Cụ thể:</p>\n<ul>\n    <li><strong>Giá vàng miếng SJC</strong>: 102,1 triệu đồng/lượng (bán ra), 99,4 triệu đồng/lượng (mua vào).</li>\n    <li><strong>Giá vàng nhẫn SJC 9999</strong>: 101,5 triệu đồng/lượng (bán ra), 99,2 triệu đồng/lượng (mua vào).</li>\n</ul>\n<p><strong>Tình hình:</strong> Xu hướng giá vàng tăng nhẹ, mặc dù có áp lực chốt lời. Các thương hiệu như DOJI và PNJ cũng điều chỉnh giá bán ra lên 102,1 triệu đồng/lượng, cho thấy xu hướng tăng giá vẫn tiếp diễn.</p>\n<p>Thông tin này được tổng hợp từ các nguồn như <a href=\"https://www.qdnd.vn/kinh-te/tin-tuc/gia-vang-hom-nay-2-4-ban-ra-o-muc-102-1-trieu-dong-luong-822185\">Quân Đội Nhân Dân</a> và <a href=\"https://tuoitre.vn/gia-vang-e592.htm\">Tuổi Trẻ</a>.</p>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Chỉ đường từ phạm hùng tới vũ phạm hàm?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Xin lỗi, nhưng tôi không thể chỉ đường cho bạn. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ trực tuyến như Google Maps hoặc Apple Maps để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác và nhanh chóng.</p>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Đường đi từ phạm hùng tới vũ phạm hàm?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Xin lỗi, nhưng tôi không thể cung cấp thông tin chỉ đường cụ thể. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ như Google Maps hoặc chỉ đường trên điện thoại để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác nhất.</p>"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Người dùng hỏi về thời tiết ở Hà Nội, giá vàng hôm nay và yêu cầu chỉ đường từ Phạm Hùng đến Vũ Phạm Hàm."
-        },
-        {
-            "timestamp": "2025-04-02 09:07:28",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Hôm nay thời tiết ở Hà Nội thế nào?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<h3>Dự báo thời tiết Hà Nội hôm nay</h3>\n\n<p>Hôm nay, Hà Nội sẽ trải qua một ngày thời tiết với nhiều biến động. Theo dự báo, khu vực này sẽ có <strong>mưa phùn và sương mù</strong> vào buổi sáng, kèm theo không khí lạnh tràn về, khiến nhiệt độ giảm xuống. Cụ thể, nhiệt độ thấp nhất có thể đạt khoảng <strong>10 độ C</strong>, và trời sẽ rét đậm trong suốt cả ngày.</p>\n\n<p>Không khí lạnh sẽ tiếp tục ảnh hưởng đến miền Bắc, gây ra tình trạng <strong>rét buốt</strong>, đặc biệt là vào ban đêm. Dự báo thời tiết cho biết rằng Hà Nội sẽ có <strong>mưa nhẹ và trời nhiều mây</strong>, tạo cảm giác lạnh lẽo cho người dân.</p>\n\n<p>Tóm lại, người dân Hà Nội nên chuẩn bị cho một ngày thời tiết lạnh, có mưa phùn và sương mù, với nhiệt độ thấp nhất khoảng <strong>10 độ C</strong>.</p>\n\n<p><strong>Nguồn:</strong></p>\n<ul>\n    <li><a href=\"https://vtv.vn/du-bao-thoi-tiet.htm\">VTV.vn</a></li>\n    <li><a href=\"https://vietnamnet.vn/thoi-tiet-ha-noi-tag11822654884237123845.html\">VietNamNet</a></li>\n</ul>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Giá vàng hôm nay?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Giá vàng hôm nay, ngày 2 tháng 4 năm 2025, ghi nhận sự tăng trưởng mạnh mẽ trên thị trường trong nước. Cụ thể:</p>\n<ul>\n    <li><strong>Giá vàng miếng SJC</strong>: 102,1 triệu đồng/lượng (bán ra), 99,4 triệu đồng/lượng (mua vào).</li>\n    <li><strong>Giá vàng nhẫn SJC 9999</strong>: 101,5 triệu đồng/lượng (bán ra), 99,2 triệu đồng/lượng (mua vào).</li>\n</ul>\n<p><strong>Tình hình:</strong> Xu hướng giá vàng tăng nhẹ, mặc dù có áp lực chốt lời. Các thương hiệu như DOJI và PNJ cũng điều chỉnh giá bán ra lên 102,1 triệu đồng/lượng, cho thấy xu hướng tăng giá vẫn tiếp diễn.</p>\n<p>Thông tin này được tổng hợp từ các nguồn như <a href=\"https://www.qdnd.vn/kinh-te/tin-tuc/gia-vang-hom-nay-2-4-ban-ra-o-muc-102-1-trieu-dong-luong-822185\">Quân Đội Nhân Dân</a> và <a href=\"https://tuoitre.vn/gia-vang-e592.htm\">Tuổi Trẻ</a>.</p>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Chỉ đường từ phạm hùng tới vũ phạm hàm?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Xin lỗi, nhưng tôi không thể chỉ đường cho bạn. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ trực tuyến như Google Maps hoặc Apple Maps để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác và nhanh chóng.</p>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Đường đi từ phạm hùng tới vũ phạm hàm?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Xin lỗi, nhưng tôi không thể cung cấp thông tin chỉ đường cụ thể. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ như Google Maps hoặc chỉ đường trên điện thoại để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác nhất.</p>"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Người dùng hỏi về thời tiết ở Hà Nội và giá vàng hôm nay."
-        },
-        {
-            "timestamp": "2025-04-02 09:05:33",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Hôm nay thời tiết ở Hà Nội thế nào?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<h3>Dự báo thời tiết Hà Nội hôm nay</h3>\n\n<p>Hôm nay, Hà Nội sẽ trải qua một ngày thời tiết với nhiều biến động. Theo dự báo, khu vực này sẽ có <strong>mưa phùn và sương mù</strong> vào buổi sáng, kèm theo không khí lạnh tràn về, khiến nhiệt độ giảm xuống. Cụ thể, nhiệt độ thấp nhất có thể đạt khoảng <strong>10 độ C</strong>, và trời sẽ rét đậm trong suốt cả ngày.</p>\n\n<p>Không khí lạnh sẽ tiếp tục ảnh hưởng đến miền Bắc, gây ra tình trạng <strong>rét buốt</strong>, đặc biệt là vào ban đêm. Dự báo thời tiết cho biết rằng Hà Nội sẽ có <strong>mưa nhẹ và trời nhiều mây</strong>, tạo cảm giác lạnh lẽo cho người dân.</p>\n\n<p>Tóm lại, người dân Hà Nội nên chuẩn bị cho một ngày thời tiết lạnh, có mưa phùn và sương mù, với nhiệt độ thấp nhất khoảng <strong>10 độ C</strong>.</p>\n\n<p><strong>Nguồn:</strong></p>\n<ul>\n    <li><a href=\"https://vtv.vn/du-bao-thoi-tiet.htm\">VTV.vn</a></li>\n    <li><a href=\"https://vietnamnet.vn/thoi-tiet-ha-noi-tag11822654884237123845.html\">VietNamNet</a></li>\n</ul>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Giá vàng hôm nay?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Giá vàng hôm nay, ngày 2 tháng 4 năm 2025, ghi nhận sự tăng trưởng mạnh mẽ trên thị trường trong nước. Cụ thể:</p>\n<ul>\n    <li><strong>Giá vàng miếng SJC</strong>: 102,1 triệu đồng/lượng (bán ra), 99,4 triệu đồng/lượng (mua vào).</li>\n    <li><strong>Giá vàng nhẫn SJC 9999</strong>: 101,5 triệu đồng/lượng (bán ra), 99,2 triệu đồng/lượng (mua vào).</li>\n</ul>\n<p><strong>Tình hình:</strong> Xu hướng giá vàng tăng nhẹ, mặc dù có áp lực chốt lời. Các thương hiệu như DOJI và PNJ cũng điều chỉnh giá bán ra lên 102,1 triệu đồng/lượng, cho thấy xu hướng tăng giá vẫn tiếp diễn.</p>\n<p>Thông tin này được tổng hợp từ các nguồn như <a href=\"https://www.qdnd.vn/kinh-te/tin-tuc/gia-vang-hom-nay-2-4-ban-ra-o-muc-102-1-trieu-dong-luong-822185\">Quân Đội Nhân Dân</a> và <a href=\"https://tuoitre.vn/gia-vang-e592.htm\">Tuổi Trẻ</a>.</p>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Chỉ đường từ phạm hùng tới vũ phạm hàm?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Xin lỗi, nhưng tôi không thể chỉ đường cho bạn. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ trực tuyến như Google Maps hoặc Apple Maps để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác và nhanh chóng.</p>"
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Đường đi từ phạm hùng tới vũ phạm hàm?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p>Xin lỗi, nhưng tôi không thể cung cấp thông tin chỉ đường cụ thể. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ như Google Maps hoặc chỉ đường trên điện thoại để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác nhất.</p>"
                         }
                     ]
                 }

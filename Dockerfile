@@ -3,10 +3,9 @@ FROM python:3.10
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libjpeg-dev \
-    zlib1g-dev \
-    libpq-dev \
+    build-essential \
+    python3-dev \
+    libffi-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -17,8 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-RUN mkdir -p /app/data /app/temp_files
-VOLUME ["/app/data"]
+RUN mkdir -p temp_files
+RUN mkdir -p /app/data
+ENV PYTHONUNBUFFERED=1
 
 # Expose the port the app runs on
 EXPOSE 8000
