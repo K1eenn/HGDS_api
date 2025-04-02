@@ -319,5 +319,186 @@
     "question_cache": {},
     "created_at": "2025-04-02 16:01:38",
     "last_updated": "2025-04-02 16:01:42"
+  },
+  "261062003": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p><strong>Lịch học tiếng Anh</strong> đã được thêm vào tối thứ 6 hàng tuần.</p>\n```"
+          }
+        ]
+      }
+    ],
+    "current_member": "263",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 16:09:16",
+    "last_updated": "2025-04-02 16:30:16"
+  },
+  "261062023": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Thêm lịch học tiếng Anh vào tối thứ 6 hàng tuần.</p>\n<p>Đã tạo sự kiện mới với tiêu đề \"Lịch học tiếng Anh\" vào các tối thứ 6 hàng tuần.</p>\n```"
+          }
+        ]
+      }
+    ],
+    "current_member": "2632",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 16:33:22",
+    "last_updated": "2025-04-02 16:33:26"
+  },
+  "26102": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Đã thêm lịch học tiếng Anh vào tối thứ 6 hàng tuần với thông tin như sau:</p>\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch học tiếng Anh</li>\n    <li><strong>Ngày:</strong> Mỗi thứ 6</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Học tiếng Anh vào mỗi tối thứ 6.</li>\n</ul>\n```\n\n```json\n\n```"
+          }
+        ]
+      }
+    ],
+    "current_member": "2635",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 16:43:36",
+    "last_updated": "2025-04-02 16:43:41"
+  },
+  "26103": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Đã thêm lịch học tiếng Anh vào tối thứ 6 hàng tuần.</p>\n```"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "sửa lịch học tiếng anh vào tối thứ 5 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "Lịch học tiếng Anh đã được cập nhật sang tối thứ 5 hàng tuần."
+          }
+        ]
+      }
+    ],
+    "current_member": "2636",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 16:48:18",
+    "last_updated": "2025-04-02 16:51:10"
   }
 }
