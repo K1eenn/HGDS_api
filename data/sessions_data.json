@@ -319,5 +319,88 @@
     "question_cache": {},
     "created_at": "2025-04-02 16:01:38",
     "last_updated": "2025-04-02 16:01:42"
+  },
+  "26107": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Đã thêm sự kiện <strong>Lịch học tiếng Anh</strong> vào tối thứ 6 hàng tuần.</p>\n```"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Sửa lịch học tiếng anh sang tối thứ 5 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Đã sửa lịch học tiếng Anh sang tối thứ 5 hàng tuần.</p>\n```"
+          }
+        ]
+      }
+    ],
+    "current_member": "2640",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 17:27:21",
+    "last_updated": "2025-04-02 17:28:00"
+  },
+  "26113": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "xóa lịch học tiếng anh đi",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "<p>Đã xóa lịch học tiếng Anh.</p>\n\n<!-- Lệnh xóa sự kiện -->\n\n##DELETE_EVENT:7##"
+          }
+        ]
+      }
+    ],
+    "current_member": "2641",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 17:30:07",
+    "last_updated": "2025-04-02 17:30:10"
   }
 }

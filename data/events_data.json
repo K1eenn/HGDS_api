@@ -46,15 +46,6 @@
         "created_by": "26",
         "created_on": "2025-04-02 15:58:56"
     },
-    "6": {
-        "title": "Lịch học tiếng Anh",
-        "date": "2025-04-04",
-        "time": "19:00",
-        "description": "Học tiếng Anh vào mỗi tối thứ 6.",
-        "participants": [],
-        "created_by": "261",
-        "created_on": "2025-04-02 16:00:42"
-    },
     "7": {
         "title": "Lịch học tiếng Anh",
         "date": "2025-04-04",
@@ -63,5 +54,15 @@
         "participants": [],
         "created_by": "262",
         "created_on": "2025-04-02 16:01:42"
+    },
+    "8": {
+        "title": "Lịch học tiếng Anh",
+        "date": "2025-04-03",
+        "time": "19:00",
+        "description": "Học tiếng Anh vào mỗi tối thứ 5 hàng tuần.",
+        "participants": [],
+        "created_by": "2640",
+        "created_on": "2025-04-02 17:27:24",
+        "repeat_type": "RECURRING"
     }
 }

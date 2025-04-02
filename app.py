@@ -281,33 +281,126 @@ def date_time_to_cron(date_str, time_str="19:00"):
         logger.error(f"Lỗi khi tạo cron expression: {e}")
         return "0 19 * * *"  # Cron mặc định: 7PM hàng ngày
     
+RECURRING_KEYWORDS = [
+    # Tiếng Việt
+    "hàng ngày", "mỗi ngày",
+    "hàng tuần", "mỗi tuần",
+    "hàng tháng", "mỗi tháng",
+    "hàng năm", "mỗi năm",
+    "định kỳ", "lặp lại",
+    "mỗi sáng thứ", "mỗi trưa thứ", "mỗi chiều thứ", "mỗi tối thứ", # Chung chung + buổi
+    "thứ 2 hàng tuần", "mỗi thứ 2", "mỗi t2",
+    "thứ 3 hàng tuần", "mỗi thứ 3", "mỗi t3",
+    "thứ 4 hàng tuần", "mỗi thứ 4", "mỗi t4",
+    "thứ 5 hàng tuần", "mỗi thứ 5", "mỗi t5",
+    "thứ 6 hàng tuần", "mỗi thứ 6", "mỗi t6", # Quan trọng cho ví dụ của bạn
+    "thứ 7 hàng tuần", "mỗi thứ 7", "mỗi t7",
+    "chủ nhật hàng tuần", "mỗi chủ nhật", "mỗi cn",
+    # Tiếng Anh (phòng trường hợp)
+    "daily", "every day",
+    "weekly", "every week",
+    "monthly", "every month",
+    "yearly", "annually", "every year",
+    "recurring", "repeating",
+    "every monday", "every tuesday", "every wednesday", "every thursday",
+    "every friday", "every saturday", "every sunday",
+]
+
 def determine_repeat_type(description, title):
     """
-    Xác định kiểu lặp lại dựa trên mô tả và tiêu đề
-    
+    Xác định kiểu lặp lại dựa trên mô tả và tiêu đề bằng cách kiểm tra từ khóa mở rộng.
+
     Args:
         description (str): Mô tả sự kiện
         title (str): Tiêu đề sự kiện
-        
+
     Returns:
         str: "RECURRING" hoặc "ONCE"
     """
-    # Các từ khóa chỉ định kỳ
-    recurring_keywords = [
-        "hàng ngày", "mỗi ngày", "hàng tuần", "mỗi tuần", 
-        "hàng tháng", "mỗi tháng", "định kỳ", "lặp lại",
-        "thứ 2 hàng tuần", "thứ 3 hàng tuần", "thứ 4 hàng tuần",
-        "thứ 5 hàng tuần", "thứ 6 hàng tuần", "thứ 7 hàng tuần", 
-        "chủ nhật hàng tuần"
-    ]
-    
+    if not description: description = ""
+    if not title: title = ""
+
     combined_text = (description + " " + title).lower()
-    
-    for keyword in recurring_keywords:
+
+    for keyword in RECURRING_KEYWORDS:
+        # Kiểm tra xem từ khóa có tồn tại như một từ riêng biệt hoặc là một phần của cụm từ không
+        # Ví dụ: Tìm "hàng tuần" trong "học tiếng anh hàng tuần"
+        # Sử dụng regex để kiểm tra biên từ (\b) nếu muốn chính xác hơn, nhưng kiểm tra `in` đơn giản thường đủ tốt
         if keyword in combined_text:
+            logger.info(f"Phát hiện từ khóa lặp lại '{keyword}' trong: '{combined_text}' -> RECURRING")
             return "RECURRING"
-            
+
+    logger.info(f"Không tìm thấy từ khóa lặp lại trong: '{combined_text}' -> ONCE")
     return "ONCE"  # Mặc định là chạy một lần
+
+def generate_recurring_cron(description, title, time_str="19:00"):
+    """
+    Tạo cron expression cho các sự kiện lặp lại dựa trên mô tả và tiêu đề.
+    Ưu tiên xử lý lặp lại hàng ngày và hàng tuần theo thứ.
+
+    Args:
+        description (str): Mô tả sự kiện
+        title (str): Tiêu đề sự kiện
+        time_str (str): Thời gian dạng "HH:MM"
+
+    Returns:
+        str: Cron expression cho sự kiện lặp lại, hoặc cron mặc định nếu không xác định được.
+    """
+    try:
+        if not time_str or ':' not in time_str:
+            time_str = "19:00"
+        hour, minute = time_str.split(":")
+
+        combined_text = (str(description) + " " + str(title)).lower()
+
+        # Kiểm tra lặp lại hàng ngày
+        if "hàng ngày" in combined_text or "mỗi ngày" in combined_text or "daily" in combined_text:
+            logger.info(f"Tạo cron hàng ngày cho: {time_str}")
+            return f"{minute} {hour} * * *"
+
+        # Kiểm tra lặp lại hàng tuần theo thứ
+        day_map = {
+            "thứ 2": 1, "t2": 1, "monday": 1,
+            "thứ 3": 2, "t3": 2, "tuesday": 2,
+            "thứ 4": 3, "t4": 3, "wednesday": 3,
+            "thứ 5": 4, "t5": 4, "thursday": 4,
+            "thứ 6": 5, "t6": 5, "friday": 5, # Quan trọng
+            "thứ 7": 6, "t7": 6, "saturday": 6,
+            "chủ nhật": 0, "cn": 0, "sunday": 0
+        }
+
+        # Tìm ngày trong tuần được đề cập
+        found_day = None
+        # Sử dụng regex để tìm chính xác hơn, ví dụ: "thứ 6" chứ không phải "thứ 60"
+        for day_text, day_num in day_map.items():
+             # \b là biên từ, đảm bảo khớp từ hoàn chỉnh
+            if re.search(r'\b' + re.escape(day_text) + r'\b', combined_text):
+                found_day = day_num
+                logger.info(f"Tìm thấy ngày lặp lại: {day_text} ({found_day})")
+                break # Tìm thấy ngày đầu tiên là đủ
+
+        if found_day is not None:
+             # Kiểm tra xem có phải là hàng tuần không (để chắc chắn)
+             is_weekly = any(kw in combined_text for kw in ["hàng tuần", "mỗi tuần", "weekly", "every"])
+             if is_weekly:
+                 logger.info(f"Tạo cron hàng tuần vào thứ {found_day} lúc {time_str}")
+                 return f"{minute} {hour} * * {found_day}"
+             else:
+                 # Nếu chỉ nói "thứ 6" mà không có "hàng tuần", có thể chỉ là 1 lần?
+                 # Tuy nhiên, hàm này chỉ nên được gọi khi determine_repeat_type đã là RECURRING
+                 # nên ta vẫn giả định là hàng tuần
+                 logger.warning(f"Không rõ 'hàng tuần' nhưng vẫn tạo cron tuần vào thứ {found_day}")
+                 return f"{minute} {hour} * * {found_day}"
+
+        # (Có thể thêm logic xử lý hàng tháng ở đây nếu cần)
+        # ...
+
+        logger.warning(f"Không thể xác định lịch lặp lại cụ thể từ '{combined_text}'. Dùng cron mặc định hàng ngày.")
+        return f"{minute} {hour} * * *" # Fallback: lặp lại hàng ngày nếu không rõ
+
+    except Exception as e:
+        logger.error(f"Lỗi khi tạo cron lặp lại: {e}")
+        return "0 19 * * *" # Cron mặc định an toàn
 
 # ------- Request & Response Models ------------
 
@@ -912,19 +1005,20 @@ def build_system_prompt(current_member_id=None):
     - Xóa sự kiện: ##DELETE_EVENT:id_sự_kiện##
     - Thêm ghi chú: ##ADD_NOTE:{{"title":"Tiêu đề","content":"Nội dung","tags":["tag1","tag2"]}}##
     
-    QUY TẮC THÊM SỰ KIỆN ĐƠN GIẢN:
-    1. Khi được yêu cầu thêm sự kiện, hãy thực hiện NGAY LẬP TỨC mà không cần hỏi thêm thông tin không cần thiết.
-    2. Khi người dùng nói "ngày mai" hoặc "tuần sau", hãy tự động tính toán ngày trong cú pháp YYYY-MM-DD.
+   QUY TẮC THÊM/CẬP NHẬT SỰ KIỆN ĐƠN GIẢN:
+    1. Khi được yêu cầu thêm/cập nhật sự kiện, hãy thực hiện NGAY LẬP TỨC... (giữ nguyên)
+    2. Khi người dùng nói "ngày mai" hoặc "tuần sau", hãy tự động tính toán ngày YYYY-MM-DD cho sự kiện diễn ra một lần (ONCE).
     3. Nếu không có thời gian cụ thể, sử dụng thời gian mặc định là 19:00.
     4. Sử dụng mô tả ngắn gọn từ yêu cầu của người dùng.
-    5. Chỉ hỏi thông tin nếu thực sự cần thiết, tránh nhiều bước xác nhận.
+    5. Chỉ hỏi thông tin nếu thực sự cần thiết... (giữ nguyên)
     6. Sau khi thêm/cập nhật/xóa sự kiện, tóm tắt ngắn gọn hành động đã thực hiện.
-    
-    TÌM KIẾM THÔNG TIN THỜI GIAN THỰC:
-    1. Khi người dùng hỏi về tin tức, thời tiết, thể thao, sự kiện hiện tại, thông tin sản phẩm mới, hoặc bất kỳ dữ liệu cập nhật nào, hệ thống đã tự động tìm kiếm thông tin thực tế cho bạn.
-    2. Hãy sử dụng thông tin tìm kiếm này để trả lời người dùng một cách chính xác và đầy đủ.
-    3. Luôn đề cập đến nguồn thông tin khi sử dụng kết quả tìm kiếm.
-    4. Nếu không có thông tin tìm kiếm, hãy trả lời dựa trên kiến thức của bạn và lưu ý rằng thông tin có thể không cập nhật.
+
+    ***LƯU Ý ĐẶC BIỆT VỀ SỰ KIỆN LẶP LẠI (RECURRING):***
+    - Nếu người dùng yêu cầu một sự kiện lặp lại rõ ràng (ví dụ: "hàng tuần", "mỗi thứ 6", "ngày 15 hàng tháng", "hàng ngày"), **KHÔNG** đặt một ngày cụ thể (YYYY-MM-DD) vào trường `date`.
+    - Thay vào đó, hãy đặt một ngày **tương đối gần** trong tương lai vào trường `date` (ví dụ: ngày thứ 6 tiếp theo cho yêu cầu "thứ 6 hàng tuần").
+    - **QUAN TRỌNG NHẤT:** Hãy đảm bảo mô tả chi tiết về sự lặp lại nằm trong trường `description` (ví dụ: "Học tiếng Anh vào mỗi tối thứ 6 hàng tuần."). Hệ thống backend sẽ tự động phát hiện và xử lý lịch lặp lại dựa trên mô tả này.
+    - Ví dụ yêu cầu: "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần"
+    - Ví dụ LỆNH ĐÚNG: `##ADD_EVENT:{{"title":"Lịch học tiếng Anh","date":"04/04/2025","time":"19:00","description":"Học tiếng Anh vào mỗi tối thứ 6 hàng tuần.","participants":[]}}##`
     
     Hôm nay là {datetime.datetime.now().strftime("%d/%m/%Y")}.
     
@@ -2121,12 +2215,13 @@ def add_note(details):
 # Hàm xử lý lệnh từ phản hồi của trợ lý
 def process_assistant_response(response, current_member=None):
     """
-    Xử lý phản hồi từ assistant, trích xuất các lệnh và làm sạch HTML
-    
+    Xử lý phản hồi từ assistant, trích xuất các lệnh, làm sạch HTML,
+    và tạo event_data chính xác cho sự kiện lặp lại.
+
     Args:
         response (str): Phản hồi từ assistant
         current_member (str, optional): ID thành viên hiện tại
-        
+
     Returns:
         tuple: (cleaned_html, event_data)
             - cleaned_html: HTML đã được làm sạch (không còn lệnh)
@@ -2134,122 +2229,145 @@ def process_assistant_response(response, current_member=None):
     """
     try:
         logger.info(f"Xử lý phản hồi của trợ lý, độ dài: {len(response)}")
-        
+
         event_data = None
         cleaned_html = response
-        
-        # Xử lý lệnh thêm sự kiện
+
+        # --- Xử lý ADD_EVENT ---
         if "##ADD_EVENT:" in response:
             logger.info("Tìm thấy lệnh ADD_EVENT")
             cmd_start = response.index("##ADD_EVENT:") + len("##ADD_EVENT:")
             cmd_end = response.index("##", cmd_start)
             cmd = response[cmd_start:cmd_end].strip()
-            
-            # Loại bỏ lệnh khỏi HTML
             cleaned_html = response.replace(f"##ADD_EVENT:{cmd}##", "").strip()
-            
             logger.info(f"Nội dung lệnh ADD_EVENT: {cmd}")
-            
+
             try:
                 details = json.loads(cmd)
                 if isinstance(details, dict):
-                    # Xử lý các từ ngữ tương đối về thời gian
-                    logger.info(f"Đang xử lý ngày: {details.get('date', '')}")
-                    if details.get('date') and not details['date'][0].isdigit():
-                        # Nếu ngày không bắt đầu bằng số, có thể là mô tả tương đối
-                        relative_date = get_date_from_relative_term(details['date'].lower())
-                        if relative_date:
-                            details['date'] = relative_date.strftime("%Y-%m-%d")
-                            logger.info(f"Đã chuyển đổi ngày thành: {details['date']}")
-                    
-                    # Thêm thông tin về người tạo sự kiện
+                    # Thêm người tạo
                     if current_member:
                         details['created_by'] = current_member
-                    
-                    # Chuyển đổi thành cron expression
-                    cron_expression = date_time_to_cron(
-                        details.get('date', datetime.datetime.now().strftime("%Y-%m-%d")),
-                        details.get('time', "19:00")
-                    )
-                    
-                    # Xác định kiểu lặp lại
+
+                    # Xác định kiểu lặp lại DỰA TRÊN MÔ TẢ/TIÊU ĐỀ (sử dụng hàm đã cải thiện ở cách 1)
                     repeat_type = determine_repeat_type(
                         details.get('description', ''),
                         details.get('title', '')
                     )
-                    
+                    details['repeat_type'] = repeat_type # Lưu lại vào details nếu cần
+
+                    cron_expression = ""
+                    original_date = details.get('date', '')
+                    original_time = details.get('time', '19:00')
+
+                    if repeat_type == "RECURRING":
+                        # Tạo cron lặp lại dựa trên mô tả/tiêu đề
+                        cron_expression = generate_recurring_cron(
+                            details.get('description', ''),
+                            details.get('title', ''),
+                            original_time
+                        )
+                        # Đối với sự kiện lặp lại, ngày gốc có thể không còn quá quan trọng
+                        # Hoặc có thể giữ lại ngày gần nhất mà LLM đề xuất
+                        logger.info(f"Sự kiện RECURRING, cron={cron_expression}")
+                    else: # repeat_type == "ONCE"
+                        # Xử lý ngày tương đối (nếu có)
+                        if original_date and not original_date[0].isdigit():
+                            relative_date = get_date_from_relative_term(original_date.lower())
+                            if relative_date:
+                                original_date = relative_date.strftime("%Y-%m-%d")
+                                details['date'] = original_date # Cập nhật lại date trong details
+                                logger.info(f"Đã chuyển đổi ngày tương đối thành: {original_date}")
+                        # Tạo cron cho sự kiện một lần
+                        cron_expression = date_time_to_cron(original_date, original_time)
+                        logger.info(f"Sự kiện ONCE, cron={cron_expression}")
+
                     # Tạo đối tượng event_data
                     event_data = {
                         "action": "add",
                         "title": details.get('title', ''),
                         "description": details.get('description', ''),
                         "cron_expression": cron_expression,
-                        "repeat_type": repeat_type,
-                        # Lưu thêm thông tin gốc nếu cần
-                        "original_date": details.get('date', ''),
-                        "original_time": details.get('time', ''),
+                        "repeat_type": repeat_type, # Sử dụng repeat_type đã xác định
+                        "original_date": original_date, # Ngày LLM cung cấp hoặc đã xử lý
+                        "original_time": original_time,
                         "participants": details.get('participants', [])
                     }
-                    
-                    # Vẫn thực hiện lưu trữ sự kiện
-                    logger.info(f"Thêm sự kiện: {details.get('title', 'Không tiêu đề')}")
-                    add_event(details)
+
+                    logger.info(f"Thực hiện thêm sự kiện: {details.get('title', 'Không tiêu đề')}")
+                    add_event(details) # Vẫn lưu sự kiện vào file JSON như cũ
+
             except json.JSONDecodeError as e:
                 logger.error(f"Lỗi khi phân tích JSON cho ADD_EVENT: {e}")
                 logger.error(f"Chuỗi JSON gốc: {cmd}")
-        
-        # Xử lý lệnh UPDATE_EVENT
+            except Exception as e_proc:
+                 logger.error(f"Lỗi khác khi xử lý ADD_EVENT: {e_proc}")
+
+
+        # --- Xử lý UPDATE_EVENT (Tương tự như ADD_EVENT) ---
         if "##UPDATE_EVENT:" in response:
             logger.info("Tìm thấy lệnh UPDATE_EVENT")
             cmd_start = response.index("##UPDATE_EVENT:") + len("##UPDATE_EVENT:")
             cmd_end = response.index("##", cmd_start)
             cmd = response[cmd_start:cmd_end].strip()
-            
-            # Loại bỏ lệnh khỏi HTML
             cleaned_html = response.replace(f"##UPDATE_EVENT:{cmd}##", "").strip()
-            
             logger.info(f"Nội dung lệnh UPDATE_EVENT: {cmd}")
-            
+
             try:
                 details = json.loads(cmd)
-                if isinstance(details, dict):
-                    # Xử lý các từ ngữ tương đối về thời gian
-                    if details.get('date') and not details['date'][0].isdigit():
-                        # Nếu ngày không bắt đầu bằng số, có thể là mô tả tương đối
-                        relative_date = get_date_from_relative_term(details['date'].lower())
-                        if relative_date:
-                            details['date'] = relative_date.strftime("%Y-%m-%d")
-                    
-                    # Chuyển đổi thành cron expression
-                    cron_expression = date_time_to_cron(
-                        details.get('date', datetime.datetime.now().strftime("%Y-%m-%d")),
-                        details.get('time', "19:00")
-                    )
-                    
-                    # Xác định kiểu lặp lại
-                    repeat_type = determine_repeat_type(
-                        details.get('description', ''),
-                        details.get('title', '')
-                    )
-                    
-                    # Tạo đối tượng event_data
-                    event_data = {
-                        "action": "update",
-                        "id": details.get('id', ''),
-                        "title": details.get('title', ''),
-                        "description": details.get('description', ''),
-                        "cron_expression": cron_expression,
-                        "repeat_type": repeat_type,
-                        # Lưu thêm thông tin gốc nếu cần
-                        "original_date": details.get('date', ''),
-                        "original_time": details.get('time', ''),
-                        "participants": details.get('participants', [])
-                    }
-                    
-                    logger.info(f"Cập nhật sự kiện: {details.get('title', 'Không tiêu đề')}")
-                    update_event(details)
+                if isinstance(details, dict) and 'id' in details:
+                    event_id = details['id']
+                    if event_id in events_data:
+                         # Lấy thông tin cũ để xác định lặp lại nếu cần
+                         old_event = events_data[event_id]
+                         current_description = details.get('description', old_event.get('description', ''))
+                         current_title = details.get('title', old_event.get('title', ''))
+                         current_time = details.get('time', old_event.get('time', '19:00'))
+                         current_date = details.get('date', old_event.get('date', ''))
+
+                         # Xác định lại kiểu lặp lại dựa trên thông tin MỚI (nếu có) hoặc cũ
+                         repeat_type = determine_repeat_type(current_description, current_title)
+                         details['repeat_type'] = repeat_type
+
+                         cron_expression = ""
+                         original_date = current_date
+                         original_time = current_time
+
+                         if repeat_type == "RECURRING":
+                             cron_expression = generate_recurring_cron(current_description, current_title, original_time)
+                             logger.info(f"Cập nhật sự kiện RECURRING ID={event_id}, cron={cron_expression}")
+                         else: # repeat_type == "ONCE"
+                             if original_date and isinstance(original_date, str) and not original_date[0].isdigit():
+                                 relative_date = get_date_from_relative_term(original_date.lower())
+                                 if relative_date:
+                                     original_date = relative_date.strftime("%Y-%m-%d")
+                                     details['date'] = original_date
+                             cron_expression = date_time_to_cron(original_date, original_time)
+                             logger.info(f"Cập nhật sự kiện ONCE ID={event_id}, cron={cron_expression}")
+
+                         # Tạo đối tượng event_data
+                         event_data = {
+                             "action": "update",
+                             "id": event_id,
+                             "title": details.get('title', old_event.get('title')),
+                             "description": details.get('description', old_event.get('description')),
+                             "cron_expression": cron_expression,
+                             "repeat_type": repeat_type,
+                             "original_date": original_date,
+                             "original_time": original_time,
+                             "participants": details.get('participants', old_event.get('participants'))
+                         }
+
+                         logger.info(f"Thực hiện cập nhật sự kiện ID={event_id}")
+                         update_event(details) # Lưu thay đổi vào file JSON
+                    else:
+                         logger.warning(f"Không tìm thấy sự kiện ID={event_id} để cập nhật.")
+
             except json.JSONDecodeError as e:
                 logger.error(f"Lỗi khi phân tích JSON cho UPDATE_EVENT: {e}")
+                logger.error(f"Chuỗi JSON gốc: {cmd}")
+            except Exception as e_proc:
+                 logger.error(f"Lỗi khác khi xử lý UPDATE_EVENT: {e_proc}")
         
         # Xử lý lệnh DELETE_EVENT
         if "##DELETE_EVENT:" in response:

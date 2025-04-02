@@ -926,5 +926,135 @@
             "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
             "session_id": null
         }
+    ],
+    "2640": [
+        {
+            "timestamp": "2025-04-02 17:28:00",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "```html\n<p>Đã thêm sự kiện <strong>Lịch học tiếng Anh</strong> vào tối thứ 6 hàng tuần.</p>\n```"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Sửa lịch học tiếng anh sang tối thứ 5 hàng tuần",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "```html\n<p>Đã sửa lịch học tiếng Anh sang tối thứ 5 hàng tuần.</p>\n```"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng yêu cầu thêm lịch học tiếng Anh vào tối thứ 6 hàng tuần, sau đó đã sửa lại yêu cầu thành lịch học vào tối thứ 5 hàng tuần.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-02 17:27:24",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "```html\n<p>Đã thêm sự kiện <strong>Lịch học tiếng Anh</strong> vào tối thứ 6 hàng tuần.</p>\n```"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Sửa lịch học tiếng anh sang tối thứ 5 hàng tuần",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "```html\n<p>Đã sửa lịch học tiếng Anh sang tối thứ 5 hàng tuần.</p>\n```"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2641": [
+        {
+            "timestamp": "2025-04-02 17:30:10",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "xóa lịch học tiếng anh đi",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Đã xóa lịch học tiếng Anh.</p>\n\n<!-- Lệnh xóa sự kiện -->\n\n##DELETE_EVENT:7##"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
     ]
 }
