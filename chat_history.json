@@ -1,6 +1,33 @@
 {
     "1": [
         {
+            "timestamp": "2025-04-02 09:37:44",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tin tức hôm nay?",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Bản tin ngày 02 tháng 04 năm 2025</strong></p>\n\n<ul>\n    <li><strong>Cháy lớn tại quận 8, TP.HCM khiến ba người tử vong:</strong> Sáng sớm ngày 2-4, một vụ cháy lớn đã xảy ra tại một căn nhà ở phường Xóm Củi, quận 8, TP.HCM, làm ba người chết, bao gồm hai người lớn và một trẻ em. Nguyên nhân ban đầu được xác định là do xe đạp điện để trong nhà phát nổ. Lực lượng cứu hỏa đã có mặt kịp thời nhưng không thể cứu sống các nạn nhân. Hiện trường vụ cháy đã được phong tỏa để điều tra thêm. (Nguồn: <a href=\"https://tuoitre.vn/chay-lon-can-nha-o-xom-cui-quan-8-ba-nguoi-tu-vong-20250402064635766.htm\">Tuổi Trẻ</a>)</li>\n    <li><strong>Giá USD tăng cao trước nguy cơ thương chiến toàn cầu:</strong> Cùng ngày, thị trường ngoại tệ trong nước ghi nhận giá USD tăng cao kỷ lục. Điều này diễn ra trong bối cảnh Tổng thống Mỹ Donald Trump chuẩn bị công bố kế hoạch đánh thuế lên tất cả các đối tác thương mại bị cáo buộc không công bằng với Mỹ. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-242025-185250401230922219.htm\">Thanh Niên</a>)</li>\n    <li><strong>Trung Quốc phát hiện 2.000 tấn vàng dưới lòng đất:</strong> Trung Quốc đã phát hiện ra hai mỏ vàng lớn với tổng trữ lượng ước tính lên tới 2.000 tấn, nhờ vào công nghệ thăm dò tiên tiến. Đây là một tin vui trong bối cảnh giá vàng đang tăng cao. Nếu được chứng minh, các mỏ này có thể trở thành một trong những mỏ vàng lớn nhất thế giới. (Nguồn: <a href=\"https://vietnamnet.vn/trung-quoc-tim-thay-2-000-tan-vang-duoi-long-dat-2386059.html\">VietnamNet</a>)</li>\n</ul>\n\n<p><strong>Kết luận:</strong> Ngày 2-4-2025 ghi nhận nhiều sự kiện quan trọng, từ vụ cháy thương tâm tại TP.HCM đến những biến động trên thị trường ngoại tệ và tin tức về nguồn tài nguyên vàng mới của Trung Quốc. Những thông tin này phản ánh tình hình xã hội và kinh tế đang diễn ra trong ngày hôm nay.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
+        },
+        {
             "timestamp": "2025-04-02 09:15:22",
             "messages": [
                 {
@@ -573,33 +600,6 @@
                         {
                             "type": "html",
                             "html": "<p>Xin lỗi, nhưng tôi không thể cung cấp thông tin chỉ đường cụ thể. Tuy nhiên, bạn có thể sử dụng các ứng dụng bản đồ như Google Maps hoặc chỉ đường trên điện thoại để tìm đường từ Phạm Hùng đến Vũ Phạm Hàm một cách chính xác nhất.</p>"
-                        }
-                    ]
-                }
-            ],
-            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt."
-        },
-        {
-            "timestamp": "2025-04-02 08:58:33",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Hôm nay thời tiết ở Hà Nội thế nào?",
-                            "html": null,
-                            "image_url": null,
-                            "audio_data": null
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "html",
-                            "html": "<p><strong>Dự báo thời tiết Hà Nội hôm nay</strong></p>\n\n<p>Hôm nay, Hà Nội sẽ trải qua một ngày thời tiết khá lạnh với nhiệt độ thấp nhất khoảng 10 độ C. Không khí lạnh đang ảnh hưởng mạnh đến khu vực miền Bắc, gây ra tình trạng rét đậm và rét hại. Dự báo sẽ có mưa phùn và sương mù vào buổi sáng, khiến không khí trở nên ẩm ướt và lạnh hơn.</p>\n\n<p>Theo thông tin từ VTV, không khí lạnh sẽ tiếp tục duy trì trong những ngày tới, và có khả năng xuất hiện thêm các đợt không khí lạnh mới, làm cho thời tiết miền Bắc nói chung và Hà Nội nói riêng tiếp tục lạnh hơn trong thời gian tới <a href=\"https://vtv.vn/du-bao-thoi-tiet.htm\">Nguồn: VTV.vn</a>.</p>\n\n<p>Ngoài ra, VietNamNet cũng xác nhận rằng miền Bắc sẽ có mưa phùn và sương mù kéo dài, đặc biệt là trong những ngày tới, với nhiệt độ có thể giảm sâu hơn nữa <a href=\"https://vietnamnet.vn/thoi-tiet-ha-noi-tag11822654884237123845.html\">Nguồn: VietNamNet.vn</a>.</p>\n\n<p>Tóm lại, người dân Hà Nội nên chuẩn bị cho một ngày lạnh và có khả năng mưa phùn, đặc biệt là vào buổi sáng.</p>"
                         }
                     ]
                 }
