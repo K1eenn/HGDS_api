@@ -280,6 +280,109 @@ def date_time_to_cron(date_str, time_str="19:00"):
     except Exception as e:
         logger.error(f"Lỗi khi tạo cron expression: {e}")
         return "0 19 * * *"  # Cron mặc định: 7PM hàng ngày
+<<<<<<< HEAD
+    
+RECURRING_KEYWORDS = [
+    # Tiếng Việt
+    "hàng ngày", "mỗi ngày",
+    "hàng tuần", "mỗi tuần",
+    "hàng tháng", "mỗi tháng",
+    "hàng năm", "mỗi năm",
+    "định kỳ", "lặp lại",
+    "mỗi sáng thứ", "mỗi trưa thứ", "mỗi chiều thứ", "mỗi tối thứ", # Chung chung + buổi
+    "thứ 2 hàng tuần", "mỗi thứ 2", "mỗi t2",
+    "thứ 3 hàng tuần", "mỗi thứ 3", "mỗi t3",
+    "thứ 4 hàng tuần", "mỗi thứ 4", "mỗi t4",
+    "thứ 5 hàng tuần", "mỗi thứ 5", "mỗi t5",
+    "thứ 6 hàng tuần", "mỗi thứ 6", "mỗi t6", # Quan trọng cho ví dụ của bạn
+    "thứ 7 hàng tuần", "mỗi thứ 7", "mỗi t7",
+    "chủ nhật hàng tuần", "mỗi chủ nhật", "mỗi cn",
+    # Tiếng Anh (phòng trường hợp)
+    "daily", "every day",
+    "weekly", "every week",
+    "monthly", "every month",
+    "yearly", "annually", "every year",
+    "recurring", "repeating",
+    "every monday", "every tuesday", "every wednesday", "every thursday",
+    "every friday", "every saturday", "every sunday",
+]
+
+def determine_repeat_type(description, title):
+    """
+    Xác định kiểu lặp lại dựa trên mô tả và tiêu đề bằng cách kiểm tra từ khóa mở rộng.
+=======
+
+def generate_recurring_cron(description, title, time_str="19:00"):
+    """
+    Tạo cron expression cho các sự kiện lặp lại dựa trên mô tả và tiêu đề.
+    Ưu tiên xử lý lặp lại hàng ngày và hàng tuần theo thứ.
+>>>>>>> f7b86e08810fd05eeac15198699f3633674e0c88
+
+    Args:
+        description (str): Mô tả sự kiện
+        title (str): Tiêu đề sự kiện
+<<<<<<< HEAD
+=======
+        time_str (str): Thời gian dạng "HH:MM"
+
+    Returns:
+        str: Cron expression cho sự kiện lặp lại, hoặc cron mặc định nếu không xác định được.
+    """
+    try:
+        if not time_str or ':' not in time_str:
+            time_str = "19:00"
+        hour, minute = time_str.split(":")
+
+        combined_text = (str(description) + " " + str(title)).lower()
+
+        # Kiểm tra lặp lại hàng ngày
+        if "hàng ngày" in combined_text or "mỗi ngày" in combined_text or "daily" in combined_text:
+            logger.info(f"Tạo cron hàng ngày cho: {time_str}")
+            return f"{minute} {hour} * * *"
+
+        # Kiểm tra lặp lại hàng tuần theo thứ
+        day_map = {
+            "thứ 2": 1, "t2": 1, "monday": 1,
+            "thứ 3": 2, "t3": 2, "tuesday": 2,
+            "thứ 4": 3, "t4": 3, "wednesday": 3,
+            "thứ 5": 4, "t5": 4, "thursday": 4,
+            "thứ 6": 5, "t6": 5, "friday": 5, # Quan trọng
+            "thứ 7": 6, "t7": 6, "saturday": 6,
+            "chủ nhật": 0, "cn": 0, "sunday": 0
+        }
+
+        # Tìm ngày trong tuần được đề cập
+        found_day = None
+        # Sử dụng regex để tìm chính xác hơn, ví dụ: "thứ 6" chứ không phải "thứ 60"
+        for day_text, day_num in day_map.items():
+             # \b là biên từ, đảm bảo khớp từ hoàn chỉnh
+            if re.search(r'\b' + re.escape(day_text) + r'\b', combined_text):
+                found_day = day_num
+                logger.info(f"Tìm thấy ngày lặp lại: {day_text} ({found_day})")
+                break # Tìm thấy ngày đầu tiên là đủ
+
+        if found_day is not None:
+             # Kiểm tra xem có phải là hàng tuần không (để chắc chắn)
+             is_weekly = any(kw in combined_text for kw in ["hàng tuần", "mỗi tuần", "weekly", "every"])
+             if is_weekly:
+                 logger.info(f"Tạo cron hàng tuần vào thứ {found_day} lúc {time_str}")
+                 return f"{minute} {hour} * * {found_day}"
+             else:
+                 # Nếu chỉ nói "thứ 6" mà không có "hàng tuần", có thể chỉ là 1 lần?
+                 # Tuy nhiên, hàm này chỉ nên được gọi khi determine_repeat_type đã là RECURRING
+                 # nên ta vẫn giả định là hàng tuần
+                 logger.warning(f"Không rõ 'hàng tuần' nhưng vẫn tạo cron tuần vào thứ {found_day}")
+                 return f"{minute} {hour} * * {found_day}"
+
+        # (Có thể thêm logic xử lý hàng tháng ở đây nếu cần)
+        # ...
+
+        logger.warning(f"Không thể xác định lịch lặp lại cụ thể từ '{combined_text}'. Dùng cron mặc định hàng ngày.")
+        return f"{minute} {hour} * * *" # Fallback: lặp lại hàng ngày nếu không rõ
+
+    except Exception as e:
+        logger.error(f"Lỗi khi tạo cron lặp lại: {e}")
+        return "0 19 * * *" # Cron mặc định an toàn
     
 RECURRING_KEYWORDS = [
     # Tiếng Việt
@@ -313,6 +416,7 @@ def determine_repeat_type(description, title):
     Args:
         description (str): Mô tả sự kiện
         title (str): Tiêu đề sự kiện
+>>>>>>> f7b86e08810fd05eeac15198699f3633674e0c88
 
     Returns:
         str: "RECURRING" hoặc "ONCE"
@@ -333,6 +437,7 @@ def determine_repeat_type(description, title):
     logger.info(f"Không tìm thấy từ khóa lặp lại trong: '{combined_text}' -> ONCE")
     return "ONCE"  # Mặc định là chạy một lần
 
+<<<<<<< HEAD
 def generate_recurring_cron(description, title, time_str="19:00"):
     """
     Tạo cron expression cho các sự kiện lặp lại dựa trên mô tả và tiêu đề.
@@ -401,6 +506,8 @@ def generate_recurring_cron(description, title, time_str="19:00"):
     except Exception as e:
         logger.error(f"Lỗi khi tạo cron lặp lại: {e}")
         return "0 19 * * *" # Cron mặc định an toàn
+=======
+>>>>>>> f7b86e08810fd05eeac15198699f3633674e0c88
 
 # ------- Request & Response Models ------------
 
@@ -1005,7 +1112,11 @@ def build_system_prompt(current_member_id=None):
     - Xóa sự kiện: ##DELETE_EVENT:id_sự_kiện##
     - Thêm ghi chú: ##ADD_NOTE:{{"title":"Tiêu đề","content":"Nội dung","tags":["tag1","tag2"]}}##
     
+<<<<<<< HEAD
    QUY TẮC THÊM/CẬP NHẬT SỰ KIỆN ĐƠN GIẢN:
+=======
+    QUY TẮC THÊM/CẬP NHẬT SỰ KIỆN ĐƠN GIẢN:
+>>>>>>> f7b86e08810fd05eeac15198699f3633674e0c88
     1. Khi được yêu cầu thêm/cập nhật sự kiện, hãy thực hiện NGAY LẬP TỨC... (giữ nguyên)
     2. Khi người dùng nói "ngày mai" hoặc "tuần sau", hãy tự động tính toán ngày YYYY-MM-DD cho sự kiện diễn ra một lần (ONCE).
     3. Nếu không có thời gian cụ thể, sử dụng thời gian mặc định là 19:00.
@@ -1019,6 +1130,15 @@ def build_system_prompt(current_member_id=None):
     - **QUAN TRỌNG NHẤT:** Hãy đảm bảo mô tả chi tiết về sự lặp lại nằm trong trường `description` (ví dụ: "Học tiếng Anh vào mỗi tối thứ 6 hàng tuần."). Hệ thống backend sẽ tự động phát hiện và xử lý lịch lặp lại dựa trên mô tả này.
     - Ví dụ yêu cầu: "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần"
     - Ví dụ LỆNH ĐÚNG: `##ADD_EVENT:{{"title":"Lịch học tiếng Anh","date":"04/04/2025","time":"19:00","description":"Học tiếng Anh vào mỗi tối thứ 6 hàng tuần.","participants":[]}}##`
+<<<<<<< HEAD
+=======
+
+    TÌM KIẾM THÔNG TIN THỜI GIAN THỰC:
+    1. Khi người dùng hỏi về tin tức, thời tiết, thể thao, sự kiện hiện tại, thông tin sản phẩm mới, hoặc bất kỳ dữ liệu cập nhật nào, hệ thống đã tự động tìm kiếm thông tin thực tế cho bạn.
+    2. Hãy sử dụng thông tin tìm kiếm này để trả lời người dùng một cách chính xác và đầy đủ.
+    3. Luôn đề cập đến nguồn thông tin khi sử dụng kết quả tìm kiếm.
+    4. Nếu không có thông tin tìm kiếm, hãy trả lời dựa trên kiến thức của bạn và lưu ý rằng thông tin có thể không cập nhật.
+>>>>>>> f7b86e08810fd05eeac15198699f3633674e0c88
     
     Hôm nay là {datetime.datetime.now().strftime("%d/%m/%Y")}.
     
@@ -2368,6 +2488,7 @@ def process_assistant_response(response, current_member=None):
                 logger.error(f"Chuỗi JSON gốc: {cmd}")
             except Exception as e_proc:
                  logger.error(f"Lỗi khác khi xử lý UPDATE_EVENT: {e_proc}")
+<<<<<<< HEAD
         
         # Xử lý lệnh DELETE_EVENT
         if "##DELETE_EVENT:" in response:
@@ -2422,12 +2543,17 @@ def process_assistant_response(response, current_member=None):
                 except Exception as e:
                     logger.error(f"Lỗi khi xử lý lệnh {cmd_type}: {e}")
         
+=======
+
+        # --- Xử lý các lệnh khác (DELETE_EVENT, ADD_FAMILY_MEMBER, etc.) ---
+        # ... (Giữ nguyên phần xử lý các lệnh khác) ...
+
+>>>>>>> f7b86e08810fd05eeac15198699f3633674e0c88
         return cleaned_html, event_data
-    
+
     except Exception as e:
-        logger.error(f"Lỗi khi xử lý phản hồi của trợ lý: {e}")
-        logger.error(f"Phản hồi gốc: {response[:100]}...")
-        return response, None
+        logger.error(f"Lỗi nghiêm trọng khi xử lý phản hồi của trợ lý: {e}", exc_info=True)
+        return response, None # Trả về phản hồi gốc nếu có lỗi nghiêm trọng
 
 @app.on_event("startup")
 async def startup_event():
