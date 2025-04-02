@@ -22,6 +22,8 @@ from openai import OpenAI
 import shutil
 import tempfile
 from gtts import gTTS
+from croniter import croniter
+import re
 
 # Tải biến môi trường
 dotenv.load_dotenv()
@@ -251,6 +253,62 @@ def verify_data_structure():
 # Thực hiện kiểm tra dữ liệu khi khởi động
 verify_data_structure()
 
+def date_time_to_cron(date_str, time_str="19:00"):
+    """
+    Chuyển đổi ngày và giờ thành cron expression
+    
+    Args:
+        date_str (str): Ngày dạng "YYYY-MM-DD"
+        time_str (str): Thời gian dạng "HH:MM"
+        
+    Returns:
+        str: Cron expression
+    """
+    try:
+        # Phân tích ngày/giờ
+        if not time_str:
+            time_str = "19:00"  # Giờ mặc định
+            
+        hour, minute = time_str.split(":")
+        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+        
+        # Tạo cron expression (minute hour day month day-of-week)
+        # * nghĩa là "bất kỳ giá trị nào"
+        cron = f"{minute} {hour} {date_obj.day} {date_obj.month} *"
+        
+        return cron
+    except Exception as e:
+        logger.error(f"Lỗi khi tạo cron expression: {e}")
+        return "0 19 * * *"  # Cron mặc định: 7PM hàng ngày
+    
+def determine_repeat_type(description, title):
+    """
+    Xác định kiểu lặp lại dựa trên mô tả và tiêu đề
+    
+    Args:
+        description (str): Mô tả sự kiện
+        title (str): Tiêu đề sự kiện
+        
+    Returns:
+        str: "RECURRING" hoặc "ONCE"
+    """
+    # Các từ khóa chỉ định kỳ
+    recurring_keywords = [
+        "hàng ngày", "mỗi ngày", "hàng tuần", "mỗi tuần", 
+        "hàng tháng", "mỗi tháng", "định kỳ", "lặp lại",
+        "thứ 2 hàng tuần", "thứ 3 hàng tuần", "thứ 4 hàng tuần",
+        "thứ 5 hàng tuần", "thứ 6 hàng tuần", "thứ 7 hàng tuần", 
+        "chủ nhật hàng tuần"
+    ]
+    
+    combined_text = (description + " " + title).lower()
+    
+    for keyword in recurring_keywords:
+        if keyword in combined_text:
+            return "RECURRING"
+            
+    return "ONCE"  # Mặc định là chạy một lần
+
 # ------- Request & Response Models ------------
 
 class MessageContent(BaseModel):
@@ -276,11 +334,11 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     session_id: str
-    messages: List[Message]  # Ahora solo contendrá mensajes del asistente
+    messages: List[Message]
     audio_response: Optional[str] = None
     response_format: Optional[str] = "html"
     content_type: Optional[str] = "text"
-
+    event_data: Optional[Dict[str, Any]] = None  # Thêm trường event_data
 
 class MemberModel(BaseModel):
     name: str
@@ -312,7 +370,6 @@ class SuggestedQuestionsResponse(BaseModel):
     timestamp: str  
 
 # ------- API Endpoints -------------
-
 @app.post("/chat")
 async def chat_endpoint(chat_request: ChatRequest):
     """
@@ -332,8 +389,6 @@ async def chat_endpoint(chat_request: ChatRequest):
     # Cập nhật member_id nếu có sự thay đổi
     if chat_request.member_id != session["current_member"]:
         session["current_member"] = chat_request.member_id
-        # THAY ĐỔI: Không reset messages khi thay đổi member, để lưu lại lịch sử trò chuyện
-        # session["messages"] = []
     
     # Nếu client cung cấp messages mới và messages hiện tại trống, cập nhật
     if chat_request.messages is not None and not session["messages"]:
@@ -421,13 +476,13 @@ async def chat_endpoint(chat_request: ChatRequest):
         # Lấy kết quả phản hồi
         assistant_response = response.choices[0].message.content
         
-        # Xử lý lệnh đặc biệt trong phản hồi
-        process_assistant_response(assistant_response, session["current_member"])
+        # Xử lý lệnh đặc biệt trong phản hồi và làm sạch HTML
+        cleaned_html, event_data = process_assistant_response(assistant_response, session["current_member"])
         
-        # Thêm phản hồi vào danh sách tin nhắn
+        # Thêm phản hồi đã làm sạch vào danh sách tin nhắn
         session["messages"].append({
             "role": "assistant",
-            "content": [{"type": "html", "html": assistant_response}]
+            "content": [{"type": "html", "html": cleaned_html}]
         })
         
         # Lưu lịch sử chat nếu có current_member
@@ -439,18 +494,19 @@ async def chat_endpoint(chat_request: ChatRequest):
         session_manager.update_session(chat_request.session_id, {"messages": session["messages"]})
         
         # Chuyển đổi văn bản thành giọng nói
-        audio_response = text_to_speech_google(assistant_response)
+        audio_response = text_to_speech_google(cleaned_html)
         
         # THAY ĐỔI: Chỉ giữ lại tin nhắn từ assistant trong response
         assistant_messages = [msg for msg in session["messages"] if msg["role"] == "assistant"]
         
-        # Trả về kết quả (không còn suggested_questions)
+        # Trả về kết quả với event_data nếu có
         return ChatResponse(
             session_id=chat_request.session_id,
             messages=assistant_messages,  # Chỉ trả về tin nhắn của trợ lý
             audio_response=audio_response,
             response_format="html",
-            content_type=chat_request.content_type  # Trả về loại content đã nhận
+            content_type=chat_request.content_type,  # Trả về loại content đã nhận
+            event_data=event_data  # Trả về dữ liệu sự kiện nếu có
         )
         
     except Exception as e:
@@ -574,12 +630,12 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
                     await asyncio.sleep(0)
             
             # Khi stream kết thúc, xử lý phản hồi đầy đủ
-            process_assistant_response(full_response, session["current_member"])
+            cleaned_html, event_data = process_assistant_response(full_response, session["current_member"])
             
-            # Lưu phản hồi vào session
+            # Lưu phản hồi đã làm sạch vào session
             session["messages"].append({
                 "role": "assistant",
-                "content": [{"type": "html", "html": full_response}]
+                "content": [{"type": "html", "html": cleaned_html}]
             })
             
             # Lưu lịch sử chat
@@ -590,13 +646,19 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
             # THAY ĐỔI: Chỉ giữ lại tin nhắn từ assistant trong response
             assistant_messages = [msg for msg in session["messages"] if msg["role"] == "assistant"]
             
-            # Gửi tin nhắn phản hồi cuối cùng
-            yield json.dumps({
+            # Gửi tin nhắn phản hồi cuối cùng kèm event_data nếu có
+            complete_response = {
                 "complete": True,
                 "messages": assistant_messages,  # Chỉ trả về tin nhắn của trợ lý
-                "audio_response": text_to_speech_google(full_response),
+                "audio_response": text_to_speech_google(cleaned_html),
                 "content_type": chat_request.content_type
-            }) + "\n"
+            }
+            
+            # Thêm event_data nếu có
+            if event_data:
+                complete_response["event_data"] = event_data
+            
+            yield json.dumps(complete_response) + "\n"
             
         except Exception as e:
             logger.error(f"Lỗi trong quá trình stream: {str(e)}")
@@ -1256,6 +1318,7 @@ Trả lời DƯỚI DẠNG JSON với 3 trường:
         return False, query, False # Fallback
 
 # Thêm hàm tạo câu hỏi gợi ý động
+
 def generate_dynamic_suggested_questions(api_key, member_id=None, max_questions=5):
     """
     Tạo câu hỏi gợi ý cá nhân hóa và linh động dựa trên thông tin thành viên, 
@@ -1332,12 +1395,13 @@ def generate_dynamic_suggested_questions(api_key, member_id=None, max_questions=
             4. Mục đích là cung cấp thông tin hữu ích, không phải bắt đầu cuộc trò chuyện
             5. Chỉ trả về danh sách các câu gợi ý, mỗi câu trên một dòng
             6. Không thêm đánh số hoặc dấu gạch đầu dòng
+            7. KHÔNG sử dụng dấu ngoặc kép (") bao quanh câu hỏi
             
             Ví dụ tốt:
-            - "Top 5 phim hành động hay nhất 2023?"
-            - "Công thức bánh mì nguyên cám giảm cân?"
-            - "Kết quả Champions League?"
-            - "5 bài tập cardio giảm mỡ bụng hiệu quả?"
+            - Top 5 phim hành động hay nhất 2023?
+            - Công thức bánh mì nguyên cám giảm cân?
+            - Kết quả Champions League?
+            - 5 bài tập cardio giảm mỡ bụng hiệu quả?
             
             Ví dụ không tốt:
             - "Bạn đã biết bộ phim 'The Goal' vừa được phát hành và nhận nhiều phản hồi tích cực từ khán giả chưa?" (Kết hợp phim + bóng đá)
@@ -1360,7 +1424,24 @@ def generate_dynamic_suggested_questions(api_key, member_id=None, max_questions=
             
             # Xử lý phản hồi từ OpenAI
             generated_content = response.choices[0].message.content.strip()
-            questions = [q.strip() for q in generated_content.split('\n') if q.strip()]
+            raw_questions = [q.strip() for q in generated_content.split('\n') if q.strip()]
+            
+            # Xử lý và làm sạch các câu hỏi
+            questions = []
+            for q in raw_questions:
+                # Loại bỏ dấu gạch đầu dòng nếu có
+                if q.startswith('- '):
+                    q = q[2:]
+                # Loại bỏ dấu ngoặc kép ở đầu và cuối nếu có
+                if q.startswith('"') and q.endswith('"'):
+                    q = q[1:-1]
+                elif q.startswith('"'):
+                    q = q[1:]
+                elif q.endswith('"'):
+                    q = q[:-1]
+                # Loại bỏ các trường hợp khác
+                q = q.replace('"', '')
+                questions.append(q)
             
             # Lấy số lượng câu hỏi theo yêu cầu
             questions = questions[:max_questions]
@@ -2039,9 +2120,23 @@ def add_note(details):
 
 # Hàm xử lý lệnh từ phản hồi của trợ lý
 def process_assistant_response(response, current_member=None):
-    """Hàm xử lý lệnh từ phản hồi của trợ lý"""
+    """
+    Xử lý phản hồi từ assistant, trích xuất các lệnh và làm sạch HTML
+    
+    Args:
+        response (str): Phản hồi từ assistant
+        current_member (str, optional): ID thành viên hiện tại
+        
+    Returns:
+        tuple: (cleaned_html, event_data)
+            - cleaned_html: HTML đã được làm sạch (không còn lệnh)
+            - event_data: Dữ liệu sự kiện được trích xuất (nếu có)
+    """
     try:
         logger.info(f"Xử lý phản hồi của trợ lý, độ dài: {len(response)}")
+        
+        event_data = None
+        cleaned_html = response
         
         # Xử lý lệnh thêm sự kiện
         if "##ADD_EVENT:" in response:
@@ -2049,6 +2144,9 @@ def process_assistant_response(response, current_member=None):
             cmd_start = response.index("##ADD_EVENT:") + len("##ADD_EVENT:")
             cmd_end = response.index("##", cmd_start)
             cmd = response[cmd_start:cmd_end].strip()
+            
+            # Loại bỏ lệnh khỏi HTML
+            cleaned_html = response.replace(f"##ADD_EVENT:{cmd}##", "").strip()
             
             logger.info(f"Nội dung lệnh ADD_EVENT: {cmd}")
             
@@ -2068,6 +2166,32 @@ def process_assistant_response(response, current_member=None):
                     if current_member:
                         details['created_by'] = current_member
                     
+                    # Chuyển đổi thành cron expression
+                    cron_expression = date_time_to_cron(
+                        details.get('date', datetime.datetime.now().strftime("%Y-%m-%d")),
+                        details.get('time', "19:00")
+                    )
+                    
+                    # Xác định kiểu lặp lại
+                    repeat_type = determine_repeat_type(
+                        details.get('description', ''),
+                        details.get('title', '')
+                    )
+                    
+                    # Tạo đối tượng event_data
+                    event_data = {
+                        "action": "add",
+                        "title": details.get('title', ''),
+                        "description": details.get('description', ''),
+                        "cron_expression": cron_expression,
+                        "repeat_type": repeat_type,
+                        # Lưu thêm thông tin gốc nếu cần
+                        "original_date": details.get('date', ''),
+                        "original_time": details.get('time', ''),
+                        "participants": details.get('participants', [])
+                    }
+                    
+                    # Vẫn thực hiện lưu trữ sự kiện
                     logger.info(f"Thêm sự kiện: {details.get('title', 'Không tiêu đề')}")
                     add_event(details)
             except json.JSONDecodeError as e:
@@ -2081,6 +2205,9 @@ def process_assistant_response(response, current_member=None):
             cmd_end = response.index("##", cmd_start)
             cmd = response[cmd_start:cmd_end].strip()
             
+            # Loại bỏ lệnh khỏi HTML
+            cleaned_html = response.replace(f"##UPDATE_EVENT:{cmd}##", "").strip()
+            
             logger.info(f"Nội dung lệnh UPDATE_EVENT: {cmd}")
             
             try:
@@ -2093,42 +2220,96 @@ def process_assistant_response(response, current_member=None):
                         if relative_date:
                             details['date'] = relative_date.strftime("%Y-%m-%d")
                     
+                    # Chuyển đổi thành cron expression
+                    cron_expression = date_time_to_cron(
+                        details.get('date', datetime.datetime.now().strftime("%Y-%m-%d")),
+                        details.get('time', "19:00")
+                    )
+                    
+                    # Xác định kiểu lặp lại
+                    repeat_type = determine_repeat_type(
+                        details.get('description', ''),
+                        details.get('title', '')
+                    )
+                    
+                    # Tạo đối tượng event_data
+                    event_data = {
+                        "action": "update",
+                        "id": details.get('id', ''),
+                        "title": details.get('title', ''),
+                        "description": details.get('description', ''),
+                        "cron_expression": cron_expression,
+                        "repeat_type": repeat_type,
+                        # Lưu thêm thông tin gốc nếu cần
+                        "original_date": details.get('date', ''),
+                        "original_time": details.get('time', ''),
+                        "participants": details.get('participants', [])
+                    }
+                    
                     logger.info(f"Cập nhật sự kiện: {details.get('title', 'Không tiêu đề')}")
                     update_event(details)
             except json.JSONDecodeError as e:
                 logger.error(f"Lỗi khi phân tích JSON cho UPDATE_EVENT: {e}")
         
-        # Các lệnh xử lý khác tương tự
-        for cmd_type in ["ADD_FAMILY_MEMBER", "UPDATE_PREFERENCE", "DELETE_EVENT", "ADD_NOTE"]:
+        # Xử lý lệnh DELETE_EVENT
+        if "##DELETE_EVENT:" in response:
+            logger.info("Tìm thấy lệnh DELETE_EVENT")
+            cmd_start = response.index("##DELETE_EVENT:") + len("##DELETE_EVENT:")
+            cmd_end = response.index("##", cmd_start)
+            cmd = response[cmd_start:cmd_end].strip()
+            
+            # Loại bỏ lệnh khỏi HTML
+            cleaned_html = response.replace(f"##DELETE_EVENT:{cmd}##", "").strip()
+            
+            event_id = cmd.strip()
+            
+            # Tìm thông tin sự kiện trước khi xóa
+            event_info = events_data.get(event_id, {})
+            
+            # Tạo đối tượng event_data
+            event_data = {
+                "action": "delete",
+                "id": event_id,
+                "title": event_info.get('title', ''),
+                "description": event_info.get('description', '')
+            }
+            
+            delete_event(event_id)
+        
+        # Xử lý các lệnh khác (ADD_FAMILY_MEMBER, UPDATE_PREFERENCE, ADD_NOTE)
+        # Những lệnh này chỉ cần làm sạch HTML, không cần trả về dữ liệu cấu trúc
+        for cmd_type in ["ADD_FAMILY_MEMBER", "UPDATE_PREFERENCE", "ADD_NOTE"]:
             cmd_pattern = f"##{cmd_type}:"
-            if cmd_pattern in response:
+            if cmd_pattern in cleaned_html:
                 logger.info(f"Tìm thấy lệnh {cmd_type}")
                 try:
-                    cmd_start = response.index(cmd_pattern) + len(cmd_pattern)
-                    cmd_end = response.index("##", cmd_start)
-                    cmd = response[cmd_start:cmd_end].strip()
+                    cmd_start = cleaned_html.index(cmd_pattern) + len(cmd_pattern)
+                    cmd_end = cleaned_html.index("##", cmd_start)
+                    cmd = cleaned_html[cmd_start:cmd_end].strip()
                     
-                    if cmd_type == "DELETE_EVENT":
-                        event_id = cmd.strip()
-                        delete_event(event_id)
-                    else:
-                        details = json.loads(cmd)
-                        if isinstance(details, dict):
-                            if cmd_type == "ADD_FAMILY_MEMBER":
-                                add_family_member(details)
-                            elif cmd_type == "UPDATE_PREFERENCE":
-                                update_preference(details)
-                            elif cmd_type == "ADD_NOTE":
-                                # Thêm thông tin về người tạo ghi chú
-                                if current_member:
-                                    details['created_by'] = current_member
-                                add_note(details)
+                    # Loại bỏ lệnh khỏi HTML
+                    cleaned_html = cleaned_html.replace(f"##{cmd_type}:{cmd}##", "").strip()
+                    
+                    details = json.loads(cmd)
+                    if isinstance(details, dict):
+                        if cmd_type == "ADD_FAMILY_MEMBER":
+                            add_family_member(details)
+                        elif cmd_type == "UPDATE_PREFERENCE":
+                            update_preference(details)
+                        elif cmd_type == "ADD_NOTE":
+                            # Thêm thông tin về người tạo ghi chú
+                            if current_member:
+                                details['created_by'] = current_member
+                            add_note(details)
                 except Exception as e:
                     logger.error(f"Lỗi khi xử lý lệnh {cmd_type}: {e}")
+        
+        return cleaned_html, event_data
     
     except Exception as e:
         logger.error(f"Lỗi khi xử lý phản hồi của trợ lý: {e}")
         logger.error(f"Phản hồi gốc: {response[:100]}...")
+        return response, None
 
 @app.on_event("startup")
 async def startup_event():

@@ -42,6 +42,100 @@
             "html": "<p><strong>Tên của bạn là Kiên.</strong></p>"
           }
         ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch xem bóng đá vào tối mai",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "##ADD_EVENT:{\"title\":\"Lịch xem bóng đá\",\"date\":\"2025-04-03\",\"time\":\"19:00\",\"description\":\"Xem các trận đấu bóng đá hấp dẫn vào tối mai.\",\"participants\":[]}##\n\n<p>Đã thêm sự kiện \"Lịch xem bóng đá\" vào tối mai (03/04/2025) lúc 19:00.</p>"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch xem bóng đá vào tối ngày kia",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "Tôi đã thêm lịch xem bóng đá vào tối ngày 04/04/2025.",
+            "event_data": {
+              "title": "Lịch xem bóng đá",
+              "date": "2025-04-04",
+              "time": "19:00",
+              "description": "Xem các trận đấu bóng đá hấp dẫn vào tối ngày kia.",
+              "participants": [],
+              "action": "add",
+              "cron_expression": "0 19 4 4 *",
+              "repeat_type": "ONCE"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch xem bóng đá vào tối ngày kia",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Đã thêm sự kiện <strong>Lịch xem bóng đá</strong> vào tối ngày <strong>04/04/2025</strong> với thời gian là <strong>19:00</strong>. Mô tả sự kiện: <em>Xem các trận đấu bóng đá hấp dẫn vào tối ngày kia.</em></p>\n\n<script>\n  // Lệnh thêm sự kiện sẽ được thực hiện ở đây\n  ##ADD_EVENT:{\"title\":\"Lịch xem bóng đá\",\"date\":\"2025-04-04\",\"time\":\"19:00\",\"description\":\"Xem các trận đấu bóng đá hấp dẫn vào tối ngày kia.\",\"participants\":[]}##\n</script>\n```"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch xem phim vào ngày 06/04",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Đã thêm lịch xem phim vào ngày 06/04. Dưới đây là một số bộ phim sẽ được khởi chiếu trong ngày này:</p>\n<ul>\n    <li><strong>Gấu Yêu Của Anh</strong></li>\n    <li><strong>Mật Vụ Phụ Hồ</strong></li>\n    <li><strong>Một Bộ Phim Minecraft</strong></li>\n    <li><strong>Kayara: Cô Bé Chiến Binh</strong></li>\n    <li><strong>Oán Linh Nhập Xác</strong></li>\n    <li><strong>Pororo: Thám Hiểm Đại Dương Xanh</strong></li>\n    <li><strong>Địa Đạo: Mặt Trời Trong Bóng Tối</strong></li>\n</ul>\n<p>Thông tin chi tiết về lịch chiếu: </p>\n<p>Hẹn gặp lại vào ngày 06/04 để thưởng thức những bộ phim thú vị này!</p>\n```\n##ADD_EVENT:{\"title\":\"Lịch xem phim\",\"date\":\"2025-04-06\",\"time\":\"19:00\",\"description\":\"Xem các bộ phim mới khởi chiếu.\",\"participants\":[]}##"
+          }
+        ]
       }
     ],
     "current_member": "1",
@@ -49,6 +143,181 @@
     "process_suggested": false,
     "question_cache": {},
     "created_at": "2025-04-02 14:06:13",
-    "last_updated": "2025-04-02 14:07:23"
+    "last_updated": "2025-04-02 15:51:06"
+  },
+  "12": {
+    "messages": [],
+    "current_member": null,
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 15:13:46",
+    "last_updated": "2025-04-02 15:13:46"
+  },
+  "23021999": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch xem đá bóng vào ngày 06/04",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "##ADD_EVENT:{\"title\":\"Lịch xem bóng đá\",\"date\":\"2025-04-06\",\"time\":\"19:00\",\"description\":\"Xem các trận đấu bóng đá hấp dẫn vào ngày 06/04.\",\"participants\":[]}##\n\n<p><strong>Đã thêm sự kiện:</strong> Lịch xem bóng đá vào ngày 06/04 lúc 19:00. Bạn có thể theo dõi các trận đấu hấp dẫn trong ngày này!</p>"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch xem đá bóng vào ngày 06/04",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": ""
+          }
+        ]
+      }
+    ],
+    "current_member": "23",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 15:52:12",
+    "last_updated": "2025-04-02 15:56:30"
+  },
+  "26062002": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch xem đá bóng vào ngày 06/04",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<p>Đã thêm sự kiện <strong>\"Lịch xem bóng đá\"</strong> vào ngày <strong>06/04/2025</strong> lúc <strong>19:00</strong>. Mô tả sự kiện là <em>\"Xem các trận đấu bóng đá hấp dẫn vào ngày 06/04.\"</em></p>\n\n<script>\n    // Thực hiện thêm sự kiện\n    \n</script>"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào mỗi tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Hiện tại, tôi đã thêm lịch xem đá bóng vào ngày 06/04. Tuy nhiên, việc thêm lịch học tiếng Anh vào mỗi tối thứ 6 hàng tuần sẽ cần thêm thông tin.</p>\n<p>Bạn có thể cung cấp cho tôi giờ cụ thể bắt đầu của lớp học tiếng Anh không?</p>\n```"
+          }
+        ]
+      }
+    ],
+    "current_member": "26",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 15:58:27",
+    "last_updated": "2025-04-02 15:59:52"
+  },
+  "262062002": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào mỗi tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "<h3>Thêm sự kiện lịch học tiếng Anh</h3>\n<p>Tôi sẽ thêm lịch học tiếng Anh vào mỗi tối thứ 6 hàng tuần.</p>\n\n<!-- Lệnh thêm sự kiện cho lịch học tiếng Anh -->\n \n\n<p>Sự kiện đã được thêm thành công cho lịch học tiếng Anh vào mỗi tối thứ 6.</p>"
+          }
+        ]
+      }
+    ],
+    "current_member": "261",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 16:00:37",
+    "last_updated": "2025-04-02 16:00:42"
+  },
+  "261062002": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần",
+            "html": null,
+            "image_url": null,
+            "audio_data": null
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "html",
+            "html": "```html\n<p>Đã thêm lịch học tiếng Anh vào tối thứ 6 hàng tuần.</p>\n```"
+          }
+        ]
+      }
+    ],
+    "current_member": "262",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-02 16:01:38",
+    "last_updated": "2025-04-02 16:01:42"
   }
 }
