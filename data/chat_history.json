@@ -907,5 +907,902 @@
             "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
             "session_id": null
         }
+    ],
+    "2652": [
+        {
+            "timestamp": "2025-04-03 10:10:50",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi sẽ thêm lịch đi chơi vào thứ Ba tuần sau, tức là ngày <strong>2025-04-09</strong>.</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tin tức hôm nay",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Bản tin ngày 3 tháng 4 năm 2025</strong></p>\n\n<ul>\n    <li><strong>Thiệt hại lớn do lộ dữ liệu cá nhân:</strong> Theo báo cáo từ Công ty An ninh mạng Viettel, nhiều thông tin cá nhân và tài liệu doanh nghiệp tại Việt Nam đã bị rao bán trên mạng, gây thiệt hại ước tính lên đến 11 triệu USD. Vấn đề này nhấn mạnh nguy cơ an toàn thông tin trong bối cảnh ngày càng nhiều hoạt động trực tuyến. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n    \n    <li><strong>Giá vàng tăng mạnh:</strong> Giá vàng hôm nay tăng mạnh do cú sốc thuế từ Tổng thống Mỹ Donald Trump, với vàng miếng SJC và nhẫn trơn tăng lên gần 103 triệu đồng/lượng. Cụ thể, giá vàng SJC được niêm yết ở mức 100,1 triệu đồng/lượng (mua vào) và 102,8 triệu đồng/lượng (bán ra), tăng 1 triệu đồng so với hôm qua. (Nguồn: <a href=\"https://vietnamnet.vn/gia-vang-hom-nay-3-4-2025-sjc-va-nhan-hut-hoi-sau-khi-lap-dinh-2387256.html\">VietnamNet</a>)</li>\n    \n    <li><strong>Lãi suất ngân hàng không thay đổi:</strong> Trong ngày hôm nay, lãi suất ngân hàng vẫn giữ nguyên, với mức cao đặc biệt lên tới 9,65%/năm dành cho khách hàng siêu VIP tại một số ngân hàng. Mặc dù không có sự điều chỉnh lãi suất huy động, nhưng một số ngân hàng vẫn duy trì mức lãi suất hấp dẫn cho các khoản gửi lớn. (Nguồn: <a href=\"https://vietnamnet.vn/lai-suat-ngan-hang-hom-nay-3-4-2025-lai-suat-dac-biet-cao-nhat-9-65-nam-2386985.html\">VietnamNet</a>)</li>\n    \n    <li><strong>Đàm phán xung đột Ukraine bế tắc:</strong> Đàm phán hòa bình giữa Nga và Mỹ nhằm chấm dứt xung đột tại Ukraine vẫn đang gặp khó khăn, với chuyến thăm của phái đoàn Nga đến Mỹ không mang lại kết quả như mong đợi. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n</ul>\n\n<p>Tóm lại, ngày 3 tháng 4 năm 2025 ghi nhận nhiều diễn biến quan trọng trong lĩnh vực an ninh mạng, giá vàng và lãi suất ngân hàng, cùng với tình hình chính trị quốc tế vẫn còn nhiều thách thức.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng yêu cầu đặt lịch đi chơi vào thứ 3 tuần sau và hỏi về tin tức hôm nay.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 10:09:07",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi sẽ thêm lịch đi chơi vào thứ Ba tuần sau, tức là ngày <strong>2025-04-09</strong>.</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tin tức hôm nay",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Bản tin ngày 3 tháng 4 năm 2025</strong></p>\n\n<ul>\n    <li><strong>Thiệt hại lớn do lộ dữ liệu cá nhân:</strong> Theo báo cáo từ Công ty An ninh mạng Viettel, nhiều thông tin cá nhân và tài liệu doanh nghiệp tại Việt Nam đã bị rao bán trên mạng, gây thiệt hại ước tính lên đến 11 triệu USD. Vấn đề này nhấn mạnh nguy cơ an toàn thông tin trong bối cảnh ngày càng nhiều hoạt động trực tuyến. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n    \n    <li><strong>Giá vàng tăng mạnh:</strong> Giá vàng hôm nay tăng mạnh do cú sốc thuế từ Tổng thống Mỹ Donald Trump, với vàng miếng SJC và nhẫn trơn tăng lên gần 103 triệu đồng/lượng. Cụ thể, giá vàng SJC được niêm yết ở mức 100,1 triệu đồng/lượng (mua vào) và 102,8 triệu đồng/lượng (bán ra), tăng 1 triệu đồng so với hôm qua. (Nguồn: <a href=\"https://vietnamnet.vn/gia-vang-hom-nay-3-4-2025-sjc-va-nhan-hut-hoi-sau-khi-lap-dinh-2387256.html\">VietnamNet</a>)</li>\n    \n    <li><strong>Lãi suất ngân hàng không thay đổi:</strong> Trong ngày hôm nay, lãi suất ngân hàng vẫn giữ nguyên, với mức cao đặc biệt lên tới 9,65%/năm dành cho khách hàng siêu VIP tại một số ngân hàng. Mặc dù không có sự điều chỉnh lãi suất huy động, nhưng một số ngân hàng vẫn duy trì mức lãi suất hấp dẫn cho các khoản gửi lớn. (Nguồn: <a href=\"https://vietnamnet.vn/lai-suat-ngan-hang-hom-nay-3-4-2025-lai-suat-dac-biet-cao-nhat-9-65-nam-2386985.html\">VietnamNet</a>)</li>\n    \n    <li><strong>Đàm phán xung đột Ukraine bế tắc:</strong> Đàm phán hòa bình giữa Nga và Mỹ nhằm chấm dứt xung đột tại Ukraine vẫn đang gặp khó khăn, với chuyến thăm của phái đoàn Nga đến Mỹ không mang lại kết quả như mong đợi. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n</ul>\n\n<p>Tóm lại, ngày 3 tháng 4 năm 2025 ghi nhận nhiều diễn biến quan trọng trong lĩnh vực an ninh mạng, giá vàng và lãi suất ngân hàng, cùng với tình hình chính trị quốc tế vẫn còn nhiều thách thức.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2653": [
+        {
+            "timestamp": "2025-04-03 10:12:07",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đạt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Để thiết lập lịch đi chơi vào thứ 2 tuần sau, tôi sẽ tạo một sự kiện cho bạn.</p>\n\n<p>Thứ 2 tuần sau sẽ rơi vào ngày <strong>2025-04-08</strong>. Tôi sẽ thêm lịch đi chơi này ngay lập tức.</p>\n\n \n\n<p>Lịch đi chơi đã được thêm vào vào ngày <strong>08/04/2025</strong> lúc <strong>19:00</strong>.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2654": [
+        {
+            "timestamp": "2025-04-03 10:16:50",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Đã thêm lịch đi chơi vào thứ 2 tuần sau, cụ thể là vào ngày 10/04/2025.</p>\n\n<script>\n  \n</script>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "hôm nay là ngày bao nhiêu",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Hôm nay là <strong>03/04/2025</</strong>.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng yêu cầu đặt lịch đi chơi vào thứ Hai tuần sau và hỏi ngày hôm nay là ngày bao nhiêu.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 10:14:23",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Đã thêm lịch đi chơi vào thứ 2 tuần sau, cụ thể là vào ngày 10/04/2025.</p>\n\n<script>\n  \n</script>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "hôm nay là ngày bao nhiêu",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Hôm nay là <strong>03/04/2025</</strong>.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2655": [
+        {
+            "timestamp": "2025-04-03 10:20:20",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Chắc chắn rồi! Tôi sẽ thêm lịch đi chơi vào thứ Ba tuần sau, tức là ngày 09/04/2025.</p>\n\n<script>\n  \n</script>\n\n<p>Lịch đi chơi đã được thêm thành công!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2656": [
+        {
+            "timestamp": "2025-04-03 10:29:21",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<h3>Thông tin sự kiện</h3>\n<p>Tôi đã thêm lịch đi chơi vào thứ Ba tuần sau.</p>\n\n<script>\n  ##ADD_EVENT:{\"title\":\"Lịch đi chơi\",\"date\":\"2025-04-09\",\"time\":\"19:00\",\"description\":\"Đi chơi vào thứ Ba tuần sau.\",\"participants\":[]}##\n</script>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "Đã thêm lịch đi chơi vào thứ Ba tuần sau. Dưới đây là thông tin chi tiết của sự kiện:\n\n- **Tiêu đề:** Lịch đi chơi\n- **Ngày:** 2025-04-09\n- **Thời gian:** 19:00\n- **Mô tả:** Đi chơi vào thứ Ba tuần sau.\n\nNếu bạn cần thêm thông tin gì khác, hãy cho tôi biết!"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng yêu cầu đặt lịch đi chơi vào thứ 3 tuần sau.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 10:28:14",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<h3>Thông tin sự kiện</h3>\n<p>Tôi đã thêm lịch đi chơi vào thứ Ba tuần sau.</p>\n\n<script>\n  ##ADD_EVENT:{\"title\":\"Lịch đi chơi\",\"date\":\"2025-04-09\",\"time\":\"19:00\",\"description\":\"Đi chơi vào thứ Ba tuần sau.\",\"participants\":[]}##\n</script>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2657": [
+        {
+            "timestamp": "2025-04-03 10:29:47",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Ngày thứ Ba tuần sau sẽ là <strong>09/04/2025</strong>. Tôi sẽ thêm lịch đi chơi vào ngày này.</p>\n\n<script>\n  // Adding the event for playing out on April 9th\n  \n</script>\n\n<p>Lịch đi chơi đã được thêm vào thứ Ba, 09/04/2025 lúc 19:00.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2658": [
+        {
+            "timestamp": "2025-04-03 10:34:50",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Đã thêm lịch đi chơi vào thứ 3 tuần sau. Dưới đây là thông tin chi tiết:</p>\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> 2025-04-09</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ Ba tuần sau.</li>\n</ul>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "Lịch đi chơi vào thứ Ba tuần sau đã được thêm thành công. Dưới đây là thông tin chi tiết:\n\n- **Tiêu đề:** Lịch đi chơi\n- **Ngày:** 2025-04-09\n- **Thời gian:** 19:00\n- **Mô tả:** Đi chơi vào thứ Ba tuần sau.\n\nNếu bạn cần thêm thông tin hoặc có yêu cầu khác, hãy cho tôi biết!"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng yêu cầu đặt lịch đi chơi vào thứ 3 tuần sau.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 10:31:15",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 3 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Đã thêm lịch đi chơi vào thứ 3 tuần sau. Dưới đây là thông tin chi tiết:</p>\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> 2025-04-09</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ Ba tuần sau.</li>\n</ul>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2659": [
+        {
+            "timestamp": "2025-04-03 10:46:38",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Đã thêm lịch đi chơi vào thứ 2 tuần sau, cụ thể là ngày <strong>2025-04-08</strong>.</p>\n\n<script>\n  \n</script>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "Để đặt lịch đi chơi vào thứ 2 tuần sau, tôi sẽ tạo một sự kiện mới cho ngày 10/04/2025. \n\nTôi sẽ thực hiện ngay lập tức."
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng yêu cầu đặt lịch đi chơi vào thứ Hai tuần sau.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 10:35:44",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Đã thêm lịch đi chơi vào thứ 2 tuần sau, cụ thể là ngày <strong>2025-04-08</strong>.</p>\n\n<script>\n  \n</script>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2660": [
+        {
+            "timestamp": "2025-04-03 10:46:58",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi sẽ thêm lịch đi chơi vào thứ 2 tuần sau, cụ thể là ngày 2025-04-08 lúc 19:00.</p>\n\n<script></script> \n\n<p>Lịch đi chơi đã được thêm thành công.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2661": [
+        {
+            "timestamp": "2025-04-03 10:49:08",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi đã thêm lịch đi chơi vào thứ 2 tuần sau.</p>\n\n<script>\n    // Thực hiện lệnh thêm sự kiện\n    \n</script>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2662": [
+        {
+            "timestamp": "2025-04-03 10:53:13",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi sẽ thêm lịch đi chơi vào thứ Hai tuần sau, tức là ngày <strong>2025-04-08</strong>. Dưới đây là thông tin chi tiết:</p>\n\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> 2025-04-08</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ 2 tuần sau.</li>\n</ul>\n\n<p>Đang thực hiện...</p>\n\n<script>\n    // Lệnh để thêm sự kiện\n    \n</script> \n\n<p>Đã thêm lịch đi chơi vào thứ Hai tuần sau thành công!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2663": [
+        {
+            "timestamp": "2025-04-03 10:54:07",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi sẽ thêm sự kiện đi chơi vào thứ Hai tuần sau, cụ thể là ngày <strong>2025-04-08</strong>.</p>\n\n \n\n<p>Sự kiện đã được thêm thành công!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2664": [
+        {
+            "timestamp": "2025-04-03 11:02:26",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi đã thêm lịch đi chơi vào thứ Hai tuần sau. Dưới đây là thông tin chi tiết:</p>\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> 2025-04-08</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ 2 tuần sau.</li>\n</ul>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2670": [
+        {
+            "timestamp": "2025-04-03 11:10:56",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Đã thêm lịch đi chơi vào thứ 2 tuần sau. Dưới đây là thông tin chi tiết:</p>\n\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> 2025-04-08</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ 2 tuần sau.</li>\n</ul>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2671": [
+        {
+            "timestamp": "2025-04-03 11:11:49",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi đã thêm lịch đi chơi vào thứ 2 tuần sau. Dưới đây là thông tin về sự kiện:</p>\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> 2025-04-08</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ 2 tuần sau.</li>\n</ul>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2672": [
+        {
+            "timestamp": "2025-04-03 11:12:45",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Để thêm lịch đi chơi vào thứ 2 tuần sau, tôi sẽ đặt sự kiện vào ngày 2025-04-08.</p>\n\n<p>Đang thực hiện...</p>\n\n<script>\n    // Lệnh để thêm sự kiện\n    \n</script>\n\n<p>Lịch đi chơi vào thứ 2 tuần sau đã được thêm thành công!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2673": [
+        {
+            "timestamp": "2025-04-03 11:18:55",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 2 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi đã thêm lịch đi chơi vào thứ 2 tuần sau. Dưới đây là thông tin chi tiết:</p>\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> Thứ 2 tuần sau</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ 2 tuần sau.</li>\n</ul>\n\n<p>Cảm ơn bạn đã đặt lịch!</p>\n\n<script>\n    // Lệnh đã thực hiện\n    \n</script>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "2675": [
+        {
+            "timestamp": "2025-04-03 11:20:01",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 6 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi đã thêm lịch đi chơi vào thứ 6 tuần sau.</p>\n<p><strong>Chi tiết sự kiện:</strong></p>\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> thứ 6 tuần sau</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ 6 tuần sau.</li>\n</ul>\n\n<script>\n    // Lệnh thêm sự kiện\n    \n</script>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "ngày 26/06 là thứ mấy",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Ngày <strong>26/06/2025</strong> sẽ là <strong>thứ 5</strong>.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng yêu cầu đặt lịch đi chơi vào thứ Sáu tuần sau và hỏi ngày 26/06 là thứ mấy.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 11:19:22",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Đặt lịch đi chơi vào thứ 6 tuần sau",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Tôi đã thêm lịch đi chơi vào thứ 6 tuần sau.</p>\n<p><strong>Chi tiết sự kiện:</strong></p>\n<ul>\n    <li><strong>Tiêu đề:</strong> Lịch đi chơi</li>\n    <li><strong>Ngày:</strong> thứ 6 tuần sau</li>\n    <li><strong>Thời gian:</strong> 19:00</li>\n    <li><strong>Mô tả:</strong> Đi chơi vào thứ 6 tuần sau.</li>\n</ul>\n\n<script>\n    // Lệnh thêm sự kiện\n    \n</script>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "ngày 26/06 là thứ mấy",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Ngày <strong>26/06/2025</strong> sẽ là <strong>thứ 5</strong>.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
     ]
 }

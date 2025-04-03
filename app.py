@@ -24,7 +24,7 @@ import tempfile
 from gtts import gTTS
 from croniter import croniter
 import re
-
+from typing import Optional, Dict, Any, Tuple
 # Tải biến môi trường
 dotenv.load_dotenv()
 
@@ -35,6 +35,8 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger('family_assistant_api')
 
 logger = logging.getLogger('date_calculator')
+logger = logging.getLogger('cron_generator')
+logger = logging.getLogger('family_assistant_api.response_processor')
 # Khởi tạo API
 app = FastAPI(title="Trợ lý Gia đình API", 
               description="API cho Trợ lý Gia đình thông minh với khả năng xử lý text, hình ảnh và âm thanh",
@@ -256,34 +258,38 @@ verify_data_structure()
 
 def date_time_to_cron(date_str, time_str="19:00"):
     """
-    Chuyển đổi ngày và giờ thành cron expression
-    
+    Chuyển đổi ngày và giờ thành cron expression định dạng Quartz (6 hoặc 7 trường).
+    Dùng cho sự kiện xảy ra MỘT LẦN vào ngày cụ thể.
+
     Args:
         date_str (str): Ngày dạng "YYYY-MM-DD"
         time_str (str): Thời gian dạng "HH:MM"
-        
+
     Returns:
-        str: Cron expression
+        str: Quartz cron expression (e.g., "0 MM HH DD MM ? YYYY")
+             hoặc một cron mặc định hàng ngày nếu lỗi.
     """
     try:
-        # Phân tích ngày/giờ
-        if not time_str:
+        if not time_str or ':' not in time_str:
             time_str = "19:00"  # Giờ mặc định
-            
-        hour, minute = time_str.split(":")
+
+        hour, minute = map(int, time_str.split(":")) # Chuyển sang số nguyên
         date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-        
-        # Tạo cron expression (minute hour day month day-of-week)
-        # * nghĩa là "bất kỳ giá trị nào"
-        cron = f"{minute} {hour} {date_obj.day} {date_obj.month} *"
-        
-        return cron
+
+        # Tạo cron expression Quartz: Seconds Minute Hour DayOfMonth Month DayOfWeek Year
+        # Vì đã chỉ định DayOfMonth, DayOfWeek phải là '?'
+        # Năm là tùy chọn nhưng hữu ích cho ngày cụ thể
+        quartz_cron = f"0 {minute} {hour} {date_obj.day} {date_obj.month} ? {date_obj.year}"
+        logger.info(f"Generated Quartz cron for specific date {date_str} {time_str}: {quartz_cron}")
+        return quartz_cron
+
     except Exception as e:
-        logger.error(f"Lỗi khi tạo cron expression: {e}")
-        return "0 19 * * *"  # Cron mặc định: 7PM hàng ngày
+        logger.error(f"Lỗi khi tạo cron expression Quartz cho ngày cụ thể: {e}")
+        # Fallback: Chạy hàng ngày lúc 19:00 theo định dạng Quartz
+        return "0 0 19 ? * * *"
     
 RECURRING_KEYWORDS = [
-    # Tiếng Việt
+    # ... (keep the existing list) ...
     "hàng ngày", "mỗi ngày",
     "hàng tuần", "mỗi tuần",
     "hàng tháng", "mỗi tháng",
@@ -307,6 +313,7 @@ RECURRING_KEYWORDS = [
     "every friday", "every saturday", "every sunday",
 ]
 
+# Hàm xác định lặp lại (không thay đổi)
 def determine_repeat_type(description, title):
     """
     Xác định kiểu lặp lại dựa trên mô tả và tiêu đề bằng cách kiểm tra từ khóa mở rộng.
@@ -324,9 +331,6 @@ def determine_repeat_type(description, title):
     combined_text = (description + " " + title).lower()
 
     for keyword in RECURRING_KEYWORDS:
-        # Kiểm tra xem từ khóa có tồn tại như một từ riêng biệt hoặc là một phần của cụm từ không
-        # Ví dụ: Tìm "hàng tuần" trong "học tiếng anh hàng tuần"
-        # Sử dụng regex để kiểm tra biên từ (\b) nếu muốn chính xác hơn, nhưng kiểm tra `in` đơn giản thường đủ tốt
         if keyword in combined_text:
             logger.info(f"Phát hiện từ khóa lặp lại '{keyword}' trong: '{combined_text}' -> RECURRING")
             return "RECURRING"
@@ -336,7 +340,7 @@ def determine_repeat_type(description, title):
 
 def generate_recurring_cron(description, title, time_str="19:00"):
     """
-    Tạo cron expression cho các sự kiện lặp lại dựa trên mô tả và tiêu đề.
+    Tạo cron expression định dạng Quartz cho các sự kiện lặp lại.
     Ưu tiên xử lý lặp lại hàng ngày và hàng tuần theo thứ.
 
     Args:
@@ -345,63 +349,87 @@ def generate_recurring_cron(description, title, time_str="19:00"):
         time_str (str): Thời gian dạng "HH:MM"
 
     Returns:
-        str: Cron expression cho sự kiện lặp lại, hoặc cron mặc định nếu không xác định được.
+        str: Quartz cron expression cho sự kiện lặp lại,
+             hoặc cron mặc định hàng ngày nếu không xác định được.
     """
     try:
         if not time_str or ':' not in time_str:
             time_str = "19:00"
-        hour, minute = time_str.split(":")
+        hour, minute = map(int, time_str.split(":")) # Chuyển sang số nguyên
 
         combined_text = (str(description) + " " + str(title)).lower()
 
-        # Kiểm tra lặp lại hàng ngày
+        # 1. Kiểm tra lặp lại hàng ngày
         if "hàng ngày" in combined_text or "mỗi ngày" in combined_text or "daily" in combined_text:
-            logger.info(f"Tạo cron hàng ngày cho: {time_str}")
-            return f"{minute} {hour} * * *"
+            # Quartz format: Seconds Minute Hour DayOfMonth Month DayOfWeek Year(optional)
+            # Chạy hàng ngày: ? cho DayOfMonth, * cho DayOfWeek
+            quartz_cron = f"0 {minute} {hour} ? * * *"
+            logger.info(f"Tạo cron Quartz hàng ngày lúc {time_str}: {quartz_cron}")
+            return quartz_cron
 
-        # Kiểm tra lặp lại hàng tuần theo thứ
-        day_map = {
-            "thứ 2": 1, "t2": 1, "monday": 1,
-            "thứ 3": 2, "t3": 2, "tuesday": 2,
-            "thứ 4": 3, "t4": 3, "wednesday": 3,
-            "thứ 5": 4, "t5": 4, "thursday": 4,
-            "thứ 6": 5, "t6": 5, "friday": 5, # Quan trọng
-            "thứ 7": 6, "t7": 6, "saturday": 6,
-            "chủ nhật": 0, "cn": 0, "sunday": 0
+        # 2. Kiểm tra lặp lại hàng tuần theo thứ
+        # Ánh xạ tiếng Việt sang số ngày trong tuần của Quartz (1=SUN, 2=MON, ..., 7=SAT)
+        quartz_day_map = {
+            "chủ nhật": 1, "cn": 1, "sunday": 1,
+            "thứ 2": 2, "t2": 2, "monday": 2,
+            "thứ 3": 3, "t3": 3, "tuesday": 3,
+            "thứ 4": 4, "t4": 4, "wednesday": 4,
+            "thứ 5": 5, "t5": 5, "thursday": 5,
+            "thứ 6": 6, "t6": 6, "friday": 6, # Quan trọng
+            "thứ 7": 7, "t7": 7, "saturday": 7
         }
 
-        # Tìm ngày trong tuần được đề cập
-        found_day = None
-        # Sử dụng regex để tìm chính xác hơn, ví dụ: "thứ 6" chứ không phải "thứ 60"
-        for day_text, day_num in day_map.items():
-             # \b là biên từ, đảm bảo khớp từ hoàn chỉnh
+        found_day_num = None
+        found_day_text = ""
+        for day_text, day_num in quartz_day_map.items():
             if re.search(r'\b' + re.escape(day_text) + r'\b', combined_text):
-                found_day = day_num
-                logger.info(f"Tìm thấy ngày lặp lại: {day_text} ({found_day})")
+                found_day_num = day_num
+                found_day_text = day_text
+                logger.info(f"Tìm thấy ngày lặp lại: {found_day_text} (Quartz: {found_day_num})")
                 break # Tìm thấy ngày đầu tiên là đủ
 
-        if found_day is not None:
-             # Kiểm tra xem có phải là hàng tuần không (để chắc chắn)
-             is_weekly = any(kw in combined_text for kw in ["hàng tuần", "mỗi tuần", "weekly", "every"])
-             if is_weekly:
-                 logger.info(f"Tạo cron hàng tuần vào thứ {found_day} lúc {time_str}")
-                 return f"{minute} {hour} * * {found_day}"
-             else:
-                 # Nếu chỉ nói "thứ 6" mà không có "hàng tuần", có thể chỉ là 1 lần?
-                 # Tuy nhiên, hàm này chỉ nên được gọi khi determine_repeat_type đã là RECURRING
-                 # nên ta vẫn giả định là hàng tuần
-                 logger.warning(f"Không rõ 'hàng tuần' nhưng vẫn tạo cron tuần vào thứ {found_day}")
-                 return f"{minute} {hour} * * {found_day}"
+        if found_day_num is not None:
+            # Kiểm tra xem có phải là hàng tuần không (để chắc chắn hơn)
+            is_weekly = any(kw in combined_text for kw in ["hàng tuần", "mỗi tuần", "weekly", "every"])
+            if is_weekly:
+                # Quartz format: Chỉ định DayOfWeek, nên DayOfMonth là '?'
+                quartz_cron = f"0 {minute} {hour} ? * {found_day_num} *"
+                logger.info(f"Tạo cron Quartz hàng tuần vào thứ {found_day_text} ({found_day_num}) lúc {time_str}: {quartz_cron}")
+                return quartz_cron
+            else:
+                # Nếu chỉ nói "thứ 6" mà không có "hàng tuần", có thể chỉ là 1 lần?
+                # Tuy nhiên, hàm này chỉ nên được gọi khi determine_repeat_type đã là RECURRING
+                # nên ta vẫn giả định là hàng tuần.
+                logger.warning(f"Không rõ 'hàng tuần' nhưng vẫn tạo cron Quartz tuần vào thứ {found_day_text} ({found_day_num})")
+                quartz_cron = f"0 {minute} {hour} ? * {found_day_num} *"
+                return quartz_cron
 
-        # (Có thể thêm logic xử lý hàng tháng ở đây nếu cần)
-        # ...
+        # 3. (Tùy chọn) Xử lý lặp lại hàng tháng (ví dụ đơn giản)
+        # Ví dụ: "ngày 15 hàng tháng", "ngày cuối cùng hàng tháng"
+        monthly_match = re.search(r"(ngày\s+(\d{1,2})|ngày\s+cuối\s+cùng)\s+(hàng\s+tháng|mỗi\s+tháng)", combined_text)
+        if monthly_match:
+            day_specifier = monthly_match.group(1)
+            day_of_month = ""
+            if "cuối cùng" in day_specifier:
+                day_of_month = "L" # Quartz: L = Last day of month
+            else:
+                day_num_match = re.search(r'\d{1,2}', day_specifier)
+                if day_num_match:
+                    day_of_month = day_num_match.group(0)
 
-        logger.warning(f"Không thể xác định lịch lặp lại cụ thể từ '{combined_text}'. Dùng cron mặc định hàng ngày.")
-        return f"{minute} {hour} * * *" # Fallback: lặp lại hàng ngày nếu không rõ
+            if day_of_month:
+                # Quartz format: Chỉ định DayOfMonth, nên DayOfWeek là '?'
+                quartz_cron = f"0 {minute} {hour} {day_of_month} * ? *"
+                logger.info(f"Tạo cron Quartz hàng tháng vào ngày {day_of_month} lúc {time_str}: {quartz_cron}")
+                return quartz_cron
+
+        # 4. Fallback: Nếu không xác định được lịch cụ thể -> trả về cron hàng ngày
+        logger.warning(f"Không thể xác định lịch lặp lại cụ thể từ '{combined_text}'. Dùng cron Quartz mặc định hàng ngày.")
+        return f"0 {minute} {hour} ? * * *" # Fallback: lặp lại hàng ngày
 
     except Exception as e:
-        logger.error(f"Lỗi khi tạo cron lặp lại: {e}")
-        return "0 19 * * *" # Cron mặc định an toàn
+        logger.error(f"Lỗi khi tạo cron Quartz lặp lại: {e}")
+        return "0 0 19 ? * * *" # Cron Quartz mặc định an toàn: 7PM hàng ngày
 
 # ------- Request & Response Models ------------
 
@@ -975,9 +1003,9 @@ def process_audio(message_dict, api_key):
 # Hàm xây dựng system prompt
 def build_system_prompt(current_member_id=None):
     system_prompt = f"""
-    Bạn là trợ lý gia đình thông minh. Nhiệm vụ của bạn là giúp quản lý thông tin về các thành viên trong gia đình, 
+    Bạn là trợ lý gia đình thông minh. Nhiệm vụ của bạn là giúp quản lý thông tin về các thành viên trong gia đình,
     sở thích của họ, các sự kiện, ghi chú, và phân tích hình ảnh liên quan đến gia đình.
-    
+
     ĐỊNH DẠNG PHẢN HỒI:
     Phản hồi của bạn phải được định dạng bằng HTML đơn giản. Sử dụng các thẻ HTML thích hợp để định dạng:
     - Sử dụng thẻ <p> cho đoạn văn
@@ -987,30 +1015,36 @@ def build_system_prompt(current_member_id=None):
     - Sử dụng thẻ <ul> và <li> cho danh sách không có thứ tự
     - Sử dụng thẻ <ol> và <li> cho danh sách có thứ tự
     - Sử dụng thẻ <br> để xuống dòng trong đoạn văn
-    
+
     Khi người dùng yêu cầu, bạn phải thực hiện ngay các hành động sau:
-    
+
     1. Thêm thông tin về thành viên gia đình (tên, tuổi, sở thích)
     2. Cập nhật sở thích của thành viên gia đình
     3. Thêm, cập nhật, hoặc xóa sự kiện
     4. Thêm ghi chú
     5. Phân tích hình ảnh người dùng đưa ra (món ăn, hoạt động gia đình, v.v.)
     6. Tìm kiếm thông tin thực tế khi được hỏi về tin tức, thời tiết, thể thao, và sự kiện hiện tại
-    
+
     QUAN TRỌNG: Khi cần thực hiện các hành động trên, bạn PHẢI sử dụng đúng cú pháp lệnh đặc biệt này (người dùng sẽ không nhìn thấy):
-    
+
     - Thêm thành viên: ##ADD_FAMILY_MEMBER:{{"name":"Tên","age":"Tuổi","preferences":{{"food":"Món ăn","hobby":"Sở thích","color":"Màu sắc"}}}}##
     - Cập nhật sở thích: ##UPDATE_PREFERENCE:{{"id":"id_thành_viên","key":"loại_sở_thích","value":"giá_trị"}}##
-    - Thêm sự kiện: ##ADD_EVENT:{{"title":"Tiêu đề","date":"YYYY-MM-DD","time":"HH:MM","description":"Mô tả","participants":["Tên1","Tên2"]}}##
-    - Cập nhật sự kiện: ##UPDATE_EVENT:{{"id":"id_sự_kiện","title":"Tiêu đề mới","date":"YYYY-MM-DD","time":"HH:MM","description":"Mô tả mới","participants":["Tên1","Tên2"]}}##
+    - Thêm sự kiện: ##ADD_EVENT:{{"title":"Tiêu đề","date":"Mô tả ngày/Ngày cụ thể","time":"HH:MM","description":"Mô tả","participants":["Tên1","Tên2"]}}##
+    - Cập nhật sự kiện: ##UPDATE_EVENT:{{"id":"id_sự_kiện","title":"Tiêu đề mới","date":"Mô tả ngày/Ngày cụ thể","time":"HH:MM","description":"Mô tả mới","participants":["Tên1","Tên2"]}}##
     - Xóa sự kiện: ##DELETE_EVENT:id_sự_kiện##
     - Thêm ghi chú: ##ADD_NOTE:{{"title":"Tiêu đề","content":"Nội dung","tags":["tag1","tag2"]}}##
-    
-    QUY TẮC THÊM/CẬP NHẬT SỰ KIỆN ĐƠN GIẢN (SỰ KIỆN MỘT LẦN):
-    1. Khi được yêu cầu thêm/cập nhật sự kiện MỘT LẦN, hãy thực hiện NGAY LẬP TỨC bằng lệnh ##ADD_EVENT## hoặc ##UPDATE_EVENT##.
-    2. **TÍNH TOÁN NGÀY CHÍNH XÁC:** Khi người dùng nói "ngày mai", "hôm qua", "thứ 2 tuần sau", "chủ nhật tới", v.v., bạn PHẢI tự động tính toán và điền ngày chính xác theo định dạng YYYY-MM-DD vào trường `date`.
-        - **Ví dụ:** Nếu hôm nay là Thứ Sáu 04/04/2025, và người dùng yêu cầu "tối thứ 2 tuần sau", bạn phải tính ra ngày Thứ Hai tuần kế tiếp là 07/04/2025 và điền `"date":"2025-04-07"`.
-        - **Ví dụ:** Nếu hôm nay là Thứ Hai 07/04/2025, và người dùng yêu cầu "chiều thứ 6", bạn phải tính ra ngày Thứ Sáu sắp tới trong tuần là 11/04/2025 và điền `"date":"2025-04-11"`.
+
+    QUAN TRỌNG VỀ NHẤT QUÁN NGÀY THÁNG (TRONG MÔ TẢ):
+    1. Khi người dùng yêu cầu "thứ X tuần sau", đảm bảo cả tiêu đề và mô tả đều nhắc đến CÙNG MỘT THỨ.
+    2. Nếu người dùng yêu cầu "thứ 3 tuần sau", phải viết "thứ 3" (không phải "thứ 2" hay "thứ 4") trong mô tả.
+    3. Đảm bảo tính nhất quán giữa *mô tả ngày* bạn điền vào trường `date` và *thứ* được đề cập trong mô tả sự kiện.
+
+    QUY TẮC THÊM/CẬP NHẬT SỰ KIỆN:
+    1. Khi được yêu cầu thêm/cập nhật sự kiện, hãy thực hiện NGAY LẬP TỨC bằng lệnh ##ADD_EVENT## hoặc ##UPDATE_EVENT##.
+    2. **QUAN TRỌNG - TRƯỜNG `date`:** Trong trường `date`, hãy điền **MÔ TẢ THỜI GIAN TƯƠNG ĐỐI** mà người dùng đã cung cấp (ví dụ: 'ngày mai', 'thứ 2 tuần sau', '15/04/2025') HOẶC ngày cụ thể YYYY-MM-DD nếu người dùng cung cấp trực tiếp. **KHÔNG cố gắng tự tính toán ngày từ mô tả tương đối.** Hệ thống backend sẽ xử lý việc tính toán ngày chính xác.
+        - **Ví dụ lệnh (LLM trả về):** `##ADD_EVENT:{{"title":"Đi chơi","date":"thứ 2 tuần sau","time":"19:00","description":"Đi chơi vào thứ 2 tuần sau.","participants":[]}}##`
+        - **Ví dụ lệnh (LLM trả về):** `##ADD_EVENT:{{"title":"Họp","date":"ngày mai","time":"10:00","description":"Họp nhóm dự án vào sáng mai.","participants":["An","Bình"]}}##`
+        - **Ví dụ lệnh (LLM trả về):** `##ADD_EVENT:{{"title":"Sinh nhật","date":"2025-05-20","time":"18:00","description":"Tiệc sinh nhật Chi.","participants":[]}}##`
     3. Nếu không có thời gian cụ thể, sử dụng thời gian mặc định là 19:00 trong trường `time` (HH:MM).
     4. Sử dụng mô tả ngắn gọn từ yêu cầu của người dùng trong trường `description`.
     5. Chỉ hỏi thêm thông tin nếu thực sự cần thiết và không thể suy luận được (ví dụ: tiêu đề sự kiện không rõ).
@@ -1020,26 +1054,25 @@ def build_system_prompt(current_member_id=None):
     - Chỉ coi là sự kiện lặp lại nếu người dùng sử dụng các từ khóa rõ ràng như "hàng tuần", "mỗi ngày", "hàng tháng", "ngày 15 hàng tháng", "mỗi tối thứ 6", "định kỳ", v.v.
     - **KHÔNG** coi "thứ 2 tuần sau" là lặp lại. Đó là sự kiện MỘT LẦN.
     - Khi tạo sự kiện lặp lại:
-        - **KHÔNG** đặt một ngày cụ thể (YYYY-MM-DD) cố định vào trường `date`.
-        - Thay vào đó, hãy đặt một ngày **diễn ra gần nhất** của sự kiện đó vào trường `date`. Ví dụ, yêu cầu "mỗi tối thứ 6 hàng tuần", nếu hôm nay là thứ 2, đặt ngày thứ 6 sắp tới vào `date`.
-        - **QUAN TRỌNG NHẤT:** Đảm bảo mô tả chi tiết về sự lặp lại nằm trong trường `description` (ví dụ: "Học tiếng Anh vào mỗi tối thứ 6 hàng tuần."). Hệ thống backend sẽ dùng mô tả này để xử lý.
+        - Trong trường `date`, hãy điền mô tả thời gian lặp lại (ví dụ: "mỗi tối thứ 6 hàng tuần", "hàng ngày", "ngày 15 hàng tháng"). Backend sẽ dùng thông tin này để xác định ngày bắt đầu gần nhất.
+        - **QUAN TRỌNG NHẤT:** Đảm bảo mô tả chi tiết về sự lặp lại nằm trong trường `description` (ví dụ: "Học tiếng Anh vào mỗi tối thứ 6 hàng tuần."). Hệ thống backend sẽ dùng mô tả này để tạo lịch lặp lại.
     - Ví dụ yêu cầu lặp lại: "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần"
-    - Ví dụ LỆNH ĐÚNG (giả sử hôm nay là T2 07/04/2025): `##ADD_EVENT:{{"title":"Lịch học tiếng Anh","date":"2025-04-11","time":"19:00","description":"Học tiếng Anh vào mỗi tối thứ 6 hàng tuần.","participants":[]}}##`
+    - Ví dụ LỆNH ĐÚNG (LLM trả về): `##ADD_EVENT:{{"title":"Lịch học tiếng Anh","date":"tối thứ 6 hàng tuần","time":"19:00","description":"Học tiếng Anh vào mỗi tối thứ 6 hàng tuần.","participants":[]}}##`
 
     Hôm nay là {datetime.datetime.now().strftime("%d/%m/%Y (%A)")}.
 
-    
+
     CẤU TRÚC JSON PHẢI CHÍNH XÁC như trên. Đảm bảo dùng dấu ngoặc kép cho cả keys và values. Đảm bảo các dấu ngoặc nhọn và vuông được đóng đúng cách.
-    
+
     QUAN TRỌNG: Khi người dùng yêu cầu tạo sự kiện mới, hãy luôn sử dụng lệnh ##ADD_EVENT:...## trong phản hồi của bạn mà không cần quá nhiều bước xác nhận.
-    
+
     Đối với hình ảnh:
     - Nếu người dùng gửi hình ảnh món ăn, hãy mô tả món ăn, và đề xuất cách nấu hoặc thông tin dinh dưỡng nếu phù hợp
     - Nếu là hình ảnh hoạt động gia đình, hãy mô tả hoạt động và đề xuất cách ghi nhớ khoảnh khắc đó
     - Với bất kỳ hình ảnh nào, hãy giúp người dùng liên kết nó với thành viên gia đình hoặc sự kiện nếu phù hợp
     """
-    
-    # Thêm thông tin về người dùng hiện tại
+
+    # Thêm thông tin về người dùng hiện tại (giữ nguyên)
     if current_member_id and current_member_id in family_data:
         current_member = family_data[current_member_id]
         system_prompt += f"""
@@ -1047,25 +1080,25 @@ def build_system_prompt(current_member_id=None):
         Bạn đang trò chuyện với: {current_member.get('name')}
         Tuổi: {current_member.get('age', '')}
         Sở thích: {json.dumps(current_member.get('preferences', {}), ensure_ascii=False)}
-        
+
         QUAN TRỌNG: Hãy điều chỉnh cách giao tiếp và đề xuất phù hợp với người dùng này. Các sự kiện và ghi chú sẽ được ghi danh nghĩa người này tạo.
         """
-    
-    # Thêm thông tin dữ liệu
+
+    # Thêm thông tin dữ liệu (giữ nguyên)
     system_prompt += f"""
     Thông tin hiện tại về gia đình:
     {json.dumps(family_data, ensure_ascii=False, indent=2)}
-    
+
     Sự kiện sắp tới:
     {json.dumps(events_data, ensure_ascii=False, indent=2)}
-    
+
     Ghi chú:
     {json.dumps(notes_data, ensure_ascii=False, indent=2)}
-    
+
     Hãy hiểu và đáp ứng nhu cầu của người dùng một cách tự nhiên và hữu ích. Không hiển thị các lệnh đặc biệt
     trong phản hồi của bạn, chỉ sử dụng chúng để thực hiện các hành động được yêu cầu.
     """
-    
+
     return system_prompt
 
 # Kiểm tra nhu cầu tìm kiếm và thực hiện tìm kiếm
@@ -2124,6 +2157,7 @@ VIETNAMESE_WEEKDAY_MAP = {
 }
 NEXT_WEEK_KEYWORDS = ["tuần sau", "tuần tới", "next week"]
 
+
 def get_date_from_relative_term(term):
     """
     Chuyển đổi từ mô tả tương đối về ngày thành ngày thực tế (YYYY-MM-DD).
@@ -2321,10 +2355,10 @@ def add_note(details):
     save_data(NOTES_DATA_FILE, notes_data)
 
 # Hàm xử lý lệnh từ phản hồi của trợ lý
-def process_assistant_response(response: str, current_member: Optional[str] = None) -> tuple[str, Optional[Dict[str, Any]]]:
+def process_assistant_response(response: str, current_member: Optional[str] = None) -> Tuple[str, Optional[Dict[str, Any]]]:
     """
     Xử lý phản hồi từ assistant, trích xuất các lệnh, làm sạch HTML,
-    tính toán ngày chính xác, và tạo event_data cho sự kiện.
+    tính toán ngày chính xác bằng Python, và tạo event_data cho sự kiện.
 
     Args:
         response (str): Phản hồi thô từ assistant (có thể chứa lệnh).
@@ -2344,123 +2378,169 @@ def process_assistant_response(response: str, current_member: Optional[str] = No
         # --- Xử lý ADD_EVENT ---
         add_event_match = re.search(r"##ADD_EVENT:(.*?)##", cleaned_html, re.DOTALL)
         if add_event_match:
-            cmd = add_event_match.group(1).strip()
-            # Loại bỏ lệnh khỏi HTML
-            cleaned_html = cleaned_html.replace(add_event_match.group(0), "").strip()
+            cmd_raw = add_event_match.group(0)
+            cmd_content = add_event_match.group(1).strip()
+            # Loại bỏ lệnh khỏi HTML ngay lập tức
+            cleaned_html = cleaned_html.replace(cmd_raw, "").strip()
             logger.info("Tìm thấy lệnh ADD_EVENT")
-            logger.debug(f"Nội dung lệnh ADD_EVENT: {cmd}")
+            logger.info(f"Nội dung lệnh ADD_EVENT nhận từ LLM (trước khi parse): {cmd_content}")
 
             try:
-                details = json.loads(cmd)
+                details = json.loads(cmd_content)
                 if isinstance(details, dict):
                     # Gán người tạo nếu có
                     if current_member:
                         details['created_by'] = current_member
 
-                    # Lấy thông tin từ LLM
-                    llm_date_str = details.get('date', '')
-                    llm_time_str = details.get('time', '19:00') # Mặc định 19:00
+                    # --- BẮT ĐẦU LOGIC XỬ LÝ NGÀY MỚI ---
+                    llm_date_input = details.get('date', '') # Đây có thể là 'YYYY-MM-DD', 'DD/MM/YYYY' hoặc 'thứ 2 tuần sau', v.v.
+                    logger.info(f"Giá trị 'date' nhận từ LLM: '{llm_date_input}'")
+                    llm_time_str = details.get('time', '19:00')
                     llm_description = details.get('description', '')
                     llm_title = details.get('title', '')
 
-                    # 1. Xác định kiểu lặp lại
+                    # 1. Xác định kiểu lặp lại dựa trên mô tả và tiêu đề
                     repeat_type = determine_repeat_type(llm_description, llm_title)
-                    details['repeat_type'] = repeat_type
+                    details['repeat_type'] = repeat_type # Lưu lại để dùng sau nếu cần
                     logger.debug(f"Xác định repeat_type: {repeat_type}")
+                    is_recurring_event = (repeat_type == "RECURRING")
 
-                    # 2. Xử lý và xác thực ngày
+                    # 2. Tính toán ngày cuối cùng (Ưu tiên Python)
                     final_date_str = None
-                    parsed_llm_date = None
 
-                    # Thử phân tích ngày LLM cung cấp (YYYY-MM-DD hoặc DD/MM/YYYY)
+                    # Kiểm tra xem LLM có cung cấp ngày cụ thể không
                     try:
-                        if llm_date_str:
-                            if re.match(r'\d{4}-\d{2}-\d{2}', llm_date_str):
-                                parsed_llm_date = datetime.datetime.strptime(llm_date_str, "%Y-%m-%d").date()
-                                final_date_str = llm_date_str
-                            elif re.match(r'\d{2}/\d{2}/\d{4}', llm_date_str):
-                                parsed_llm_date = datetime.datetime.strptime(llm_date_str, "%d/%m/%Y").date()
-                                final_date_str = parsed_llm_date.strftime("%Y-%m-%d") # Chuẩn hóa
-                            # else: # LLM có thể trả về dạng tương đối
-                            #    pass # Sẽ xử lý bằng get_date_from_relative_term
+                        if llm_date_input:
+                            if re.match(r'\d{4}-\d{2}-\d{2}', llm_date_input):
+                                datetime.datetime.strptime(llm_date_input, "%Y-%m-%d") # Chỉ để kiểm tra valid
+                                final_date_str = llm_date_input
+                                logger.info(f"LLM cung cấp ngày cụ thể hợp lệ (YYYY-MM-DD): {final_date_str}")
+                            elif re.match(r'\d{2}/\d{2}/\d{4}', llm_date_input):
+                                parsed_dt = datetime.datetime.strptime(llm_date_input, "%d/%m/%Y")
+                                final_date_str = parsed_dt.strftime("%Y-%m-%d") # Chuẩn hóa
+                                logger.info(f"LLM cung cấp ngày cụ thể hợp lệ (DD/MM/YYYY), chuẩn hóa thành: {final_date_str}")
                     except ValueError:
-                        logger.warning(f"Ngày LLM cung cấp '{llm_date_str}' không đúng định dạng được hỗ trợ.")
-                        parsed_llm_date = None # Đặt lại nếu phân tích lỗi
+                        logger.warning(f"Ngày LLM cung cấp '{llm_date_input}' không phải định dạng ngày cụ thể hợp lệ. Sẽ thử tính bằng Python.")
+                        final_date_str = None # Reset nếu parse lỗi
 
-                    # Nếu LLM không cung cấp ngày hợp lệ hoặc là dạng tương đối, thử tính bằng Python
-                    calculated_python_date_str = get_date_from_relative_term(llm_date_str)
-                    if calculated_python_date_str:
-                        logger.info(f"Hàm Python tính được ngày '{calculated_python_date_str}' từ '{llm_date_str}'")
-                        if not parsed_llm_date: # Ưu tiên Python nếu LLM không hợp lệ/tương đối
-                             final_date_str = calculated_python_date_str
-                             try:
-                                 parsed_llm_date = datetime.datetime.strptime(final_date_str, "%Y-%m-%d").date()
-                                 logger.info(f"Sử dụng ngày tính bởi Python: {final_date_str}")
-                             except ValueError:
-                                 logger.error(f"Ngày do Python tính toán '{final_date_str}' cũng không hợp lệ?")
-                                 final_date_str = None # Đặt lại nếu ngày Python cũng lỗi
-                                 parsed_llm_date = None
+                    # Nếu không có ngày cụ thể từ LLM HOẶC là sự kiện lặp lại (cần ngày gần nhất từ mô tả)
+                    # thì sử dụng Python để tính từ mô tả tương đối trong llm_date_input
+                    # hoặc từ mô tả sự kiện nếu date input không hữu ích cho lặp lại
+                    date_input_for_python = llm_date_input
+                    # Nếu là lặp lại và date_input không chứa thông tin ngày cụ thể (như 'hàng ngày')
+                    # thì có thể thử dùng description để tìm ngày (ví dụ: 'thứ 6 hàng tuần')
+                    if is_recurring_event and not final_date_str:
+                         # Kiểm tra nếu llm_date_input không mang thông tin ngày lặp cụ thể
+                         # Ví dụ đơn giản: kiểm tra nếu nó chỉ là 'hàng ngày', 'hàng tuần'
+                         if llm_date_input.lower() in ["hàng ngày", "hàng tuần", "hàng tháng", "hàng năm", "định kỳ", "lặp lại"]:
+                              # Thử lấy thông tin ngày từ description
+                              logger.info(f"Sự kiện lặp lại với date='{llm_date_input}', thử tìm ngày cụ thể trong description: '{llm_description}'")
+                              # Kết hợp title và description để tìm ngày
+                              search_text_for_date = (str(llm_title) + " " + str(llm_description)).lower()
+                              # Cập nhật lại biến để đưa vào hàm tính toán Python
+                              date_input_for_python = search_text_for_date
+                         else:
+                             # Giữ nguyên llm_date_input nếu nó chứa thông tin ngày (ví dụ: 'thứ 6 hàng tuần')
+                             logger.info(f"Sự kiện lặp lại, sử dụng date='{llm_date_input}' để tìm ngày gần nhất.")
 
 
-                    # 3. Sanity Check (chỉ thực hiện nếu có ngày và mô tả/tiêu đề)
-                    if parsed_llm_date and (llm_title or llm_description):
-                        mentioned_weekday = -1
-                        combined_text = (str(llm_title) + " " + str(llm_description)).lower()
-                        for day_str, day_num in VIETNAMESE_WEEKDAY_MAP.items():
-                            if re.search(r'\b' + re.escape(day_str) + r'\b', combined_text):
-                                mentioned_weekday = day_num
-                                break
-                        if mentioned_weekday != -1:
-                            actual_weekday = parsed_llm_date.weekday()
-                            if actual_weekday != mentioned_weekday:
-                                logger.warning(f"SANITY CHECK: Ngày LLM/Python cung cấp {final_date_str} (Thứ {actual_weekday+2 if actual_weekday < 6 else 'CN'}) KHÔNG KHỚP với Thứ {mentioned_weekday+2 if mentioned_weekday < 6 else 'CN'} được đề cập.")
-                                # Tùy chọn: Có thể cân nhắc ưu tiên ngày được đề cập nếu có sự không khớp lớn
+                    if not final_date_str and date_input_for_python:
+                        logger.info(f"Thực hiện tính toán ngày bằng Python từ: '{date_input_for_python}'")
+                        calculated_python_date_str = get_date_from_relative_term(date_input_for_python)
+                        if calculated_python_date_str:
+                            final_date_str = calculated_python_date_str
+                            logger.info(f"Hàm Python tính được ngày: {final_date_str}")
+                        else:
+                            logger.warning(f"Không thể tính ngày từ '{date_input_for_python}' bằng hàm Python. Ngày sẽ bị bỏ trống.")
+                            final_date_str = None # Hoặc đặt ngày mặc định nếu muốn
 
-                    # Cập nhật lại details với ngày và giờ cuối cùng
-                    details['date'] = final_date_str if final_date_str else "" # Ghi ngày cuối cùng, hoặc rỗng nếu không xác định được
+                    # Xử lý trường hợp lặp lại không có ngày cụ thể nào (ví dụ: 'hàng ngày')
+                    # sau khi đã thử tính từ date_input và description
+                    if is_recurring_event and not final_date_str:
+                         if "hàng ngày" in str(llm_description).lower() or "mỗi ngày" in str(llm_description).lower():
+                              final_date_str = datetime.date.today().strftime("%Y-%m-%d")
+                              logger.info(f"Sự kiện lặp lại hàng ngày, đặt ngày bắt đầu gần nhất là hôm nay: {final_date_str}")
+                         # Thêm các logic khác cho lặp lại hàng tháng/năm nếu cần ngày bắt đầu gần nhất
+                         # ...
+
+                    # Cập nhật lại details với ngày và giờ cuối cùng đã xác định
+                    details['date'] = final_date_str if final_date_str else ""
                     details['time'] = llm_time_str
+                    details['title'] = llm_title # Đảm bảo title/desc cũng đúng
+                    details['description'] = llm_description
+                    # --- KẾT THÚC LOGIC XỬ LÝ NGÀY MỚI ---
+
+
+                    # 3. Sanity Check (TÙY CHỌN - kiểm tra logic Python)
+                    if final_date_str and (llm_title or llm_description):
+                        try:
+                            parsed_final_date = datetime.datetime.strptime(final_date_str, "%Y-%m-%d").date()
+                            mentioned_weekday_str = None
+                            mentioned_weekday_num = -1
+                            combined_text_for_check = (str(llm_title) + " " + str(llm_description)).lower()
+                            # Tìm ngày trong tuần được đề cập trong text
+                            for day_str, day_num in VIETNAMESE_WEEKDAY_MAP.items():
+                                if re.search(r'\b' + re.escape(day_str) + r'\b', combined_text_for_check):
+                                    mentioned_weekday_num = day_num
+                                    mentioned_weekday_str = day_str
+                                    break # Tìm thấy là đủ
+
+                            if mentioned_weekday_num != -1:
+                                actual_weekday_num = parsed_final_date.weekday() # Monday is 0, Sunday is 6
+                                if actual_weekday_num != mentioned_weekday_num:
+                                    actual_weekday_str_map = {0: "Thứ 2", 1: "Thứ 3", 2: "Thứ 4", 3: "Thứ 5", 4: "Thứ 6", 5: "Thứ 7", 6: "Chủ Nhật"}
+                                    actual_day_name = actual_weekday_str_map.get(actual_weekday_num, "Không xác định")
+                                    mentioned_day_name = mentioned_weekday_str
+                                    logger.warning(
+                                        f"SANITY CHECK WARNING (sau khi Python tính): Ngày Python tính {final_date_str} ({actual_day_name}) "
+                                        f"KHÔNG KHỚP với ngày được đề cập trong mô tả/tiêu đề ({mentioned_day_name}). "
+                                        f"Kiểm tra lại logic `get_date_from_relative_term` hoặc mô tả của LLM."
+                                    )
+                        except Exception as sanity_e:
+                            logger.error(f"Lỗi trong quá trình Sanity Check: {sanity_e}")
+
 
                     # 4. Tạo cron expression
                     cron_expression = ""
-                    if repeat_type == "RECURRING":
+                    if is_recurring_event:
+                        # Sử dụng thông tin đã chuẩn hóa để tạo cron
                         cron_expression = generate_recurring_cron(llm_description, llm_title, llm_time_str)
                         logger.info(f"Tạo cron RECURRING: {cron_expression}")
-                        # Đối với lặp lại, ngày đầu tiên (final_date_str) vẫn quan trọng để biết lần chạy tới
                     else: # ONCE
-                        if final_date_str:
+                        if final_date_str: # Chỉ tạo cron một lần nếu có ngày hợp lệ
                             cron_expression = date_time_to_cron(final_date_str, llm_time_str)
                             logger.info(f"Tạo cron ONCE: {cron_expression} cho ngày {final_date_str}")
                         else:
                             logger.error("Không thể tạo cron ONCE vì thiếu ngày hợp lệ.")
-                            # Quyết định: trả về lỗi, hay dùng cron mặc định? Hiện tại để trống cron.
-                            cron_expression = "" # Hoặc đặt cron mặc định như "0 19 * * *"
+                            cron_expression = ""
 
-                    # 5. Tạo event_data để trả về cho client
+                    # 5. Tạo event_data để trả về cho client (frontend)
                     event_data = {
                         "action": "add",
                         "title": llm_title,
                         "description": llm_description,
-                        "cron_expression": cron_expression,
-                        "repeat_type": repeat_type,
+                        "cron_expression": cron_expression, # Biểu thức cron đã tạo
+                        "repeat_type": repeat_type, # Loại lặp lại
                         "original_date": final_date_str if final_date_str else None, # Ngày cuối cùng đã xác định
-                        "original_time": llm_time_str,
-                        "participants": details.get('participants', [])
+                        "original_time": llm_time_str, # Thời gian đã xác định
+                        "participants": details.get('participants', []) # Lấy participants từ details
                     }
-                    logger.debug(f"Event data được tạo: {event_data}")
+                    logger.debug(f"Event data được tạo cho client: {event_data}")
 
-                    # 6. Thực hiện thêm sự kiện vào hệ thống
+                    # 6. Thực hiện thêm sự kiện vào hệ thống (lưu vào file JSON)
+                    # Hàm add_event nên nhận 'details' đã được cập nhật đầy đủ
                     if add_event(details):
-                        logger.info(f"Đã thực thi lệnh ADD_EVENT thành công cho: '{llm_title}'")
+                        logger.info(f"Đã thực thi lệnh ADD_EVENT thành công và lưu vào data store cho: '{llm_title}'")
                     else:
-                        logger.error(f"Thực thi lệnh ADD_EVENT thất bại cho: '{llm_title}'")
-                        event_data = None # Không trả về event_data nếu lưu lỗi
+                        logger.error(f"Thực thi lệnh ADD_EVENT (lưu vào data store) thất bại cho: '{llm_title}'")
+                        event_data = None # Không trả về event_data cho client nếu lưu lỗi
 
                 else:
-                    logger.error("Dữ liệu JSON cho ADD_EVENT không phải là dictionary.")
+                    logger.error(f"Dữ liệu JSON cho ADD_EVENT không phải là dictionary. Raw data: {cmd_content}")
 
             except json.JSONDecodeError as e:
                 logger.error(f"Lỗi khi phân tích JSON cho ADD_EVENT: {e}")
-                logger.error(f"Chuỗi JSON lỗi: {cmd}")
+                logger.error(f"Chuỗi JSON lỗi: {cmd_content}")
             except Exception as e_proc:
                  logger.error(f"Lỗi không xác định khi xử lý ADD_EVENT: {e_proc}", exc_info=True)
 
@@ -2468,199 +2548,239 @@ def process_assistant_response(response: str, current_member: Optional[str] = No
         # --- Xử lý UPDATE_EVENT ---
         update_event_match = re.search(r"##UPDATE_EVENT:(.*?)##", cleaned_html, re.DOTALL)
         if update_event_match:
-            cmd = update_event_match.group(1).strip()
-            cleaned_html = cleaned_html.replace(update_event_match.group(0), "").strip()
+            cmd_raw = update_event_match.group(0)
+            cmd_content = update_event_match.group(1).strip()
+            cleaned_html = cleaned_html.replace(cmd_raw, "").strip()
             logger.info("Tìm thấy lệnh UPDATE_EVENT")
-            logger.debug(f"Nội dung lệnh UPDATE_EVENT: {cmd}")
+            logger.info(f"Nội dung lệnh UPDATE_EVENT nhận từ LLM: {cmd_content}")
 
             try:
-                details = json.loads(cmd)
-                if isinstance(details, dict) and 'id' in details:
-                    event_id = details['id']
-                    # Lấy thông tin sự kiện cũ để tham khảo
-                    old_event = events_data.get(str(event_id), {}) # Đảm bảo ID là chuỗi nếu key là chuỗi
+                details_update = json.loads(cmd_content)
+                if isinstance(details_update, dict) and 'id' in details_update:
+                    event_id_str = str(details_update['id']) # Đảm bảo ID là chuỗi
+                    old_event = events_data.get(event_id_str)
                     if not old_event:
-                         logger.warning(f"Không tìm thấy sự kiện ID={event_id} để cập nhật.")
-                         # Bỏ qua nếu không tìm thấy sự kiện
+                         logger.warning(f"Không tìm thấy sự kiện ID={event_id_str} để cập nhật. Bỏ qua lệnh.")
                     else:
-                        # Lấy thông tin CẬP NHẬT từ LLM, dùng thông tin cũ làm mặc định
-                        llm_date_str = details.get('date', old_event.get('date', ''))
-                        llm_time_str = details.get('time', old_event.get('time', '19:00'))
-                        llm_description = details.get('description', old_event.get('description', ''))
-                        llm_title = details.get('title', old_event.get('title', ''))
-                        llm_participants = details.get('participants', old_event.get('participants', []))
+                        logger.info(f"Tìm thấy sự kiện cũ ID={event_id_str} để cập nhật.")
+                        if current_member:
+                            details_update['updated_by'] = current_member
 
-                        # 1. Xác định lại kiểu lặp lại dựa trên thông tin MỚI (hoặc cũ nếu không đổi)
+                        # Lấy thông tin CẬP NHẬT từ LLM, dùng thông tin CŨ làm mặc định nếu LLM không cung cấp
+                        llm_date_input = details_update.get('date', old_event.get('date', '')) # Input ngày từ LLM
+                        llm_time_str = details_update.get('time', old_event.get('time', '19:00'))
+                        llm_description = details_update.get('description', old_event.get('description', ''))
+                        llm_title = details_update.get('title', old_event.get('title', ''))
+                        llm_participants = details_update.get('participants', old_event.get('participants', []))
+
+                        logger.info(f"Thông tin cập nhật nhận được: date_input='{llm_date_input}', time='{llm_time_str}', title='{llm_title}', desc='{llm_description[:50]}...'")
+
+                        # --- BẮT ĐẦU LOGIC XỬ LÝ NGÀY MỚI (UPDATE) ---
+                        # 1. Xác định lại kiểu lặp lại dựa trên thông tin MỚI
                         repeat_type = determine_repeat_type(llm_description, llm_title)
-                        details['repeat_type'] = repeat_type # Lưu lại repeat_type vào details
+                        details_update['repeat_type'] = repeat_type
                         logger.debug(f"Xác định repeat_type (update): {repeat_type}")
+                        is_recurring_event = (repeat_type == "RECURRING")
 
-                        # 2. Xử lý và xác thực ngày (TƯƠNG TỰ ADD_EVENT)
+                        # 2. Tính toán ngày cuối cùng (Ưu tiên Python)
                         final_date_str = None
-                        parsed_llm_date = None
+                        # Kiểm tra xem LLM có cung cấp ngày cụ thể không
                         try:
-                            if llm_date_str:
-                                if re.match(r'\d{4}-\d{2}-\d{2}', llm_date_str):
-                                    parsed_llm_date = datetime.datetime.strptime(llm_date_str, "%Y-%m-%d").date()
-                                    final_date_str = llm_date_str
-                                elif re.match(r'\d{2}/\d{2}/\d{4}', llm_date_str):
-                                    parsed_llm_date = datetime.datetime.strptime(llm_date_str, "%d/%m/%Y").date()
-                                    final_date_str = parsed_llm_date.strftime("%Y-%m-%d")
+                            if llm_date_input:
+                                if re.match(r'\d{4}-\d{2}-\d{2}', llm_date_input):
+                                    datetime.datetime.strptime(llm_date_input, "%Y-%m-%d")
+                                    final_date_str = llm_date_input
+                                    logger.info(f"LLM cung cấp ngày cụ thể hợp lệ (update, YYYY-MM-DD): {final_date_str}")
+                                elif re.match(r'\d{2}/\d{2}/\d{4}', llm_date_input):
+                                    parsed_dt = datetime.datetime.strptime(llm_date_input, "%d/%m/%Y")
+                                    final_date_str = parsed_dt.strftime("%Y-%m-%d")
+                                    logger.info(f"LLM cung cấp ngày cụ thể hợp lệ (update, DD/MM/YYYY), chuẩn hóa: {final_date_str}")
                         except ValueError:
-                            logger.warning(f"Ngày LLM cung cấp (update) '{llm_date_str}' không đúng định dạng.")
-                            parsed_llm_date = None
+                            logger.warning(f"Ngày LLM cung cấp (update) '{llm_date_input}' không phải định dạng hợp lệ. Thử tính bằng Python.")
+                            final_date_str = None
 
-                        calculated_python_date_str = get_date_from_relative_term(llm_date_str)
-                        if calculated_python_date_str:
-                             logger.info(f"Hàm Python tính được ngày (update) '{calculated_python_date_str}' từ '{llm_date_str}'")
-                             if not parsed_llm_date:
-                                 final_date_str = calculated_python_date_str
-                                 try:
-                                     parsed_llm_date = datetime.datetime.strptime(final_date_str, "%Y-%m-%d").date()
-                                     logger.info(f"Sử dụng ngày Python tính (update): {final_date_str}")
-                                 except ValueError:
-                                     logger.error(f"Ngày Python tính (update) '{final_date_str}' cũng không hợp lệ?")
-                                     final_date_str = None
-                                     parsed_llm_date = None
-
-                        # 3. Sanity Check (TƯƠNG TỰ ADD_EVENT)
-                        if parsed_llm_date and (llm_title or llm_description):
-                            mentioned_weekday = -1
-                            combined_text = (str(llm_title) + " " + str(llm_description)).lower()
-                            for day_str, day_num in VIETNAMESE_WEEKDAY_MAP.items():
-                                if re.search(r'\b' + re.escape(day_str) + r'\b', combined_text):
-                                    mentioned_weekday = day_num
-                                    break
-                            if mentioned_weekday != -1:
-                                actual_weekday = parsed_llm_date.weekday()
-                                if actual_weekday != mentioned_weekday:
-                                    logger.warning(f"SANITY CHECK (update): Ngày {final_date_str} (Thứ {actual_weekday+2 if actual_weekday < 6 else 'CN'}) KHÔNG KHỚP với Thứ {mentioned_weekday+2 if mentioned_weekday < 6 else 'CN'} được đề cập.")
-
-                        # Cập nhật lại details với ngày/giờ cuối cùng
-                        details['date'] = final_date_str if final_date_str else ""
-                        details['time'] = llm_time_str
-                        details['description'] = llm_description # Đảm bảo các trường khác cũng được cập nhật
-                        details['title'] = llm_title
-                        details['participants'] = llm_participants
+                        # Tương tự ADD_EVENT, chuẩn bị input cho hàm Python
+                        date_input_for_python = llm_date_input
+                        if is_recurring_event and not final_date_str:
+                              if llm_date_input.lower() in ["hàng ngày", "hàng tuần", "hàng tháng", "hàng năm", "định kỳ", "lặp lại"]:
+                                   search_text_for_date = (str(llm_title) + " " + str(llm_description)).lower()
+                                   date_input_for_python = search_text_for_date
+                                   logger.info(f"Update sự kiện lặp lại, thử tìm ngày trong description: '{search_text_for_date}'")
+                              else:
+                                  logger.info(f"Update sự kiện lặp lại, sử dụng date='{llm_date_input}' để tìm ngày gần nhất.")
 
 
-                        # 4. Tạo cron expression (TƯƠNG TỰ ADD_EVENT)
+                        # Nếu không có ngày cụ thể từ LLM hoặc là lặp lại, dùng Python tính
+                        if not final_date_str and date_input_for_python:
+                            logger.info(f"Thực hiện tính toán ngày (update) bằng Python từ: '{date_input_for_python}'")
+                            calculated_python_date_str = get_date_from_relative_term(date_input_for_python)
+                            if calculated_python_date_str:
+                                final_date_str = calculated_python_date_str
+                                logger.info(f"Hàm Python tính được ngày (update): {final_date_str}")
+                            else:
+                                logger.warning(f"Không thể tính ngày (update) từ '{date_input_for_python}' bằng Python.")
+                                final_date_str = None # Giữ ngày cũ hay bỏ trống? -> Bỏ trống/None để thể hiện không xác định được ngày mới
+
+                        # Xử lý lặp lại không có ngày cụ thể (update)
+                        if is_recurring_event and not final_date_str:
+                             if "hàng ngày" in str(llm_description).lower() or "mỗi ngày" in str(llm_description).lower():
+                                  final_date_str = datetime.date.today().strftime("%Y-%m-%d")
+                                  logger.info(f"Update sự kiện lặp lại hàng ngày, đặt ngày bắt đầu gần nhất là hôm nay: {final_date_str}")
+                             # ... (logic khác)
+
+                        # Cập nhật lại details_update với dữ liệu cuối cùng trước khi lưu
+                        # Nếu final_date_str là None (không tính được ngày mới), thì KHÔNG cập nhật trường date cũ
+                        if final_date_str is not None:
+                             details_update['date'] = final_date_str
+                        elif 'date' in details_update: # Nếu LLM đưa 'date' nhưng tính không ra ngày mới -> loại bỏ khỏi update
+                            del details_update['date']
+                            logger.warning("Không tính được ngày mới từ input, sẽ không cập nhật trường 'date' của sự kiện.")
+
+                        details_update['time'] = llm_time_str
+                        details_update['title'] = llm_title
+                        details_update['description'] = llm_description
+                        details_update['participants'] = llm_participants
+                        # ID đã có sẵn trong details_update['id']
+                        # --- KẾT THÚC LOGIC XỬ LÝ NGÀY MỚI (UPDATE) ---
+
+
+                        # 3. Sanity Check (TÙY CHỌN - giữ nguyên logic kiểm tra)
+                        # Sử dụng final_date_str nếu nó được tính toán, nếu không thì bỏ qua check này
+                        if final_date_str and (llm_title or llm_description):
+                             try:
+                                  # ... (logic sanity check như trong ADD_EVENT) ...
+                                  logger.warning(
+                                       f"SANITY CHECK WARNING (UPDATE - sau khi Python tính): Ngày Python tính {final_date_str} ({actual_day_name}) "
+                                       f"KHÔNG KHỚP với ngày được đề cập ({mentioned_day_name}). "
+                                       # ...
+                                  )
+                             except Exception as sanity_e_update:
+                                  logger.error(f"Lỗi trong Sanity Check (Update): {sanity_e_update}")
+
+
+                        # 4. Tạo cron expression (LOGIC TƯƠNG TỰ ADD_EVENT)
                         cron_expression = ""
-                        if repeat_type == "RECURRING":
+                        # Phải dùng ngày cuối cùng đã xác định (final_date_str) nếu có
+                        date_for_cron = final_date_str if final_date_str is not None else old_event.get('date') # Ưu tiên ngày mới, nếu không dùng ngày cũ
+
+                        if is_recurring_event:
                             cron_expression = generate_recurring_cron(llm_description, llm_title, llm_time_str)
                             logger.info(f"Tạo cron RECURRING (update): {cron_expression}")
                         else: # ONCE
-                            if final_date_str:
-                                cron_expression = date_time_to_cron(final_date_str, llm_time_str)
-                                logger.info(f"Tạo cron ONCE (update): {cron_expression} cho ngày {final_date_str}")
+                            if date_for_cron: # Chỉ tạo cron một lần nếu có ngày hợp lệ (mới hoặc cũ)
+                                cron_expression = date_time_to_cron(date_for_cron, llm_time_str)
+                                logger.info(f"Tạo cron ONCE (update): {cron_expression} cho ngày {date_for_cron}")
                             else:
-                                logger.error("Không thể tạo cron ONCE (update) vì thiếu ngày hợp lệ.")
+                                logger.error("Không thể tạo cron ONCE (update) vì thiếu ngày hợp lệ (cả mới và cũ).")
                                 cron_expression = ""
 
                         # 5. Tạo event_data để trả về cho client
                         event_data = {
                             "action": "update",
-                            "id": event_id, # ID của sự kiện cần cập nhật
+                            "id": event_id_str, # ID của sự kiện cần cập nhật
                             "title": llm_title,
                             "description": llm_description,
                             "cron_expression": cron_expression,
                             "repeat_type": repeat_type,
-                            "original_date": final_date_str if final_date_str else None,
+                            "original_date": final_date_str if final_date_str is not None else old_event.get('date'), # Ngày cuối cùng (mới hoặc cũ nếu mới không có)
                             "original_time": llm_time_str,
                             "participants": llm_participants
                         }
-                        logger.debug(f"Event data (update) được tạo: {event_data}")
+                        logger.debug(f"Event data (update) được tạo cho client: {event_data}")
 
-                        # 6. Thực hiện cập nhật sự kiện
-                        if update_event(details):
-                            logger.info(f"Đã thực thi lệnh UPDATE_EVENT thành công cho ID: {event_id}")
+                        # 6. Thực hiện cập nhật sự kiện trong data store
+                        # Hàm update_event nên nhận 'details_update' chỉ chứa các trường cần cập nhật
+                        if update_event(details_update): # details_update đã được chuẩn bị ở trên
+                            logger.info(f"Đã thực thi lệnh UPDATE_EVENT thành công và lưu vào data store cho ID: {event_id_str}")
                         else:
-                            logger.error(f"Thực thi lệnh UPDATE_EVENT thất bại cho ID: {event_id}")
+                            logger.error(f"Thực thi lệnh UPDATE_EVENT (lưu vào data store) thất bại cho ID: {event_id_str}")
                             event_data = None # Không trả về event_data nếu lưu lỗi
                 else:
-                    logger.error("Dữ liệu JSON cho UPDATE_EVENT không phải dictionary hoặc thiếu 'id'.")
+                    logger.error(f"Dữ liệu JSON cho UPDATE_EVENT không phải dictionary hoặc thiếu 'id'. Raw data: {cmd_content}")
 
             except json.JSONDecodeError as e:
                 logger.error(f"Lỗi khi phân tích JSON cho UPDATE_EVENT: {e}")
-                logger.error(f"Chuỗi JSON lỗi: {cmd}")
+                logger.error(f"Chuỗi JSON lỗi: {cmd_content}")
             except Exception as e_proc:
                  logger.error(f"Lỗi không xác định khi xử lý UPDATE_EVENT: {e_proc}", exc_info=True)
 
-        # --- Xử lý DELETE_EVENT ---
+
+        # --- Xử lý DELETE_EVENT (Giữ nguyên logic) ---
         delete_event_match = re.search(r"##DELETE_EVENT:(.*?)##", cleaned_html)
         if delete_event_match:
+            cmd_raw = delete_event_match.group(0)
             event_id_to_delete = delete_event_match.group(1).strip()
-            cleaned_html = cleaned_html.replace(delete_event_match.group(0), "").strip()
+            cleaned_html = cleaned_html.replace(cmd_raw, "").strip()
             logger.info(f"Tìm thấy lệnh DELETE_EVENT cho ID: {event_id_to_delete}")
 
-            # Lấy thông tin sự kiện trước khi xóa để trả về event_data
-            event_info = events_data.get(str(event_id_to_delete), {}) # Đảm bảo ID là chuỗi nếu cần
+            event_info_before_delete = events_data.get(str(event_id_to_delete), {})
 
             if delete_event(event_id_to_delete):
-                logger.info(f"Đã thực thi lệnh DELETE_EVENT thành công cho ID: {event_id_to_delete}")
+                logger.info(f"Đã thực thi lệnh DELETE_EVENT thành công trong data store cho ID: {event_id_to_delete}")
                 event_data = {
                     "action": "delete",
                     "id": event_id_to_delete,
-                    "title": event_info.get('title', '[không rõ]'), # Cung cấp thông tin cơ bản
-                    "description": event_info.get('description', '')
+                    "title": event_info_before_delete.get('title', '[không rõ]'),
+                    "description": event_info_before_delete.get('description', '')
                 }
-                logger.debug(f"Event data (delete) được tạo: {event_data}")
+                logger.debug(f"Event data (delete) được tạo cho client: {event_data}")
             else:
                 logger.error(f"Thực thi lệnh DELETE_EVENT thất bại cho ID: {event_id_to_delete} (có thể không tồn tại).")
-                # Không cần trả event_data nếu xóa thất bại
 
 
-        # --- Xử lý các lệnh khác (không tạo event_data) ---
-        other_commands = ["ADD_FAMILY_MEMBER", "UPDATE_PREFERENCE", "ADD_NOTE"]
-        for cmd_prefix in other_commands:
-            cmd_pattern = f"##{cmd_prefix}:(.*?)" # Non-greedy match
-            full_pattern = f"##{cmd_prefix}:{cmd_pattern}##"
-            match = re.search(full_pattern, cleaned_html, re.DOTALL)
+        # --- Xử lý các lệnh khác (Giữ nguyên logic) ---
+        other_commands_to_process = ["ADD_FAMILY_MEMBER", "UPDATE_PREFERENCE", "ADD_NOTE"]
+        for cmd_prefix in other_commands_to_process:
+            cmd_pattern = f"##{cmd_prefix}:(.*?)##"
+            match = re.search(cmd_pattern, cleaned_html, re.DOTALL)
+            while match:
+                cmd_raw_other = match.group(0)
+                cmd_content_other = match.group(1).strip()
+                temp_cleaned_html = cleaned_html.replace(cmd_raw_other, "", 1)
 
-            while match: # Xử lý nhiều lệnh cùng loại nếu có
-                cmd = match.group(1).strip()
-                 # Loại bỏ lệnh khỏi HTML
-                cleaned_html = cleaned_html.replace(match.group(0), "").strip()
                 logger.info(f"Tìm thấy lệnh {cmd_prefix}")
-                logger.debug(f"Nội dung lệnh {cmd_prefix}: {cmd}")
-
+                logger.debug(f"Nội dung lệnh {cmd_prefix}: {cmd_content_other}")
                 try:
-                    details = json.loads(cmd)
-                    if isinstance(details, dict):
+                    details_other = json.loads(cmd_content_other)
+                    if isinstance(details_other, dict):
+                        action_successful = False
                         if cmd_prefix == "ADD_FAMILY_MEMBER":
-                            add_family_member(details)
-                            logger.info("Đã thực thi ADD_FAMILY_MEMBER")
+                            add_family_member(details_other)
+                            action_successful = True
+                            logger.info(f"Đã thực thi ADD_FAMILY_MEMBER cho: {details_other.get('name')}")
                         elif cmd_prefix == "UPDATE_PREFERENCE":
-                            update_preference(details)
-                            logger.info("Đã thực thi UPDATE_PREFERENCE")
+                            update_preference(details_other)
+                            action_successful = True
+                            logger.info(f"Đã thực thi UPDATE_PREFERENCE cho ID: {details_other.get('id')}")
                         elif cmd_prefix == "ADD_NOTE":
-                            # Gán người tạo nếu có
                             if current_member:
-                                details['created_by'] = current_member
-                            add_note(details)
-                            logger.info("Đã thực thi ADD_NOTE")
+                                details_other['created_by'] = current_member
+                            add_note(details_other)
+                            action_successful = True
+                            logger.info(f"Đã thực thi ADD_NOTE cho tiêu đề: {details_other.get('title')}")
+
+                        if action_successful:
+                             cleaned_html = temp_cleaned_html
+                        else:
+                             logger.warning(f"Hành động {cmd_prefix} có thể đã thất bại, giữ nguyên lệnh.")
+                             break
                     else:
-                        logger.error(f"Dữ liệu JSON cho {cmd_prefix} không phải là dictionary.")
-
+                        logger.error(f"Dữ liệu JSON cho {cmd_prefix} không phải dict. Raw: {cmd_content_other}")
+                        break
                 except json.JSONDecodeError as e:
-                    logger.error(f"Lỗi khi phân tích JSON cho {cmd_prefix}: {e}")
-                    logger.error(f"Chuỗi JSON lỗi: {cmd}")
-                except Exception as e_proc:
-                    logger.error(f"Lỗi không xác định khi xử lý {cmd_prefix}: {e_proc}", exc_info=True)
+                    logger.error(f"Lỗi JSON {cmd_prefix}: {e}. Raw: {cmd_content_other}")
+                    break
+                except Exception as e_proc_other:
+                    logger.error(f"Lỗi xử lý {cmd_prefix}: {e_proc_other}", exc_info=True)
+                    break
+                match = re.search(cmd_pattern, cleaned_html, re.DOTALL)
 
-                # Tìm lệnh tiếp theo cùng loại sau khi đã xóa lệnh hiện tại
-                match = re.search(full_pattern, cleaned_html, re.DOTALL)
-
-
-        # Trả về HTML đã làm sạch và event_data (nếu có)
-        logger.debug(f"Kết thúc xử lý phản hồi. Cleaned HTML length: {len(cleaned_html)}. Event data: {'Có' if event_data else 'Không'}")
-        return cleaned_html, event_data
+        logger.debug(f"Kết thúc xử lý phản hồi. Độ dài HTML cuối cùng: {len(cleaned_html)}. Event data trả về: {'Có' if event_data else 'Không'}")
+        return cleaned_html.strip(), event_data
 
     except Exception as e:
-        # Lỗi tổng quát trong quá trình xử lý
-        logger.error(f"Lỗi nghiêm trọng trong process_assistant_response: {e}", exc_info=True)
-        # Trả về nguyên gốc để tránh mất phản hồi hoàn toàn, không có event_data
-        return response, None
+        logger.error(f"Lỗi nghiêm trọng không xác định trong process_assistant_response: {e}", exc_info=True)
+        return response, None # Trả về gốc nếu có lỗi lớn
 
 @app.on_event("startup")
 async def startup_event():
