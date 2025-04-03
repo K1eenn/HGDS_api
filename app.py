@@ -954,7 +954,7 @@ class WeatherService:
             
         return True, location, days, time_term
     
-OPENWEATHER_API_KEY = "e3fbfd686b873690c24369fb4c1edb53"
+OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
 weather_service = WeatherService(openweather_api_key=OPENWEATHER_API_KEY)
 
 # Tải dữ liệu ban đầu
