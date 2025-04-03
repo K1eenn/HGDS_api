@@ -38,6 +38,7 @@ logger = logging.getLogger('date_calculator')
 logger = logging.getLogger('cron_generator')
 logger = logging.getLogger('family_assistant_api.response_processor')
 logger = logging.getLogger('weather_service')
+logger = logging.getLogger('weather_advisor')
 # Khởi tạo API
 app = FastAPI(title="Trợ lý Gia đình API", 
               description="API cho Trợ lý Gia đình thông minh với khả năng xử lý text, hình ảnh và âm thanh",
@@ -183,17 +184,8 @@ class SessionManager:
 # Khởi tạo session manager
 #session_manager = SessionManager()
 session_manager = SessionManager(SESSIONS_DATA_FILE)
-# Weather service
-import requests
-import datetime
-import logging
-import json
-import os
-import re
-from typing import Dict, Any, Optional, List, Tuple
 
-# Thiết lập logger
-logger = logging.getLogger('weather_service')
+# Weather service
 
 class WeatherService:
     """
@@ -586,7 +578,7 @@ class WeatherService:
         return directions[index]
 
     @staticmethod
-    def format_weather_message(weather_data: Dict[str, Any], location: str, days: int = 1, target_date: str = None) -> str:
+    def format_weather_message(weather_data: Dict[str, Any], location: str, days: int = 1, target_date: str = None, advice_only: bool = False) -> str:
         """
         Định dạng dữ liệu thời tiết thành thông điệp HTML cho người dùng
         
@@ -595,6 +587,7 @@ class WeatherService:
             location: Vị trí được yêu cầu
             days: Số ngày dự báo đã yêu cầu
             target_date: Ngày cụ thể cần hiển thị (YYYY-MM-DD)
+            advice_only: Chỉ trả về thông tin cần thiết cho tư vấn (mô tả ngắn gọn về thời tiết)
             
         Returns:
             Chuỗi HTML định dạng đẹp với thông tin thời tiết
@@ -632,6 +625,44 @@ class WeatherService:
                 if day_forecast.get("date") == target_date:
                     target_forecast = day_forecast
                     break
+        
+        # Nếu chỉ cần thông tin cho tư vấn, trả về mô tả ngắn gọn
+        if advice_only:
+            # Lấy thông tin cần thiết cho tư vấn
+            temp_desc = ""
+            weather_cond = ""
+            rain_info = ""
+            
+            if target_forecast:
+                min_temp = target_forecast.get("min_temp_c", 0)
+                max_temp = target_forecast.get("max_temp_c", 0)
+                temp_desc = f"nhiệt độ từ {min_temp}°C đến {max_temp}°C"
+                weather_cond = target_forecast.get("condition", {}).get("text", "")
+                rain_chance = target_forecast.get("chance_of_rain", 0)
+                if rain_chance > 30:
+                    rain_info = f", {rain_chance}% khả năng mưa"
+            else:
+                temp_c = current.get("temp_c", 0)
+                feels_like = current.get("feelslike_c", 0)
+                temp_desc = f"nhiệt độ {temp_c}°C, cảm giác như {feels_like}°C"
+                weather_cond = current.get("condition", {}).get("text", "")
+                humidity = current.get("humidity", 0)
+                if humidity > 70:
+                    rain_info = f", độ ẩm cao {humidity}%"
+            
+            # Xác định ngày (nếu có)
+            date_str = ""
+            if target_date:
+                try:
+                    date_obj = datetime.datetime.strptime(target_date, "%Y-%m-%d")
+                    weekday_names = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
+                    weekday = weekday_names[date_obj.weekday()]
+                    date_str = f" vào {weekday}"
+                except:
+                    date_str = f" vào ngày {target_date}"
+            
+            # Trả về mô tả ngắn gọn về thời tiết cho tư vấn
+            return f"Thời tiết tại {actual_location}{date_str}: {temp_desc}, {weather_cond}{rain_info}"
         
         # Chọn biểu tượng emoji và tiêu đề
         if target_forecast:
@@ -954,8 +985,546 @@ class WeatherService:
             
         return True, location, days, time_term
     
-OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
+OPENWEATHER_API_KEY = "94c94ebc644d803eef31af2f1d399bd2"
 weather_service = WeatherService(openweather_api_key=OPENWEATHER_API_KEY)
+
+class WeatherAdvisor:
+    """
+    Lớp cung cấp các tư vấn thông minh dựa trên dữ liệu thời tiết như:
+    - Gợi ý trang phục phù hợp với thời tiết
+    - Gợi ý hoạt động phù hợp với thời tiết
+    - Gợi ý đồ dùng cần mang theo 
+    """
+    
+    # Mapping nhiệt độ với gợi ý trang phục
+    CLOTHING_TEMP_RANGES = {
+        "rất lạnh": (-100, 15),
+        "lạnh": (15, 20),
+        "mát mẻ": (20, 25),
+        "ấm áp": (25, 29),
+        "nóng": (29, 35),
+        "rất nóng": (35, 100)
+    }
+    
+    # Mapping trạng thái thời tiết với các từ khóa
+    WEATHER_CONDITIONS = {
+        "mưa": ["mưa", "rain", "shower", "drizzle", "thunderstorm", "mưa rào", "mưa dông", "mưa nhẹ", "mưa to"],
+        "nắng": ["nắng", "sunny", "clear", "nắng gắt", "trời nắng", "clear sky"],
+        "mây": ["mây", "cloud", "cloudy", "overcast", "mây đen", "u ám", "nhiều mây"],
+        "gió": ["gió", "wind", "windy", "gió mạnh", "gió lớn"],
+        "sương mù": ["sương mù", "fog", "mist", "sương", "foggy"],
+        "tuyết": ["tuyết", "snow", "snowy"]
+    }
+    
+    def __init__(self):
+        """Khởi tạo lớp WeatherAdvisor"""
+        pass
+        
+    @staticmethod
+    def detect_advice_query(text: str) -> Tuple[bool, str, Optional[str]]:
+        """
+        Phát hiện câu hỏi xin tư vấn dựa trên thời tiết
+        
+        Args:
+            text: Câu hỏi của người dùng
+            
+        Returns:
+            Tuple (is_advice_query, advice_type, time_term)
+                - is_advice_query: True nếu là câu hỏi xin tư vấn dựa trên thời tiết
+                - advice_type: Loại tư vấn ("clothing", "activity", "items")
+                - time_term: Cụm từ thời gian được đề cập (nếu có)
+        """
+        text_lower = text.lower()
+        
+        # Xác định loại tư vấn
+        clothing_keywords = [
+            "nên mặc gì", "mặc gì", "trang phục", "mặc áo", "mặc quần", "nên mặc", 
+            "ăn mặc", "nên ăn mặc", "mặc đồ", "nên mặc đồ", "quần áo", "thời trang"
+        ]
+        
+        activity_keywords = [
+            "nên làm gì", "nên đi đâu", "đi chơi", "nên đi chơi", "hoạt động", 
+            "nên tham gia", "nên tổ chức", "địa điểm", "đi đâu", "chơi gì"
+        ]
+        
+        item_keywords = [
+            "nên mang", "mang theo", "cần mang", "cần chuẩn bị", "cần đem theo",
+            "nên đem", "đem theo", "nên chuẩn bị", "cần đem", "vật dụng"
+        ]
+        
+        # Các từ khóa thời gian
+        time_keywords = [
+            "hôm nay", "ngày mai", "ngày mốt", "tối nay", "sáng mai", "chiều mai", 
+            "tối mai", "cuối tuần", "tuần này", "tuần sau", "thứ ", "chủ nhật"
+        ]
+        
+        # Phát hiện loại tư vấn
+        advice_type = None
+        for keyword in clothing_keywords:
+            if keyword in text_lower:
+                advice_type = "clothing"
+                break
+                
+        if not advice_type:
+            for keyword in activity_keywords:
+                if keyword in text_lower:
+                    advice_type = "activity"
+                    break
+        
+        if not advice_type:
+            for keyword in item_keywords:
+                if keyword in text_lower:
+                    advice_type = "items"
+                    break
+        
+        # Nếu không phát hiện loại tư vấn, không phải câu hỏi tư vấn
+        if not advice_type:
+            return False, "", None
+            
+        # Tìm cụm từ thời gian
+        time_term = None
+        for keyword in time_keywords:
+            if keyword in text_lower:
+                # Nếu từ khóa là "thứ ", cần lấy cả "thứ X"
+                if keyword == "thứ ":
+                    # Tìm kiểu "thứ 2", "thứ hai", v.v.
+                    thứ_matches = re.findall(r'thứ\s+(\d|hai|ba|tư|năm|sáu|bảy|chủ nhật)', text_lower)
+                    if thứ_matches:
+                        time_term = "thứ " + thứ_matches[0]
+                else:
+                    time_term = keyword
+                break
+        
+        # Nếu không tìm thấy từ khóa thời gian, giả định là "ngày mai"
+        if not time_term:
+            time_term = "ngày mai"
+            
+        return True, advice_type, time_term
+    
+    def get_clothing_advice(self, weather_data: Dict[str, Any], target_date: str = None) -> str:
+        """
+        Đưa ra lời khuyên về trang phục dựa trên dữ liệu thời tiết
+        
+        Args:
+            weather_data: Dữ liệu thời tiết đã chuẩn hóa
+            target_date: Ngày cụ thể (YYYY-MM-DD) để lấy dữ liệu dự báo, None cho thời tiết hiện tại
+            
+        Returns:
+            Lời khuyên về trang phục phù hợp
+        """
+        try:
+            # Lấy dữ liệu thời tiết cho ngày cụ thể hoặc hiện tại
+            temp_c = None
+            conditions = []
+            feels_like = None
+            
+            if target_date and "forecast" in weather_data:
+                # Tìm dự báo cho ngày cụ thể
+                for day in weather_data["forecast"]:
+                    if day.get("date") == target_date:
+                        temp_c = (day.get("min_temp_c", 0) + day.get("max_temp_c", 0)) / 2  # Lấy nhiệt độ trung bình
+                        conditions.append(day.get("condition", {}).get("text", "").lower())
+                        break
+            
+            if temp_c is None:
+                # Sử dụng dữ liệu hiện tại
+                temp_c = weather_data.get("current", {}).get("temp_c", 25)  # Mặc định 25°C nếu không có dữ liệu
+                feels_like = weather_data.get("current", {}).get("feelslike_c")
+                conditions.append(weather_data.get("current", {}).get("condition", {}).get("text", "").lower())
+            
+            # Nếu không có conditions, sử dụng giá trị mặc định
+            if not conditions or not conditions[0]:
+                conditions = ["mây rải rác"]  # Giá trị mặc định
+            
+            # Xác định trạng thái thời tiết từ mô tả
+            weather_state = "bình thường"  # Mặc định
+            for state, keywords in self.WEATHER_CONDITIONS.items():
+                if any(keyword in condition for keyword in keywords for condition in conditions):
+                    weather_state = state
+                    break
+            
+            # Xác định phạm vi nhiệt độ
+            temp_range = "ấm áp"  # Mặc định
+            for description, (min_temp, max_temp) in self.CLOTHING_TEMP_RANGES.items():
+                if min_temp <= temp_c < max_temp:
+                    temp_range = description
+                    break
+            
+            # Đưa ra lời khuyên về trang phục
+            advice = self._generate_clothing_advice(temp_range, weather_state, temp_c, feels_like)
+            return advice
+            
+        except Exception as e:
+            logger.error(f"Lỗi khi tư vấn trang phục: {e}", exc_info=True)
+            return "Tôi khuyên bạn nên mặc trang phục thoải mái, phù hợp với thời tiết hiện tại."
+    
+    def get_activity_advice(self, weather_data: Dict[str, Any], target_date: str = None) -> str:
+        """
+        Đưa ra lời khuyên về hoạt động dựa trên dữ liệu thời tiết
+        
+        Args:
+            weather_data: Dữ liệu thời tiết đã chuẩn hóa
+            target_date: Ngày cụ thể (YYYY-MM-DD) để lấy dữ liệu dự báo, None cho thời tiết hiện tại
+            
+        Returns:
+            Lời khuyên về hoạt động phù hợp
+        """
+        try:
+            # Lấy dữ liệu thời tiết tương tự như get_clothing_advice
+            temp_c = None
+            conditions = []
+            rain_chance = 0
+            
+            if target_date and "forecast" in weather_data:
+                for day in weather_data["forecast"]:
+                    if day.get("date") == target_date:
+                        temp_c = (day.get("min_temp_c", 0) + day.get("max_temp_c", 0)) / 2
+                        conditions.append(day.get("condition", {}).get("text", "").lower())
+                        rain_chance = day.get("chance_of_rain", 0)
+                        break
+            
+            if temp_c is None:
+                temp_c = weather_data.get("current", {}).get("temp_c", 25)
+                conditions.append(weather_data.get("current", {}).get("condition", {}).get("text", "").lower())
+                rain_chance = 0  # Hiện tại không có thông tin xác suất mưa, mặc định 0
+            
+            if not conditions or not conditions[0]:
+                conditions = ["mây rải rác"]
+            
+            # Xác định trạng thái thời tiết
+            weather_state = "bình thường"
+            for state, keywords in self.WEATHER_CONDITIONS.items():
+                if any(keyword in condition for keyword in keywords for condition in conditions):
+                    weather_state = state
+                    break
+            
+            # Nếu xác suất mưa cao, ưu tiên trạng thái mưa
+            if rain_chance > 50 and weather_state != "mưa":
+                weather_state = "mưa sắp tới"
+            
+            # Đưa ra lời khuyên về hoạt động
+            advice = self._generate_activity_advice(weather_state, temp_c, rain_chance)
+            return advice
+            
+        except Exception as e:
+            logger.error(f"Lỗi khi tư vấn hoạt động: {e}", exc_info=True)
+            return "Bạn có thể cân nhắc các hoạt động trong nhà như xem phim, đọc sách, hoặc các hoạt động ngoài trời nếu thời tiết đẹp."
+    
+    def get_items_advice(self, weather_data: Dict[str, Any], target_date: str = None) -> str:
+        """
+        Đưa ra lời khuyên về đồ dùng cần mang theo dựa trên dữ liệu thời tiết
+        
+        Args:
+            weather_data: Dữ liệu thời tiết đã chuẩn hóa
+            target_date: Ngày cụ thể (YYYY-MM-DD) để lấy dữ liệu dự báo, None cho thời tiết hiện tại
+            
+        Returns:
+            Lời khuyên về đồ dùng cần mang theo
+        """
+        try:
+            # Lấy dữ liệu thời tiết tương tự như các hàm trên
+            temp_c = None
+            conditions = []
+            rain_chance = 0
+            humidity = 0
+            uv_index = 0
+            
+            if target_date and "forecast" in weather_data:
+                for day in weather_data["forecast"]:
+                    if day.get("date") == target_date:
+                        temp_c = (day.get("min_temp_c", 0) + day.get("max_temp_c", 0)) / 2
+                        conditions.append(day.get("condition", {}).get("text", "").lower())
+                        rain_chance = day.get("chance_of_rain", 0)
+                        break
+            
+            if temp_c is None:
+                temp_c = weather_data.get("current", {}).get("temp_c", 25)
+                conditions.append(weather_data.get("current", {}).get("condition", {}).get("text", "").lower())
+                humidity = weather_data.get("current", {}).get("humidity", 50)
+                uv_index = weather_data.get("current", {}).get("uv", 0)
+                rain_chance = 0
+            
+            if not conditions or not conditions[0]:
+                conditions = ["mây rải rác"]
+            
+            # Xác định trạng thái thời tiết
+            weather_state = "bình thường"
+            for state, keywords in self.WEATHER_CONDITIONS.items():
+                if any(keyword in condition for keyword in keywords for condition in conditions):
+                    weather_state = state
+                    break
+            
+            # Nếu xác suất mưa cao, ưu tiên trạng thái mưa
+            if rain_chance > 50 and weather_state != "mưa":
+                weather_state = "mưa sắp tới"
+            
+            # Đưa ra lời khuyên về đồ dùng
+            advice = self._generate_items_advice(weather_state, temp_c, rain_chance, humidity, uv_index)
+            return advice
+            
+        except Exception as e:
+            logger.error(f"Lỗi khi tư vấn đồ dùng: {e}", exc_info=True)
+            return "Bạn nên mang theo các vật dụng cá nhân cần thiết và kiểm tra thời tiết trước khi ra ngoài."
+    
+    def _generate_clothing_advice(self, temp_range: str, weather_state: str, temp_c: float, feels_like: float = None) -> str:
+        """
+        Tạo lời khuyên chi tiết về trang phục
+        
+        Args:
+            temp_range: Phạm vi nhiệt độ ("rất lạnh", "lạnh", "mát mẻ", "ấm áp", "nóng", "rất nóng")
+            weather_state: Trạng thái thời tiết ("mưa", "nắng", "mây", "gió", "sương mù", "tuyết")
+            temp_c: Nhiệt độ thực tế (°C)
+            feels_like: Nhiệt độ cảm giác (°C), nếu có
+            
+        Returns:
+            Lời khuyên chi tiết về trang phục
+        """
+        clothing_advice = f"Với thời tiết {temp_range}"
+        if feels_like and abs(feels_like - temp_c) > 2:
+            clothing_advice += f" (nhiệt độ {temp_c}°C, cảm giác như {feels_like}°C)"
+        else:
+            clothing_advice += f" (nhiệt độ {temp_c}°C)"
+        
+        if weather_state != "bình thường":
+            clothing_advice += f" và {weather_state}"
+        
+        clothing_advice += ", bạn nên: \n\n"
+        
+        # Tư vấn dựa trên nhiệt độ
+        if temp_range == "rất lạnh":
+            clothing_advice += "- Mặc áo ấm dày, áo khoác hoặc áo phao\n"
+            clothing_advice += "- Đội mũ, đeo găng tay và khăn quàng cổ\n"
+            clothing_advice += "- Mặc nhiều lớp để giữ ấm tốt hơn\n"
+        elif temp_range == "lạnh":
+            clothing_advice += "- Mặc áo khoác nhẹ hoặc áo len dày\n"
+            clothing_advice += "- Chọn quần dài, có thể mặc thêm áo giữ nhiệt bên trong\n"
+        elif temp_range == "mát mẻ":
+            clothing_advice += "- Mặc áo sơ mi dài tay hoặc áo thun dài tay\n"
+            clothing_advice += "- Quần dài vải thoáng khí\n"
+            clothing_advice += "- Có thể mang theo áo khoác mỏng khi ra ngoài vào buổi sáng sớm hoặc tối\n"
+        elif temp_range == "ấm áp":
+            clothing_advice += "- Mặc áo thun, áo sơ mi ngắn tay bằng vải cotton thoáng mát\n"
+            clothing_advice += "- Quần dài hoặc quần short thoải mái\n"
+        elif temp_range == "nóng":
+            clothing_advice += "- Mặc áo thun nhẹ, rộng rãi, làm từ vải thoáng khí\n"
+            clothing_advice += "- Quần short hoặc váy để thoải mái\n"
+            clothing_advice += "- Chọn trang phục màu sáng để phản chiếu nhiệt\n"
+        elif temp_range == "rất nóng":
+            clothing_advice += "- Mặc áo không tay, áo thun mỏng nhẹ làm từ vải linen hoặc cotton\n"
+            clothing_advice += "- Quần short rộng hoặc váy thoáng mát\n"
+            clothing_advice += "- Trang phục rộng rãi, thoáng khí và màu sáng\n"
+        
+        # Tư vấn dựa trên trạng thái thời tiết
+        if weather_state == "mưa" or weather_state == "mưa sắp tới":
+            clothing_advice += "- Mang theo áo mưa hoặc ô\n"
+            clothing_advice += "- Mặc giày không thấm nước\n"
+            clothing_advice += "- Tránh mặc quần áo quá mỏng hoặc dễ thấm nước\n"
+        elif weather_state == "nắng":
+            clothing_advice += "- Đội mũ rộng vành để che nắng\n"
+            clothing_advice += "- Mặc áo chống nắng (UPF) nếu ra ngoài lâu\n"
+            clothing_advice += "- Đeo kính râm để bảo vệ mắt\n"
+        elif weather_state == "gió":
+            clothing_advice += "- Mặc áo khoác chắn gió\n"
+            clothing_advice += "- Tránh mặc váy quá rộng hoặc quần áo quá rộng dễ bay\n"
+        elif weather_state == "sương mù":
+            clothing_advice += "- Mặc quần áo có màu sắc sáng dễ nhìn thấy\n"
+            clothing_advice += "- Mang theo khăn quàng cổ để bảo vệ đường hô hấp\n"
+        
+        return clothing_advice
+    
+    def _generate_activity_advice(self, weather_state: str, temp_c: float, rain_chance: float) -> str:
+        """
+        Tạo lời khuyên chi tiết về hoạt động
+        
+        Args:
+            weather_state: Trạng thái thời tiết
+            temp_c: Nhiệt độ (°C)
+            rain_chance: Xác suất mưa (%)
+            
+        Returns:
+            Lời khuyên chi tiết về hoạt động
+        """
+        # Xác định mức nhiệt độ
+        if temp_c < 15:
+            temp_desc = "lạnh"
+        elif temp_c < 25:
+            temp_desc = "mát mẻ"
+        elif temp_c < 30:
+            temp_desc = "ấm áp"
+        else:
+            temp_desc = "nóng"
+        
+        # Bắt đầu lời khuyên
+        activity_advice = f"Với thời tiết {temp_desc} ({temp_c}°C)"
+        
+        if rain_chance > 0:
+            activity_advice += f" và xác suất mưa {rain_chance}%"
+        
+        if weather_state != "bình thường":
+            activity_advice += f", {weather_state}"
+        
+        activity_advice += ", tôi gợi ý: \n\n"
+        
+        # Hoạt động trong nhà
+        indoor_activities = [
+            "Đi xem phim tại rạp",
+            "Tham quan bảo tàng hoặc triển lãm nghệ thuật",
+            "Thử món ăn tại nhà hàng mới",
+            "Mua sắm tại trung tâm thương mại",
+            "Khám phá thư viện, đọc sách",
+            "Tham gia lớp học nấu ăn hoặc workshop thủ công",
+            "Chơi board game tại quán cà phê",
+            "Thư giãn tại spa hoặc massage"
+        ]
+        
+        # Hoạt động ngoài trời - thời tiết đẹp
+        good_outdoor_activities = [
+            "Dã ngoại tại công viên",
+            "Đi bộ dạo quanh hồ hoặc khu vực xanh trong thành phố",
+            "Đạp xe khám phá thành phố",
+            "Tham quan các điểm du lịch nổi tiếng",
+            "Đi chơi ở khu vui chơi giải trí ngoài trời",
+            "Tổ chức tiệc BBQ ngoài trời",
+            "Chèo thuyền kayak hoặc sup trên hồ",
+            "Đi cắm trại qua đêm tại khu vực ngoại ô"
+        ]
+        
+        # Hoạt động ngoài trời - thời tiết nóng
+        hot_outdoor_activities = [
+            "Bơi lội tại hồ bơi công cộng",
+            "Đi công viên nước",
+            "Tham quan các địa điểm có điều hòa như bảo tàng",
+            "Đi dạo buổi sáng sớm hoặc chiều tối khi mát mẻ hơn",
+            "Tận hưởng đồ uống mát lạnh tại quán cà phê có không gian thoáng",
+            "Đi chơi ở những khu vực có nhiều cây xanh, bóng mát"
+        ]
+        
+        # Hoạt động cho thời tiết mưa
+        rainy_activities = [
+            "Đi cà phê và ngắm mưa",
+            "Tham quan các trung tâm mua sắm",
+            "Thưởng thức ẩm thực tại nhà hàng ấm cúng",
+            "Đi xem phim tại rạp",
+            "Ghé thăm các bảo tàng hoặc triển lãm trong nhà",
+            "Học nấu món ăn mới tại lớp dạy nấu ăn"
+        ]
+        
+        # Chọn hoạt động dựa trên thời tiết
+        if weather_state == "mưa" or weather_state == "mưa sắp tới" or rain_chance > 60:
+            activity_advice += "## Hoạt động trong nhà:\n"
+            selected_activities = rainy_activities + indoor_activities[:3]
+            
+        elif weather_state == "nắng" and temp_desc == "nóng":
+            activity_advice += "## Hoạt động giúp bạn tránh nóng:\n"
+            selected_activities = hot_outdoor_activities + indoor_activities[:2]
+            
+        elif weather_state == "nắng" or (temp_desc in ["mát mẻ", "ấm áp"] and rain_chance < 30):
+            activity_advice += "## Hoạt động ngoài trời:\n"
+            selected_activities = good_outdoor_activities[:5]
+            activity_advice += "\n## Hoạt động trong nhà (nếu muốn):\n"
+            selected_activities += indoor_activities[:3]
+            
+        else:
+            # Kết hợp cả hai loại
+            activity_advice += "## Hoạt động phù hợp:\n"
+            selected_activities = good_outdoor_activities[:3] + indoor_activities[:3]
+        
+        # Thêm lời khuyên cụ thể vào danh sách
+        import random
+        random.shuffle(selected_activities)
+        for activity in selected_activities[:5]:  # Giới hạn 5 gợi ý
+            activity_advice += f"- {activity}\n"
+        
+        # Lời khuyên bổ sung
+        if weather_state == "mưa" or rain_chance > 60:
+            activity_advice += "\n**Lưu ý:** Mang theo ô hoặc áo mưa nếu phải di chuyển giữa các địa điểm."
+        elif weather_state == "nắng" and temp_desc in ["nóng", "rất nóng"]:
+            activity_advice += "\n**Lưu ý:** Uống nhiều nước và tránh hoạt động ngoài trời vào thời gian nắng gắt (11h-15h)."
+        
+        return activity_advice
+    
+    def _generate_items_advice(self, weather_state: str, temp_c: float, rain_chance: float, humidity: float, uv_index: float) -> str:
+        """
+        Tạo lời khuyên chi tiết về đồ dùng cần mang theo
+        
+        Args:
+            weather_state: Trạng thái thời tiết
+            temp_c: Nhiệt độ (°C)
+            rain_chance: Xác suất mưa (%)
+            humidity: Độ ẩm (%)
+            uv_index: Chỉ số UV
+            
+        Returns:
+            Lời khuyên chi tiết về đồ dùng
+        """
+        # Đồ dùng cơ bản luôn cần mang theo
+        basic_items = [
+            "Điện thoại và sạc dự phòng",
+            "Ví/tiền",
+            "Thẻ căn cước/giấy tờ tùy thân",
+            "Chìa khóa nhà/xe"
+        ]
+        
+        # Đồ dùng cho thời tiết mưa
+        rain_items = [
+            "Ô hoặc áo mưa",
+            "Giày không thấm nước",
+            "Túi chống nước cho điện thoại/thiết bị điện tử",
+            "Khăn lau khô"
+        ]
+        
+        # Đồ dùng cho thời tiết nắng
+        sun_items = [
+            "Kem chống nắng (SPF 30+)",
+            "Kính râm",
+            "Mũ rộng vành",
+            "Chai nước uống",
+            "Quạt cầm tay hoặc quạt mini"
+        ]
+        
+        # Đồ dùng cho thời tiết lạnh
+        cold_items = [
+            "Găng tay",
+            "Mũ len hoặc mũ trùm đầu",
+            "Khăn quàng cổ",
+            "Bình giữ nhiệt đựng đồ uống nóng"
+        ]
+        
+        # Bắt đầu lời khuyên
+        items_advice = "Đồ dùng nên mang theo:\n\n"
+        
+        # Luôn thêm đồ dùng cơ bản
+        items_advice += "## Vật dụng cơ bản:\n"
+        for item in basic_items:
+            items_advice += f"- {item}\n"
+        
+        # Thêm đồ dùng theo điều kiện thời tiết
+        if weather_state == "mưa" or weather_state == "mưa sắp tới" or rain_chance > 50:
+            items_advice += "\n## Đồ dùng cho thời tiết mưa:\n"
+            for item in rain_items:
+                items_advice += f"- {item}\n"
+                
+        if weather_state == "nắng" or uv_index > 3:
+            items_advice += "\n## Đồ dùng cho thời tiết nắng:\n"
+            for item in sun_items:
+                items_advice += f"- {item}\n"
+                
+        if temp_c < 20:
+            items_advice += "\n## Đồ dùng cho thời tiết lạnh:\n"
+            for item in cold_items:
+                items_advice += f"- {item}\n"
+        
+        # Lời khuyên bổ sung dựa trên độ ẩm
+        if humidity > 70:
+            items_advice += "\n**Lời khuyên thêm:** Độ ẩm cao, nên mang thêm khăn lau mồ hôi và quần áo thay thế nếu cần."
+            
+        # Lời khuyên bổ sung dựa trên chỉ số UV
+        if uv_index > 7:
+            items_advice += "\n**Lưu ý quan trọng:** Chỉ số UV rất cao, nhớ bôi kem chống nắng thường xuyên và tránh tiếp xúc trực tiếp với ánh nắng mặt trời."
+        
+        return items_advice
+
+weather_advisor = WeatherAdvisor()
 
 # Tải dữ liệu ban đầu
 def load_data(file_path):
@@ -1777,10 +2346,11 @@ def process_audio(message_dict, api_key):
 
 # Hàm xây dựng system prompt
 def build_system_prompt(current_member_id=None):
+    """Xây dựng system prompt cho trợ lý gia đình"""
     system_prompt = f"""
-    Bạn là trợ lý gia đình thông minh. Nhiệm vụ của bạn là giúp quản lý thông tin về các thành viên trong gia đình,
+    Bạn là trợ lý gia đình thông minh. Nhiệm vụ của bạn là giúp quản lý thông tin về các thành viên trong gia đình, 
     sở thích của họ, các sự kiện, ghi chú, và phân tích hình ảnh liên quan đến gia đình.
-
+    
     ĐỊNH DẠNG PHẢN HỒI:
     Phản hồi của bạn phải được định dạng bằng HTML đơn giản. Sử dụng các thẻ HTML thích hợp để định dạng:
     - Sử dụng thẻ <p> cho đoạn văn
@@ -1790,36 +2360,31 @@ def build_system_prompt(current_member_id=None):
     - Sử dụng thẻ <ul> và <li> cho danh sách không có thứ tự
     - Sử dụng thẻ <ol> và <li> cho danh sách có thứ tự
     - Sử dụng thẻ <br> để xuống dòng trong đoạn văn
-
+    
     Khi người dùng yêu cầu, bạn phải thực hiện ngay các hành động sau:
-
+    
     1. Thêm thông tin về thành viên gia đình (tên, tuổi, sở thích)
     2. Cập nhật sở thích của thành viên gia đình
     3. Thêm, cập nhật, hoặc xóa sự kiện
     4. Thêm ghi chú
     5. Phân tích hình ảnh người dùng đưa ra (món ăn, hoạt động gia đình, v.v.)
     6. Tìm kiếm thông tin thực tế khi được hỏi về tin tức, thời tiết, thể thao, và sự kiện hiện tại
-
+    7. Tư vấn về trang phục, hoạt động hoặc đồ dùng dựa trên thời tiết
+    
     QUAN TRỌNG: Khi cần thực hiện các hành động trên, bạn PHẢI sử dụng đúng cú pháp lệnh đặc biệt này (người dùng sẽ không nhìn thấy):
-
+    
     - Thêm thành viên: ##ADD_FAMILY_MEMBER:{{"name":"Tên","age":"Tuổi","preferences":{{"food":"Món ăn","hobby":"Sở thích","color":"Màu sắc"}}}}##
     - Cập nhật sở thích: ##UPDATE_PREFERENCE:{{"id":"id_thành_viên","key":"loại_sở_thích","value":"giá_trị"}}##
-    - Thêm sự kiện: ##ADD_EVENT:{{"title":"Tiêu đề","date":"Mô tả ngày/Ngày cụ thể","time":"HH:MM","description":"Mô tả","participants":["Tên1","Tên2"]}}##
-    - Cập nhật sự kiện: ##UPDATE_EVENT:{{"id":"id_sự_kiện","title":"Tiêu đề mới","date":"Mô tả ngày/Ngày cụ thể","time":"HH:MM","description":"Mô tả mới","participants":["Tên1","Tên2"]}}##
+    - Thêm sự kiện: ##ADD_EVENT:{{"title":"Tiêu đề","date":"YYYY-MM-DD","time":"HH:MM","description":"Mô tả","participants":["Tên1","Tên2"]}}##
+    - Cập nhật sự kiện: ##UPDATE_EVENT:{{"id":"id_sự_kiện","title":"Tiêu đề mới","date":"YYYY-MM-DD","time":"HH:MM","description":"Mô tả mới","participants":["Tên1","Tên2"]}}##
     - Xóa sự kiện: ##DELETE_EVENT:id_sự_kiện##
     - Thêm ghi chú: ##ADD_NOTE:{{"title":"Tiêu đề","content":"Nội dung","tags":["tag1","tag2"]}}##
-
-    QUAN TRỌNG VỀ NHẤT QUÁN NGÀY THÁNG (TRONG MÔ TẢ):
-    1. Khi người dùng yêu cầu "thứ X tuần sau", đảm bảo cả tiêu đề và mô tả đều nhắc đến CÙNG MỘT THỨ.
-    2. Nếu người dùng yêu cầu "thứ 3 tuần sau", phải viết "thứ 3" (không phải "thứ 2" hay "thứ 4") trong mô tả.
-    3. Đảm bảo tính nhất quán giữa *mô tả ngày* bạn điền vào trường `date` và *thứ* được đề cập trong mô tả sự kiện.
-
-    QUY TẮC THÊM/CẬP NHẬT SỰ KIỆN:
-    1. Khi được yêu cầu thêm/cập nhật sự kiện, hãy thực hiện NGAY LẬP TỨC bằng lệnh ##ADD_EVENT## hoặc ##UPDATE_EVENT##.
-    2. **QUAN TRỌNG - TRƯỜNG `date`:** Trong trường `date`, hãy điền **MÔ TẢ THỜI GIAN TƯƠNG ĐỐI** mà người dùng đã cung cấp (ví dụ: 'ngày mai', 'thứ 2 tuần sau', '15/04/2025') HOẶC ngày cụ thể YYYY-MM-DD nếu người dùng cung cấp trực tiếp. **KHÔNG cố gắng tự tính toán ngày từ mô tả tương đối.** Hệ thống backend sẽ xử lý việc tính toán ngày chính xác.
-        - **Ví dụ lệnh (LLM trả về):** `##ADD_EVENT:{{"title":"Đi chơi","date":"thứ 2 tuần sau","time":"19:00","description":"Đi chơi vào thứ 2 tuần sau.","participants":[]}}##`
-        - **Ví dụ lệnh (LLM trả về):** `##ADD_EVENT:{{"title":"Họp","date":"ngày mai","time":"10:00","description":"Họp nhóm dự án vào sáng mai.","participants":["An","Bình"]}}##`
-        - **Ví dụ lệnh (LLM trả về):** `##ADD_EVENT:{{"title":"Sinh nhật","date":"2025-05-20","time":"18:00","description":"Tiệc sinh nhật Chi.","participants":[]}}##`
+    
+    QUY TẮC THÊM/CẬP NHẬT SỰ KIỆN ĐƠN GIẢN (SỰ KIỆN MỘT LẦN):
+    1. Khi được yêu cầu thêm/cập nhật sự kiện MỘT LẦN, hãy thực hiện NGAY LẬP TỨC bằng lệnh ##ADD_EVENT## hoặc ##UPDATE_EVENT##.
+    2. **TÍNH TOÁN NGÀY CHÍNH XÁC:** Khi người dùng nói "ngày mai", "hôm qua", "thứ 2 tuần sau", "chủ nhật tới", v.v., bạn PHẢI tự động tính toán và điền ngày chính xác theo định dạng YYYY-MM-DD vào trường `date`.
+        - **Ví dụ:** Nếu hôm nay là Thứ Sáu 04/04/2025, và người dùng yêu cầu "tối thứ 2 tuần sau", bạn phải tính ra ngày Thứ Hai tuần kế tiếp là 07/04/2025 và điền `"date":"2025-04-07"`.
+        - **Ví dụ:** Nếu hôm nay là Thứ Hai 07/04/2025, và người dùng yêu cầu "chiều thứ 6", bạn phải tính ra ngày Thứ Sáu sắp tới trong tuần là 11/04/2025 và điền `"date":"2025-04-11"`.
     3. Nếu không có thời gian cụ thể, sử dụng thời gian mặc định là 19:00 trong trường `time` (HH:MM).
     4. Sử dụng mô tả ngắn gọn từ yêu cầu của người dùng trong trường `description`.
     5. Chỉ hỏi thêm thông tin nếu thực sự cần thiết và không thể suy luận được (ví dụ: tiêu đề sự kiện không rõ).
@@ -1829,10 +2394,21 @@ def build_system_prompt(current_member_id=None):
     - Chỉ coi là sự kiện lặp lại nếu người dùng sử dụng các từ khóa rõ ràng như "hàng tuần", "mỗi ngày", "hàng tháng", "ngày 15 hàng tháng", "mỗi tối thứ 6", "định kỳ", v.v.
     - **KHÔNG** coi "thứ 2 tuần sau" là lặp lại. Đó là sự kiện MỘT LẦN.
     - Khi tạo sự kiện lặp lại:
-        - Trong trường `date`, hãy điền mô tả thời gian lặp lại (ví dụ: "mỗi tối thứ 6 hàng tuần", "hàng ngày", "ngày 15 hàng tháng"). Backend sẽ dùng thông tin này để xác định ngày bắt đầu gần nhất.
-        - **QUAN TRỌNG NHẤT:** Đảm bảo mô tả chi tiết về sự lặp lại nằm trong trường `description` (ví dụ: "Học tiếng Anh vào mỗi tối thứ 6 hàng tuần."). Hệ thống backend sẽ dùng mô tả này để tạo lịch lặp lại.
+        - **KHÔNG** đặt một ngày cụ thể (YYYY-MM-DD) cố định vào trường `date`.
+        - Thay vào đó, hãy đặt một ngày **diễn ra gần nhất** của sự kiện đó vào trường `date`. Ví dụ, yêu cầu "mỗi tối thứ 6 hàng tuần", nếu hôm nay là thứ 2, đặt ngày thứ 6 sắp tới vào `date`.
+        - **QUAN TRỌNG NHẤT:** Đảm bảo mô tả chi tiết về sự lặp lại nằm trong trường `description` (ví dụ: "Học tiếng Anh vào mỗi tối thứ 6 hàng tuần."). Hệ thống backend sẽ dùng mô tả này để xử lý.
     - Ví dụ yêu cầu lặp lại: "Thêm lịch học tiếng anh vào tối thứ 6 hàng tuần"
-    - Ví dụ LỆNH ĐÚNG (LLM trả về): `##ADD_EVENT:{{"title":"Lịch học tiếng Anh","date":"tối thứ 6 hàng tuần","time":"19:00","description":"Học tiếng Anh vào mỗi tối thứ 6 hàng tuần.","participants":[]}}##`
+    - Ví dụ LỆNH ĐÚNG (giả sử hôm nay là T2 07/04/2025): `##ADD_EVENT:{{"title":"Lịch học tiếng Anh","date":"2025-04-11","time":"19:00","description":"Học tiếng Anh vào mỗi tối thứ 6 hàng tuần.","participants":[]}}##`
+
+    ***QUY TẮC TƯ VẤN DỰA TRÊN THỜI TIẾT:***
+    Khi người dùng hỏi những câu như "Ngày mai nên mặc gì?", "Cuối tuần nên đi chơi ở đâu?", "Tôi nên mang theo gì khi đi Đà Lạt?", hãy tư vấn dựa trên thông tin thời tiết mà không cần hiển thị chi tiết dự báo thời tiết.
+    
+    Ví dụ phản hồi tốt cho câu hỏi tư vấn trang phục: "Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!"
+    
+    Ví dụ ứng dụng cho các loại tư vấn:
+    - Tư vấn trang phục: khi người dùng hỏi "nên mặc gì", "trang phục", "quần áo"...
+    - Tư vấn hoạt động: khi người dùng hỏi "nên làm gì", "nên đi đâu", "đi chơi"...
+    - Tư vấn đồ dùng: khi người dùng hỏi "nên mang", "mang theo", "cần chuẩn bị"...
 
     Hôm nay là {datetime.datetime.now().strftime("%d/%m/%Y (%A)")}.
 
@@ -1881,15 +2457,8 @@ async def check_search_need(messages, openai_api_key, tavily_api_key):
     """
     Kiểm tra nhu cầu tìm kiếm thông tin từ tin nhắn của người dùng, bao gồm:
     - Thông tin thời tiết (với hỗ trợ các ngày trong tương lai)
+    - Tư vấn dựa trên thời tiết (trang phục, hoạt động, đồ dùng)
     - Tìm kiếm thông tin thực tế qua web
-    
-    Args:
-        messages (list): Danh sách tin nhắn trong phiên hội thoại
-        openai_api_key (str): OpenAI API key
-        tavily_api_key (str): Tavily API key
-        
-    Returns:
-        str: Thông tin đã tìm kiếm để bổ sung vào system prompt, hoặc chuỗi rỗng nếu không cần
     """
     if not tavily_api_key:
         return ""
@@ -1905,10 +2474,89 @@ async def check_search_need(messages, openai_api_key, tavily_api_key):
         if not last_user_message:
             return ""
         
-        # Phát hiện ý định tìm kiếm hoặc truy vấn thời tiết
+        # PHẦN MỚI: Phát hiện câu hỏi tư vấn dựa trên thời tiết
+        is_advice_query, advice_type, time_term = weather_advisor.detect_advice_query(last_user_message)
+        
+        if is_advice_query:
+            logger.info(f"Phát hiện truy vấn tư vấn: loại={advice_type}, thời gian={time_term}")
+            
+            # Tính toán ngày cụ thể từ cụm từ thời gian
+            target_date = None
+            if time_term and time_term != "hôm nay":
+                target_date = weather_service.get_date_from_relative_term(time_term)
+                logger.info(f"Đã tính toán ngày từ '{time_term}': {target_date}")
+            
+            # Lấy thông tin vị trí (mặc định là Hà Nội)
+            # Tách vị trí từ câu hỏi nếu có
+            location = "Hà Nội"  # Mặc định
+            location_patterns = [r'ở\s+([^?.,!]+)', r'tại\s+([^?.,!]+)']
+            for pattern in location_patterns:
+                location_match = re.search(pattern, last_user_message, re.IGNORECASE)
+                if location_match:
+                    location = location_match.group(1).strip()
+                    break
+            
+            try:
+                # Lấy dữ liệu thời tiết
+                days_needed = 7 if target_date else 1  # Đảm bảo có đủ dữ liệu dự báo
+                weather_data = await weather_service.get_weather(
+                    location=location, 
+                    forecast_days=days_needed,
+                    target_date=target_date
+                )
+                
+                # Lấy tư vấn phù hợp với loại câu hỏi
+                advice_result = ""
+                if advice_type == "clothing":
+                    advice_result = weather_advisor.get_clothing_advice(weather_data, target_date)
+                elif advice_type == "activity":
+                    advice_result = weather_advisor.get_activity_advice(weather_data, target_date)
+                elif advice_type == "items":
+                    advice_result = weather_advisor.get_items_advice(weather_data, target_date)
+                
+                # Định dạng kết quả thời tiết để tham khảo trong system prompt
+                # Nhưng KHÔNG hiển thị cho người dùng
+                weather_html = weather_service.format_weather_message(
+                    weather_data,
+                    location,
+                    1,  # Chỉ hiển thị 1 ngày
+                    target_date
+                )
+                
+                # Chuẩn bị thông tin để thêm vào system prompt
+                date_info = f" vào ngày {target_date}" if target_date else ""
+                time_term_display = f" ({time_term})" if time_term and time_term != "hôm nay" else ""
+                
+                # THAY ĐỔI: Format phản hồi chỉ trả về phần tư vấn, không hiển thị thời tiết
+                advice_result_for_prompt = f"""
+                \n\n--- TƯ VẤN DỰA TRÊN THỜI TIẾT ---
+                Người dùng đã hỏi: "{last_user_message}"
+                
+                Dưới đây là thông tin thời tiết tại {location}{date_info}{time_term_display} (CHỈ ĐỂ THAM KHẢO, KHÔNG HIỂN THỊ CHO NGƯỜI DÙNG):
+                
+                {weather_html}
+                
+                Dựa vào thông tin thời tiết trên, đây là tư vấn cho người dùng:
+                
+                {advice_result}
+                --- KẾT THÚC TƯ VẤN ---
+
+                Hãy trả lời người dùng CHỈ với phần tư vấn dựa trên thông tin thời tiết. KHÔNG ĐƯỢC hiển thị dữ liệu thời tiết chi tiết (nhiệt độ, điều kiện, dự báo theo giờ), mà chỉ trình bày phần tư vấn liên quan. 
+                
+                Ví dụ phản hồi tốt: "Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!"
+                
+                Hãy kết hợp các thông số cần thiết về thời tiết (như nhiệt độ, điều kiện mưa/nắng) vào lời khuyên của mình, nhưng KHÔNG liệt kê các thông số dự báo chi tiết.
+                """
+                
+                return advice_result_for_prompt
+                
+            except Exception as weather_err:
+                logger.error(f"Lỗi khi lấy thông tin thời tiết cho tư vấn: {weather_err}", exc_info=True)
+                # Nếu lỗi, chuyển sang tìm kiếm thông thường
+        
+        # PHẦN HIỆN TẠI: Phát hiện câu hỏi thời tiết thông thường
         is_weather_query, location, days, time_term = weather_service.detect_weather_query(last_user_message)
         
-        # Xử lý truy vấn thời tiết
         if is_weather_query and location:
             logger.info(f"Phát hiện truy vấn thời tiết: vị trí={location}, cụm từ thời gian='{time_term}'")
             
@@ -2827,152 +3475,152 @@ def text_to_speech_google(text, lang='vi', slow=False, max_length=5000):
         logger.error(f"Chi tiết lỗi:", exc_info=True)
         return None
 
-# Hàm chuyển đổi text thành speech sử dụng facebook/mms-tts-vie từ Hugging Face
-def text_to_speech_huggingface(text, speed=1.0, max_length=1000):
-    """
-    Chuyển đổi văn bản thành giọng nói sử dụng mô hình facebook/mms-tts-vie
+# # Hàm chuyển đổi text thành speech sử dụng facebook/mms-tts-vie từ Hugging Face
+# def text_to_speech_huggingface(text, speed=1.0, max_length=1000):
+#     """
+#     Chuyển đổi văn bản thành giọng nói sử dụng mô hình facebook/mms-tts-vie
     
-    Args:
-        text (str): Văn bản cần chuyển đổi
-        speed (float): Hệ số tốc độ (0.5-2.0)
-        max_length (int): Độ dài tối đa của văn bản
+#     Args:
+#         text (str): Văn bản cần chuyển đổi
+#         speed (float): Hệ số tốc độ (0.5-2.0)
+#         max_length (int): Độ dài tối đa của văn bản
         
-    Returns:
-        str: Base64 encoded audio data
-    """
-    try:
-        # Giới hạn độ dài văn bản
-        if len(text) > max_length:
-            text = text[:max_length] + "..."
+#     Returns:
+#         str: Base64 encoded audio data
+#     """
+#     try:
+#         # Giới hạn độ dài văn bản
+#         if len(text) > max_length:
+#             text = text[:max_length] + "..."
         
-        # Import thư viện cần thiết
-        from transformers import VitsModel, AutoTokenizer
-        import torch
-        import io
-        import soundfile as sf
-        import numpy as np
+#         # Import thư viện cần thiết
+#         from transformers import VitsModel, AutoTokenizer
+#         import torch
+#         import io
+#         import soundfile as sf
+#         import numpy as np
         
-        # Tải mô hình và tokenizer
-        model = VitsModel.from_pretrained("facebook/mms-tts-vie")
-        tokenizer = AutoTokenizer.from_pretrained("facebook/mms-tts-vie")
+#         # Tải mô hình và tokenizer
+#         model = VitsModel.from_pretrained("facebook/mms-tts-vie")
+#         tokenizer = AutoTokenizer.from_pretrained("facebook/mms-tts-vie")
         
-        # Tokenize và chuyển đổi thành waveform
-        inputs = tokenizer(text, return_tensors="pt")
-        with torch.no_grad():
-            output = model(**inputs).waveform
+#         # Tokenize và chuyển đổi thành waveform
+#         inputs = tokenizer(text, return_tensors="pt")
+#         with torch.no_grad():
+#             output = model(**inputs).waveform
         
-        # Chuyển đổi tốc độ (resampling)
-        if speed != 1.0:
-            # Chuyển về numpy array để xử lý
-            waveform_np = output.squeeze().numpy()
+#         # Chuyển đổi tốc độ (resampling)
+#         if speed != 1.0:
+#             # Chuyển về numpy array để xử lý
+#             waveform_np = output.squeeze().numpy()
             
-            # Số lượng mẫu mới dựa trên tốc độ
-            new_length = int(len(waveform_np) / speed)
+#             # Số lượng mẫu mới dựa trên tốc độ
+#             new_length = int(len(waveform_np) / speed)
             
-            # Resampling đơn giản
-            indices = np.linspace(0, len(waveform_np) - 1, new_length)
-            waveform_np_resampled = np.interp(indices, np.arange(len(waveform_np)), waveform_np)
+#             # Resampling đơn giản
+#             indices = np.linspace(0, len(waveform_np) - 1, new_length)
+#             waveform_np_resampled = np.interp(indices, np.arange(len(waveform_np)), waveform_np)
             
-            # Chuyển lại thành tensor để xử lý tiếp
-            waveform_resampled = torch.from_numpy(waveform_np_resampled).unsqueeze(0)
-        else:
-            waveform_resampled = output
+#             # Chuyển lại thành tensor để xử lý tiếp
+#             waveform_resampled = torch.from_numpy(waveform_np_resampled).unsqueeze(0)
+#         else:
+#             waveform_resampled = output
         
-        # Chuẩn bị buffer để lưu dữ liệu
-        audio_buffer = io.BytesIO()
+#         # Chuẩn bị buffer để lưu dữ liệu
+#         audio_buffer = io.BytesIO()
         
-        # Lấy thông tin từ waveform
-        sample_rate = 16000  # Sample rate mặc định của mô hình
-        waveform_np = waveform_resampled.squeeze().numpy()
+#         # Lấy thông tin từ waveform
+#         sample_rate = 16000  # Sample rate mặc định của mô hình
+#         waveform_np = waveform_resampled.squeeze().numpy()
         
-        # Lưu vào buffer dưới dạng WAV
-        sf.write(audio_buffer, waveform_np, sample_rate, format='WAV')
+#         # Lưu vào buffer dưới dạng WAV
+#         sf.write(audio_buffer, waveform_np, sample_rate, format='WAV')
         
-        # Chuyển con trỏ về đầu buffer
-        audio_buffer.seek(0)
+#         # Chuyển con trỏ về đầu buffer
+#         audio_buffer.seek(0)
         
-        # Lấy dữ liệu và mã hóa base64
-        audio_data = audio_buffer.read()
-        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+#         # Lấy dữ liệu và mã hóa base64
+#         audio_data = audio_buffer.read()
+#         audio_base64 = base64.b64encode(audio_data).decode('utf-8')
         
-        return audio_base64
+#         return audio_base64
         
-    except Exception as e:
-        logger.error(f"Lỗi khi sử dụng mô hình Hugging Face TTS: {str(e)}")
-        logger.error(f"Chi tiết lỗi:", exc_info=True)
-        return None
+#     except Exception as e:
+#         logger.error(f"Lỗi khi sử dụng mô hình Hugging Face TTS: {str(e)}")
+#         logger.error(f"Chi tiết lỗi:", exc_info=True)
+#         return None
 
-# Hàm chuyển đổi text thành speech sử dụng OpenAI API (giữ để backup)
-def text_to_speech(text, api_key, voice="alloy"):
-    """
-    Chuyển đổi văn bản thành giọng nói sử dụng OpenAI TTS API
+# # Hàm chuyển đổi text thành speech sử dụng OpenAI API (giữ để backup)
+# def text_to_speech(text, api_key, voice="alloy"):
+#     """
+#     Chuyển đổi văn bản thành giọng nói sử dụng OpenAI TTS API
     
-    Args:
-        text (str): Văn bản cần chuyển đổi
-        api_key (str): OpenAI API key
-        voice (str): Giọng nói (alloy, echo, fable, onyx, nova, shimmer)
+#     Args:
+#         text (str): Văn bản cần chuyển đổi
+#         api_key (str): OpenAI API key
+#         voice (str): Giọng nói (alloy, echo, fable, onyx, nova, shimmer)
         
-    Returns:
-        str: Base64 encoded audio data
-    """
-    try:
-        client = OpenAI(api_key=api_key)
-        response = client.audio.speech.create(
-            model="tts-1",
-            voice=voice,
-            input=text
-        )
+#     Returns:
+#         str: Base64 encoded audio data
+#     """
+#     try:
+#         client = OpenAI(api_key=api_key)
+#         response = client.audio.speech.create(
+#             model="tts-1",
+#             voice=voice,
+#             input=text
+#         )
         
-        # Lấy dữ liệu audio dưới dạng bytes
-        audio_data = response.content
+#         # Lấy dữ liệu audio dưới dạng bytes
+#         audio_data = response.content
         
-        # Chuyển đổi thành base64
-        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+#         # Chuyển đổi thành base64
+#         audio_base64 = base64.b64encode(audio_data).decode('utf-8')
         
-        return audio_base64
-    except Exception as e:
-        logger.error(f"Lỗi khi chuyển đổi văn bản thành giọng nói: {str(e)}")
-        return None
+#         return audio_base64
+#     except Exception as e:
+#         logger.error(f"Lỗi khi chuyển đổi văn bản thành giọng nói: {str(e)}")
+#         return None
 
 
-# Hàm chuyển đổi text thành speech
-def text_to_speech(text, api_key, voice="nova", speed=0.8, max_length=4096):
-    """
-    Chuyển đổi văn bản thành giọng nói sử dụng OpenAI TTS API
+# # Hàm chuyển đổi text thành speech
+# def text_to_speech(text, api_key, voice="nova", speed=0.8, max_length=4096):
+#     """
+#     Chuyển đổi văn bản thành giọng nói sử dụng OpenAI TTS API
     
-    Args:
-        text (str): Văn bản cần chuyển đổi
-        api_key (str): OpenAI API key
-        voice (str): Giọng nói (alloy, echo, fable, onyx, nova, shimmer)
-        speed (float): Tốc độ nói (0.5-1.5, mặc định 0.8 hơi chậm hơn bình thường)
-        max_length (int): Độ dài tối đa của văn bản (tính bằng ký tự)
+#     Args:
+#         text (str): Văn bản cần chuyển đổi
+#         api_key (str): OpenAI API key
+#         voice (str): Giọng nói (alloy, echo, fable, onyx, nova, shimmer)
+#         speed (float): Tốc độ nói (0.5-1.5, mặc định 0.8 hơi chậm hơn bình thường)
+#         max_length (int): Độ dài tối đa của văn bản (tính bằng ký tự)
         
-    Returns:
-        str: Base64 encoded audio data
-    """
-    try:
-        # Giới hạn độ dài văn bản để tránh lỗi
-        if len(text) > max_length:
-            text = text[:max_length] + "..."
+#     Returns:
+#         str: Base64 encoded audio data
+#     """
+#     try:
+#         # Giới hạn độ dài văn bản để tránh lỗi
+#         if len(text) > max_length:
+#             text = text[:max_length] + "..."
             
-        client = OpenAI(api_key=api_key)
-        response = client.audio.speech.create(
-            model="tts-1",
-            voice=voice,
-            input=text,
-            speed=speed  # Thêm tham số tốc độ nói
-        )
+#         client = OpenAI(api_key=api_key)
+#         response = client.audio.speech.create(
+#             model="tts-1",
+#             voice=voice,
+#             input=text,
+#             speed=speed  # Thêm tham số tốc độ nói
+#         )
         
-        # Lấy dữ liệu audio dưới dạng bytes
-        audio_data = response.content
+#         # Lấy dữ liệu audio dưới dạng bytes
+#         audio_data = response.content
         
-        # Chuyển đổi thành base64
-        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+#         # Chuyển đổi thành base64
+#         audio_base64 = base64.b64encode(audio_data).decode('utf-8')
         
-        return audio_base64
-    except Exception as e:
-        logger.error(f"Lỗi khi chuyển đổi văn bản thành giọng nói: {str(e)}")
-        return None
+#         return audio_base64
+#     except Exception as e:
+#         logger.error(f"Lỗi khi chuyển đổi văn bản thành giọng nói: {str(e)}")
+#         return None
 
 # Hàm chuyển đổi hình ảnh sang base64
 def get_image_base64(image_raw):

@@ -2049,6 +2049,167 @@
     ],
     "26062014": [
         {
+            "timestamp": "2025-04-03 16:59:11",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Thời tiết hà nội vào thứ 2 tuần sau?",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<h3>Thời tiết tại Hà Nội vào Thứ Hai (07/04/2025) ☁️</h3>\n<p><strong>Dự báo nhiệt độ:</strong> từ 18.34°C đến 21.18°C.</p>\n<p><strong>Điều kiện:</strong> có mây đen u ám.</p>\n<p><strong>Khả năng mưa:</strong> 63.0%.</p>\n<h4>Dự báo theo giờ:</h4>\n<ul>\n<li><strong>01:00:</strong> 🌧️ 19.06°C, mưa nhẹ, 20.0% khả năng mưa.</li>\n<li><strong>04:00:</strong> 🌧️ 18.34°C, mưa nhẹ, 63.0% khả năng mưa.</li>\n<li><strong>07:00:</strong> 🌧️ 18.56°C, mưa nhẹ, 52.0% khả năng mưa.</li>\n<li><strong>10:00:</strong> 🌧️ 19.71°C, mưa nhẹ, 20.0% khả năng mưa.</li>\n<li><strong>13:00:</strong> ☁️ 20.66°C, mây đen u ám, 0% khả năng mưa.</li>\n<li><strong>16:00:</strong> ☁️ 21.18°C, mây đen u ám, 0% khả năng mưa.</li>\n</ul>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tin tức hôm nay?",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Bản tin ngày 03 tháng 04 năm 2025</strong></p>\n\n<ul>\n    <li><strong>Thiệt hại lớn do lộ dữ liệu cá nhân tại Việt Nam:</strong> Một báo cáo từ Công ty An ninh mạng Viettel cho biết, nhiều thông tin cá nhân và tài liệu doanh nghiệp tại Việt Nam đã bị rao bán trên mạng, gây thiệt hại ước tính lên đến 11 triệu USD. Vấn đề này nhấn mạnh nguy cơ an toàn thông tin ngày càng gia tăng trong bối cảnh số hóa hiện nay. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n    \n    <li><strong>Xung đột Ukraine vẫn bế tắc:</strong> Đàm phán hòa bình giữa Nga và Ukraine tiếp tục gặp khó khăn. Một phái đoàn Nga đã đến Mỹ với hy vọng tìm kiếm đồng thuận, nhưng tình hình vẫn chưa có dấu hiệu khả quan. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n    \n    <li><strong>Tình hình chính trị tại Mỹ:</strong> Tỉ lệ ủng hộ Tổng thống Donald Trump đã giảm xuống mức thấp nhất từ đầu nhiệm kỳ, chỉ còn 43%. Nguyên nhân chủ yếu là do sự không hài lòng của người dân với các chính sách thuế quan mà ông áp dụng, đặc biệt là thuế đối ứng với hàng hóa từ nhiều quốc gia, trong đó có Việt Nam với mức thuế lên tới 46%. (Nguồn: <a href=\"https://tuoitre.vn/tin-tuc-the-gioi-3-4-ti-le-ung-ho-ong-trump-xuong-thap-nhat-uc-thue-se-khien-my-tra-gia-dat-20250403064954341.htm\">Tuổi Trẻ</a>)</li>\n    \n    <li><strong>Phản ứng quốc tế trước chính sách thuế của Mỹ:</strong> Thủ tướng Úc Anthony Albanese đã lên tiếng chỉ trích các mức thuế của Mỹ, cho rằng người dân Mỹ sẽ phải gánh chịu hậu quả nặng nề. Trong khi đó, Hàn Quốc đã khẩn cấp triển khai các biện pháp hỗ trợ cho doanh nghiệp bị ảnh hưởng bởi thuế quan. (Nguồn: <a href=\"https://tuoitre.vn/tin-tuc-the-gioi-3-4-ti-le-ung-ho-ong-trump-xuong-thap-nhat-uc-thue-se-khien-my-tra-gia-dat-20250403064954341.htm\">Tuổi Trẻ</a>)</li>\n</ul>\n\n<p><strong>Kết luận:</strong> Ngày 03 tháng 04 năm 2025 chứng kiến nhiều sự kiện quan trọng từ vấn đề an ninh mạng tại Việt Nam đến tình hình chính trị và kinh tế toàn cầu, đặc biệt là những tác động từ chính sách thuế của Mỹ. Các thông tin này phản ánh bối cảnh phức tạp mà các quốc gia đang phải đối mặt trong thời điểm hiện tại.</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tư vấn trang phục ngày mai cho tôi",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<h3>Thời tiết tại Hà Nội vào Thứ Sáu (04/04/2025) ☁️</h3>\n<p><b>Dự báo nhiệt độ:</b> 18.17°C ~ 26.07°C</p>\n<p><b>Điều kiện:</b> mây đen u ám</p>\n<p><b>Khả năng mưa:</b> 0%</p>\n<h4>Dự báo theo giờ:</h4>\n<ul>\n<li><b>01:00:</b> ☁️ 18.97°C, mây thưa, 0% khả năng mưa</li>\n<li><b>04:00:</b> ☁️ 18.17°C, mây rải rác, 0% khả năng mưa</li>\n<li><b>07:00:</b> ☁️ 19.53°C, mây thưa, 0% khả năng mưa</li>\n<li><b>10:00:</b> ☁️ 22.58°C, mây đen u ám, 0% khả năng mưa</li>\n<li><b>13:00:</b> ☁️ 24.92°C, mây đen u ám, 0% khả năng mưa</li>\n<li><b>16:00:</b> ☁️ 26.07°C, mây đen u ám, 0% khả năng mưa</li>\n</ul>\n<p><i>Cập nhật lúc: 2025-04-03 16:44</i></p>\n\n<p>Dựa vào thông tin thời tiết trên, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tư vấn trang phục ngày mai cho tôi",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng hỏi về thời tiết Hà Nội vào thứ 2 tuần sau, tin tức hôm nay và yêu cầu tư vấn trang phục cho ngày mai.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 16:46:34",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Thời tiết hà nội vào thứ 2 tuần sau?",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<h3>Thời tiết tại Hà Nội vào Thứ Hai (07/04/2025) ☁️</h3>\n<p><strong>Dự báo nhiệt độ:</strong> từ 18.34°C đến 21.18°C.</p>\n<p><strong>Điều kiện:</strong> có mây đen u ám.</p>\n<p><strong>Khả năng mưa:</strong> 63.0%.</p>\n<h4>Dự báo theo giờ:</h4>\n<ul>\n<li><strong>01:00:</strong> 🌧️ 19.06°C, mưa nhẹ, 20.0% khả năng mưa.</li>\n<li><strong>04:00:</strong> 🌧️ 18.34°C, mưa nhẹ, 63.0% khả năng mưa.</li>\n<li><strong>07:00:</strong> 🌧️ 18.56°C, mưa nhẹ, 52.0% khả năng mưa.</li>\n<li><strong>10:00:</strong> 🌧️ 19.71°C, mưa nhẹ, 20.0% khả năng mưa.</li>\n<li><strong>13:00:</strong> ☁️ 20.66°C, mây đen u ám, 0% khả năng mưa.</li>\n<li><strong>16:00:</strong> ☁️ 21.18°C, mây đen u ám, 0% khả năng mưa.</li>\n</ul>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tin tức hôm nay?",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p><strong>Bản tin ngày 03 tháng 04 năm 2025</strong></p>\n\n<ul>\n    <li><strong>Thiệt hại lớn do lộ dữ liệu cá nhân tại Việt Nam:</strong> Một báo cáo từ Công ty An ninh mạng Viettel cho biết, nhiều thông tin cá nhân và tài liệu doanh nghiệp tại Việt Nam đã bị rao bán trên mạng, gây thiệt hại ước tính lên đến 11 triệu USD. Vấn đề này nhấn mạnh nguy cơ an toàn thông tin ngày càng gia tăng trong bối cảnh số hóa hiện nay. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n    \n    <li><strong>Xung đột Ukraine vẫn bế tắc:</strong> Đàm phán hòa bình giữa Nga và Ukraine tiếp tục gặp khó khăn. Một phái đoàn Nga đã đến Mỹ với hy vọng tìm kiếm đồng thuận, nhưng tình hình vẫn chưa có dấu hiệu khả quan. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n    \n    <li><strong>Tình hình chính trị tại Mỹ:</strong> Tỉ lệ ủng hộ Tổng thống Donald Trump đã giảm xuống mức thấp nhất từ đầu nhiệm kỳ, chỉ còn 43%. Nguyên nhân chủ yếu là do sự không hài lòng của người dân với các chính sách thuế quan mà ông áp dụng, đặc biệt là thuế đối ứng với hàng hóa từ nhiều quốc gia, trong đó có Việt Nam với mức thuế lên tới 46%. (Nguồn: <a href=\"https://tuoitre.vn/tin-tuc-the-gioi-3-4-ti-le-ung-ho-ong-trump-xuong-thap-nhat-uc-thue-se-khien-my-tra-gia-dat-20250403064954341.htm\">Tuổi Trẻ</a>)</li>\n    \n    <li><strong>Phản ứng quốc tế trước chính sách thuế của Mỹ:</strong> Thủ tướng Úc Anthony Albanese đã lên tiếng chỉ trích các mức thuế của Mỹ, cho rằng người dân Mỹ sẽ phải gánh chịu hậu quả nặng nề. Trong khi đó, Hàn Quốc đã khẩn cấp triển khai các biện pháp hỗ trợ cho doanh nghiệp bị ảnh hưởng bởi thuế quan. (Nguồn: <a href=\"https://tuoitre.vn/tin-tuc-the-gioi-3-4-ti-le-ung-ho-ong-trump-xuong-thap-nhat-uc-thue-se-khien-my-tra-gia-dat-20250403064954341.htm\">Tuổi Trẻ</a>)</li>\n</ul>\n\n<p><strong>Kết luận:</strong> Ngày 03 tháng 04 năm 2025 chứng kiến nhiều sự kiện quan trọng từ vấn đề an ninh mạng tại Việt Nam đến tình hình chính trị và kinh tế toàn cầu, đặc biệt là những tác động từ chính sách thuế của Mỹ. Các thông tin này phản ánh bối cảnh phức tạp mà các quốc gia đang phải đối mặt trong thời điểm hiện tại.</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tư vấn trang phục ngày mai cho tôi",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<h3>Thời tiết tại Hà Nội vào Thứ Sáu (04/04/2025) ☁️</h3>\n<p><b>Dự báo nhiệt độ:</b> 18.17°C ~ 26.07°C</p>\n<p><b>Điều kiện:</b> mây đen u ám</p>\n<p><b>Khả năng mưa:</b> 0%</p>\n<h4>Dự báo theo giờ:</h4>\n<ul>\n<li><b>01:00:</b> ☁️ 18.97°C, mây thưa, 0% khả năng mưa</li>\n<li><b>04:00:</b> ☁️ 18.17°C, mây rải rác, 0% khả năng mưa</li>\n<li><b>07:00:</b> ☁️ 19.53°C, mây thưa, 0% khả năng mưa</li>\n<li><b>10:00:</b> ☁️ 22.58°C, mây đen u ám, 0% khả năng mưa</li>\n<li><b>13:00:</b> ☁️ 24.92°C, mây đen u ám, 0% khả năng mưa</li>\n<li><b>16:00:</b> ☁️ 26.07°C, mây đen u ám, 0% khả năng mưa</li>\n</ul>\n<p><i>Cập nhật lúc: 2025-04-03 16:44</i></p>\n\n<p>Dựa vào thông tin thời tiết trên, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng hỏi về thời tiết Hà Nội vào thứ Hai tuần sau, cập nhật tin tức hôm nay và yêu cầu tư vấn trang phục cho ngày mai.",
+            "session_id": null
+        },
+        {
             "timestamp": "2025-04-03 16:13:17",
             "messages": [
                 {
@@ -2139,6 +2300,206 @@
                         {
                             "type": "html",
                             "html": "<p><strong>Bản tin ngày 03 tháng 04 năm 2025</strong></p>\n\n<ul>\n    <li><strong>Thiệt hại lớn do lộ dữ liệu cá nhân tại Việt Nam:</strong> Một báo cáo từ Công ty An ninh mạng Viettel cho biết, nhiều thông tin cá nhân và tài liệu doanh nghiệp tại Việt Nam đã bị rao bán trên mạng, gây thiệt hại ước tính lên đến 11 triệu USD. Vấn đề này nhấn mạnh nguy cơ an toàn thông tin ngày càng gia tăng trong bối cảnh số hóa hiện nay. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n    \n    <li><strong>Xung đột Ukraine vẫn bế tắc:</strong> Đàm phán hòa bình giữa Nga và Ukraine tiếp tục gặp khó khăn. Một phái đoàn Nga đã đến Mỹ với hy vọng tìm kiếm đồng thuận, nhưng tình hình vẫn chưa có dấu hiệu khả quan. (Nguồn: <a href=\"https://thanhnien.vn/tin-tuc-dac-biet-tren-bao-in-thanh-nien-342025-185250402231424258.htm\">Thanh Niên</a>)</li>\n    \n    <li><strong>Tình hình chính trị tại Mỹ:</strong> Tỉ lệ ủng hộ Tổng thống Donald Trump đã giảm xuống mức thấp nhất từ đầu nhiệm kỳ, chỉ còn 43%. Nguyên nhân chủ yếu là do sự không hài lòng của người dân với các chính sách thuế quan mà ông áp dụng, đặc biệt là thuế đối ứng với hàng hóa từ nhiều quốc gia, trong đó có Việt Nam với mức thuế lên tới 46%. (Nguồn: <a href=\"https://tuoitre.vn/tin-tuc-the-gioi-3-4-ti-le-ung-ho-ong-trump-xuong-thap-nhat-uc-thue-se-khien-my-tra-gia-dat-20250403064954341.htm\">Tuổi Trẻ</a>)</li>\n    \n    <li><strong>Phản ứng quốc tế trước chính sách thuế của Mỹ:</strong> Thủ tướng Úc Anthony Albanese đã lên tiếng chỉ trích các mức thuế của Mỹ, cho rằng người dân Mỹ sẽ phải gánh chịu hậu quả nặng nề. Trong khi đó, Hàn Quốc đã khẩn cấp triển khai các biện pháp hỗ trợ cho doanh nghiệp bị ảnh hưởng bởi thuế quan. (Nguồn: <a href=\"https://tuoitre.vn/tin-tuc-the-gioi-3-4-ti-le-ung-ho-ong-trump-xuong-thap-nhat-uc-thue-se-khien-my-tra-gia-dat-20250403064954341.htm\">Tuổi Trẻ</a>)</li>\n</ul>\n\n<p><strong>Kết luận:</strong> Ngày 03 tháng 04 năm 2025 chứng kiến nhiều sự kiện quan trọng từ vấn đề an ninh mạng tại Việt Nam đến tình hình chính trị và kinh tế toàn cầu, đặc biệt là những tác động từ chính sách thuế của Mỹ. Các thông tin này phản ánh bối cảnh phức tạp mà các quốc gia đang phải đối mặt trong thời điểm hiện tại.</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "26062015": [
+        {
+            "timestamp": "2025-04-03 17:00:15",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tư vấn trang phục ngày mai cho tôi",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tư vấn trang phục ngày mai cho tôi, tôi đi dự tiệc",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng yêu cầu tư vấn trang phục cho một bữa tiệc vào ngày mai.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 16:59:44",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tư vấn trang phục ngày mai cho tôi",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tư vấn trang phục ngày mai cho tôi, tôi đi dự tiệc",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Chưa có đủ tin nhắn để tạo tóm tắt.",
+            "session_id": null
+        }
+    ],
+    "26062016": [
+        {
+            "timestamp": "2025-04-03 17:01:50",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tôi đi dự tiệc vào ngày mai, tư vấn cho tôi trang phục phù hơn",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Nhiệt độ dưới 10 độ thì tôi nên mặc gì",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                }
+            ],
+            "summary": "Người dùng cần tư vấn trang phục cho một bữa tiệc vào ngày mai, với nhiệt độ dưới 10 độ.",
+            "session_id": null
+        },
+        {
+            "timestamp": "2025-04-03 17:00:52",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tôi đi dự tiệc vào ngày mai, tư vấn cho tôi trang phục phù hơn",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Nhiệt độ dưới 10 độ thì tôi nên mặc gì",
+                            "html": null,
+                            "image_url": null,
+                            "audio_data": null
+                        }
+                    ]
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "html",
+                            "html": "<p>Dựa vào thông tin thời tiết, với nhiệt độ từ 18°C đến 26°C và tình hình mây đen, bạn nên chọn trang phục thoải mái cho ngày mai. Một gợi ý là hãy mặc áo sơ mi hoặc áo thun dài tay, kết hợp với quần dài làm từ vải nhẹ và thoáng khí. Đừng quên mang theo một chiếc áo khoác mỏng để giữ ấm vào buổi sáng sớm hoặc tối nhé!</p>"
                         }
                     ]
                 }
