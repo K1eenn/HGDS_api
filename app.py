@@ -894,7 +894,9 @@ class WeatherService:
         text_lower = text.lower()
         weather_keywords = [
             "thời tiết", "dự báo", "nhiệt độ", "nắng", "mưa", "gió", "bão",
-            "giông", "nóng", "lạnh", "độ ẩm", "mấy độ", "bao nhiêu độ"
+            "giông", "nóng", "lạnh", "độ ẩm", "mấy độ", "bao nhiêu độ",
+            # Thêm các từ khóa mới
+            "trời", "khí hậu", "thế nào", "oi", "nóng bức", "dông", "sấm sét", "tuyết"
         ]
         # More specific time keywords
         time_keywords = {
@@ -1022,7 +1024,11 @@ class WeatherAdvisor:
         text_lower = text.lower()
 
         # Keywords MUST indicate asking for advice *in relation to weather*
-        advice_trigger = ["thời tiết", "ngày mai", "hôm nay", "cuối tuần", "đi chơi", "ra ngoài"] # Context words
+        advice_trigger = [
+            "thời tiết", "ngày mai", "hôm nay", "cuối tuần", "đi chơi", "ra ngoài",
+            # Thêm các từ khóa mới
+            "mặc gì", "nên mặc", "nên đi", "cần mang", "đi đâu", "làm gì", "cần chuẩn bị"
+        ] # Context words
         if not any(trigger in text_lower for trigger in advice_trigger):
              # If none of the context words are present, it's less likely weather advice
              # Check if temperature/rain mentioned explicitly
@@ -2575,6 +2581,7 @@ def build_system_prompt(current_member_id=None):
         "Bạn là trợ lý gia đình thông minh, đa năng và thân thiện tên là HGDS. Nhiệm vụ của bạn là giúp quản lý thông tin gia đình, sự kiện, ghi chú, trả lời câu hỏi, tìm kiếm thông tin, phân tích hình ảnh và đưa ra lời khuyên hữu ích.",
         "Giao tiếp tự nhiên, lịch sự và theo phong cách trò chuyện bằng tiếng Việt.",
         "Sử dụng định dạng HTML đơn giản cho phản hồi văn bản (thẻ p, b, i, ul, li, h3, h4, br).",
+        "Nếu người dùng hỏi về thời tiết hoặc cần tư vấn dựa trên thời tiết (trang phục, hoạt động, đồ cần mang), hãy ưu tiên sử dụng thông tin từ API thời tiết được cung cấp trong context, KHÔNG nên gợi ý tìm kiếm web cho những câu hỏi này."
         f"Hôm nay là {datetime.datetime.now().strftime('%A, %d/%m/%Y')}.", # Vietnamese day name
         "\n**Các Công Cụ Có Sẵn:**",
         "Bạn có thể sử dụng các công cụ sau khi cần thiết để thực hiện yêu cầu của người dùng:",
@@ -2963,13 +2970,15 @@ Bạn là một hệ thống phân loại và tinh chỉnh câu hỏi thông min
 
 Hôm nay là ngày: {current_date_str}.
 
+CHÚ Ý QUAN TRỌNG: Các câu hỏi về thời tiết (như "thời tiết ở Hà Nội", "trời có mưa không", "nhiệt độ ngày mai") hoặc yêu cầu tư vấn dựa trên thời tiết (như "nên mặc gì hôm nay", "có nên đi biển không") KHÔNG cần tìm kiếm (`need_search` = false). Những thông tin này cần được lấy từ API thời tiết chuyên dụng thay vì tìm kiếm web.
+
 Ví dụ:
 - User: "tin tức covid hôm nay" -> {{ "need_search": true, "search_query": "tin tức covid mới nhất ngày {current_date_str}", "is_news_query": true }}
 - User: "kết quả trận MU tối qua" -> {{ "need_search": true, "search_query": "kết quả Manchester United tối qua", "is_news_query": true }}
 - User: "có phim gì hay tuần này?" -> {{ "need_search": true, "search_query": "phim chiếu rạp hay tuần này", "is_news_query": false }}
 - User: "giá vàng SJC" -> {{ "need_search": true, "search_query": "giá vàng SJC mới nhất", "is_news_query": false }}
 - User: "thủ đô nước Pháp là gì?" -> {{ "need_search": false, "search_query": "thủ đô nước Pháp là gì?", "is_news_query": false }}
-- User: "thời tiết Hà Nội ngày mai" -> {{ "need_search": true, "search_query": "dự báo thời tiết Hà Nội ngày mai", "is_news_query": true }}
+- User: "thời tiết Hà Nội ngày mai" -> {{ "need_search": false, "search_query": "dự báo thời tiết Hà Nội ngày mai", "is_news_query": true }}
 - User: "cách làm bánh cuốn" -> {{ "need_search": true, "search_query": "cách làm bánh cuốn ngon", "is_news_query": false }}
 - User: "sin(pi/2) bằng mấy?" -> {{ "need_search": false, "search_query": "sin(pi/2)", "is_news_query": false }}
 
