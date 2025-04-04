@@ -1,192 +1,203 @@
 {
-    "1": {
-        "title": "Lịch học tiếng Anh",
-        "date": "04/04/2025",
-        "time": "19:00",
-        "description": "Học tiếng Anh vào mỗi tối thứ 6 hàng tuần.",
-        "participants": [],
-        "created_by": "2642",
-        "created_on": "2025-04-02 17:32:38"
-    },
-    "2": {
-        "title": "Lịch xem bóng đá",
-        "date": "2025-04-04",
-        "time": "19:00",
-        "description": "Xem các trận đấu bóng đá: U17 Australia vs U17 Việt Nam lúc 22:00 và Chelsea vs Tottenham Hotspur lúc 02:00.",
-        "participants": [],
-        "created_by": "2643",
-        "created_on": "2025-04-02 17:34:37"
-    },
-    "3": {
-        "title": "Lịch xem phim",
-        "date": "2025-03-05",
-        "time": "19:00",
-        "description": "Xem phim tại rạp CGV hoặc Trung tâm Chiếu phim Quốc gia.",
-        "participants": [],
-        "created_by": "2643",
-        "created_on": "2025-04-02 17:35:56"
-    },
-    "4": {
-        "title": "Lịch xem phim",
-        "date": "2025-04-12",
-        "time": "19:00",
-        "description": "Xem các bộ phim đáng chú ý vào thứ 2, 12/04/2025.",
-        "participants": [],
-        "created_by": "2644",
-        "created_on": "2025-04-03 08:43:51"
-    },
-    "5": {
-        "title": "Lịch xem phim",
-        "date": "2025-04-10",
-        "time": "19:00",
-        "description": "Xem phim tại Lotte Cinema hoặc CGV vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2644",
-        "created_on": "2025-04-03 08:45:44"
-    },
-    "6": {
-        "title": "Lịch học tiếng Anh",
-        "date": "2025-04-09",
-        "time": "19:00",
-        "description": "Học tiếng Anh vào thứ Ba tuần sau.",
-        "participants": [],
-        "created_by": "2645",
-        "created_on": "2025-04-03 08:59:17",
-        "repeat_type": "ONCE"
-    },
-    "7": {
-        "title": "Lịch học tiếng Anh",
-        "date": "2025-04-10",
-        "time": "19:00",
-        "description": "Học tiếng Anh vào thứ Tư tuần sau.",
-        "participants": [],
-        "created_by": "2646",
-        "created_on": "2025-04-03 09:04:11"
-    },
-    "8": {
-        "title": "Lịch học tiếng Anh",
-        "date": "2025-05-06",
-        "time": "19:00",
-        "description": "Học tiếng Anh vào thứ Ba tuần đầu tiên của tháng 5.",
-        "participants": [],
-        "created_by": "2647",
-        "created_on": "2025-04-03 09:04:50"
-    },
-    "9": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-09",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ Ba tuần sau.",
-        "participants": [],
-        "created_by": "2652",
-        "created_on": "2025-04-03 10:09:07"
-    },
-    "10": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-08",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2653",
-        "created_on": "2025-04-03 10:12:07"
-    },
-    "11": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-10",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2654",
-        "created_on": "2025-04-03 10:14:23"
-    },
-    "12": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-09",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ Ba tuần sau.",
-        "participants": [],
-        "created_by": "2655",
-        "created_on": "2025-04-03 10:20:20"
-    },
-    "13": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-09",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ Ba tuần sau.",
-        "participants": [],
-        "created_by": "2657",
-        "created_on": "2025-04-03 10:29:47"
-    },
-    "14": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-08",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2659",
-        "created_on": "2025-04-03 10:35:44"
-    },
-    "15": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-08",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2660",
-        "created_on": "2025-04-03 10:46:58"
-    },
-    "16": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-08",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2661",
-        "created_on": "2025-04-03 10:49:08"
-    },
-    "17": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-08",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2662",
-        "created_on": "2025-04-03 10:53:13"
-    },
-    "18": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-08",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2663",
-        "created_on": "2025-04-03 10:54:07"
-    },
-    "19": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-08",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2672",
-        "created_on": "2025-04-03 11:12:45"
-    },
-    "20": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-07",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 2 tuần sau.",
-        "participants": [],
-        "created_by": "2673",
-        "created_on": "2025-04-03 11:18:55"
-    },
-    "21": {
-        "title": "Lịch đi chơi",
-        "date": "2025-04-11",
-        "time": "19:00",
-        "description": "Đi chơi vào thứ 6 tuần sau.",
-        "participants": [],
-        "created_by": "2675",
-        "created_on": "2025-04-03 11:19:22"
-    }
+  "1": {
+    "title": "Lịch học tiếng Anh",
+    "date": "04/04/2025",
+    "time": "19:00",
+    "description": "Học tiếng Anh vào mỗi tối thứ 6 hàng tuần.",
+    "participants": [],
+    "created_by": "2642",
+    "created_on": "2025-04-02 17:32:38"
+  },
+  "2": {
+    "title": "Lịch xem bóng đá",
+    "date": "2025-04-04",
+    "time": "19:00",
+    "description": "Xem các trận đấu bóng đá: U17 Australia vs U17 Việt Nam lúc 22:00 và Chelsea vs Tottenham Hotspur lúc 02:00.",
+    "participants": [],
+    "created_by": "2643",
+    "created_on": "2025-04-02 17:34:37"
+  },
+  "3": {
+    "title": "Lịch xem phim",
+    "date": "2025-03-05",
+    "time": "19:00",
+    "description": "Xem phim tại rạp CGV hoặc Trung tâm Chiếu phim Quốc gia.",
+    "participants": [],
+    "created_by": "2643",
+    "created_on": "2025-04-02 17:35:56"
+  },
+  "4": {
+    "title": "Lịch xem phim",
+    "date": "2025-04-12",
+    "time": "19:00",
+    "description": "Xem các bộ phim đáng chú ý vào thứ 2, 12/04/2025.",
+    "participants": [],
+    "created_by": "2644",
+    "created_on": "2025-04-03 08:43:51"
+  },
+  "5": {
+    "title": "Lịch xem phim",
+    "date": "2025-04-10",
+    "time": "19:00",
+    "description": "Xem phim tại Lotte Cinema hoặc CGV vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2644",
+    "created_on": "2025-04-03 08:45:44"
+  },
+  "6": {
+    "title": "Lịch học tiếng Anh",
+    "date": "2025-04-09",
+    "time": "19:00",
+    "description": "Học tiếng Anh vào thứ Ba tuần sau.",
+    "participants": [],
+    "created_by": "2645",
+    "created_on": "2025-04-03 08:59:17",
+    "repeat_type": "ONCE"
+  },
+  "7": {
+    "title": "Lịch học tiếng Anh",
+    "date": "2025-04-10",
+    "time": "19:00",
+    "description": "Học tiếng Anh vào thứ Tư tuần sau.",
+    "participants": [],
+    "created_by": "2646",
+    "created_on": "2025-04-03 09:04:11"
+  },
+  "8": {
+    "title": "Lịch học tiếng Anh",
+    "date": "2025-05-06",
+    "time": "19:00",
+    "description": "Học tiếng Anh vào thứ Ba tuần đầu tiên của tháng 5.",
+    "participants": [],
+    "created_by": "2647",
+    "created_on": "2025-04-03 09:04:50"
+  },
+  "9": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-09",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ Ba tuần sau.",
+    "participants": [],
+    "created_by": "2652",
+    "created_on": "2025-04-03 10:09:07"
+  },
+  "10": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2653",
+    "created_on": "2025-04-03 10:12:07"
+  },
+  "11": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-10",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2654",
+    "created_on": "2025-04-03 10:14:23"
+  },
+  "12": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-09",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ Ba tuần sau.",
+    "participants": [],
+    "created_by": "2655",
+    "created_on": "2025-04-03 10:20:20"
+  },
+  "13": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-09",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ Ba tuần sau.",
+    "participants": [],
+    "created_by": "2657",
+    "created_on": "2025-04-03 10:29:47"
+  },
+  "14": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2659",
+    "created_on": "2025-04-03 10:35:44"
+  },
+  "15": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2660",
+    "created_on": "2025-04-03 10:46:58"
+  },
+  "16": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2661",
+    "created_on": "2025-04-03 10:49:08"
+  },
+  "17": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2662",
+    "created_on": "2025-04-03 10:53:13"
+  },
+  "18": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2663",
+    "created_on": "2025-04-03 10:54:07"
+  },
+  "19": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2672",
+    "created_on": "2025-04-03 11:12:45"
+  },
+  "20": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-07",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 2 tuần sau.",
+    "participants": [],
+    "created_by": "2673",
+    "created_on": "2025-04-03 11:18:55"
+  },
+  "21": {
+    "title": "Lịch đi chơi",
+    "date": "2025-04-11",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 6 tuần sau.",
+    "participants": [],
+    "created_by": "2675",
+    "created_on": "2025-04-03 11:19:22"
+  },
+  "20e96620-890c-40b4-9f5c-425fd51a971d": {
+    "id": "20e96620-890c-40b4-9f5c-425fd51a971d",
+    "title": "Lịch đi chơi",
+    "date": "2025-04-05",
+    "time": "09:00",
+    "description": "Đi chơi cùng gia đình.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "26062022",
+    "created_on": "2025-04-04T10:18:34.904549"
+  }
 }
