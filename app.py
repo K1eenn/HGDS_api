@@ -2180,7 +2180,7 @@ async def chat_endpoint(chat_request: ChatRequest):
 
         # Save history & Update session AFTER the full interaction
         if current_member_id:
-             summary = generate_chat_summary(session["messages"], openai_api_key)
+             summary = await generate_chat_summary(session["messages"], openai_api_key)
              save_chat_history(current_member_id, session["messages"], summary, chat_request.session_id)
 
         session_manager.update_session(chat_request.session_id, {"messages": session["messages"]})
@@ -2495,7 +2495,7 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
             audio_response_b64 = text_to_speech_google(final_response_for_tts)
 
             if current_member_id:
-                 summary = generate_chat_summary(session["messages"], openai_api_key)
+                 summary = await generate_chat_summary(session["messages"], openai_api_key)
                  save_chat_history(current_member_id, session["messages"], summary, chat_request.session_id)
 
             session_manager.update_session(chat_request.session_id, {"messages": session["messages"]})
@@ -2695,7 +2695,11 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
         if loc_match: location = loc_match.group(2).strip().title()
 
         try:
-            weather_data = await weather_service.get_weather(location, forecast_days=7, target_date=target_date) # Get enough forecast data
+            weather_data = await weather_service.get_weather(
+                location,
+                forecast_days=7, # Lấy 7 ngày để chắc chắn có dữ liệu cho target_date
+                target_date=target_date
+            ) # Get enough forecast data
             if not weather_data or weather_data.get("error"):
                  logger.warning(f"Không thể lấy dữ liệu thời tiết cho tư vấn tại {location}.")
                  # Fall through to general search if weather fails
@@ -2728,7 +2732,12 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
         logger.info(f"Phát hiện truy vấn thời tiết: vị trí={location}, cụm từ='{time_term_weather}'")
         target_date = get_date_from_relative_term(time_term_weather) if time_term_weather else None
         try:
-            weather_data = await weather_service.get_weather(location, days=7, target_date=target_date) # Get enough data
+            days_to_fetch = days if days else 7 # Lấy số ngày đã phát hiện hoặc mặc định
+            weather_data = await weather_service.get_weather(
+                location,
+                forecast_days=days_to_fetch, # <<< SỬA TÊN THAM SỐ
+                target_date=target_date
+            ) # Get enough data
             if not weather_data or weather_data.get("error"):
                  logger.warning(f"Không thể lấy dữ liệu thời tiết cho {location} từ API.")
                  # Fall through to search as backup
@@ -3084,7 +3093,7 @@ def generate_dynamic_suggested_questions(api_key, member_id=None, max_questions=
 
 
 # --- Chat History ---
-def generate_chat_summary(messages, api_key):
+async def generate_chat_summary(messages, api_key): # <<< THÊM async
     """Tạo tóm tắt từ lịch sử trò chuyện (async wrapper)."""
     if not api_key or not messages or len(messages) < 2:
         return "Chưa đủ nội dung để tóm tắt."
@@ -3102,19 +3111,18 @@ def generate_chat_summary(messages, api_key):
                   if isinstance(item, dict) and item.get("type") == "text":
                        text_content += item.get("text", "") + " "
         elif role == "tool":
-             # Include tool result briefly
              text_content = f"[Tool {msg.get('name')} result: {str(content)[:50]}...]"
 
         if role and text_content:
              conversation_text += f"{role.capitalize()}: {text_content.strip()}\n"
 
-
     if not conversation_text: return "Không có nội dung text để tóm tắt."
+
 
     try:
         client = OpenAI(api_key=api_key)
-        # Run sync completion in thread
-        response = asyncio.run(asyncio.to_thread( # Need await here? No, run sync
+        # Run sync completion in thread using await
+        response = await asyncio.to_thread( # <<< SỬA Ở ĐÂY: dùng await
              client.chat.completions.create,
              model=openai_model, # Use a fast model?
              messages=[
@@ -3123,7 +3131,7 @@ def generate_chat_summary(messages, api_key):
              ],
              temperature=0.2,
              max_tokens=100
-        ))
+        )
         return response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"Lỗi khi tạo tóm tắt chat: {e}", exc_info=True)

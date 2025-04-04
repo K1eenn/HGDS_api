@@ -199,5 +199,16 @@
     "repeat_type": "ONCE",
     "created_by": "26062022",
     "created_on": "2025-04-04T10:18:34.904549"
+  },
+  "102b0a3f-5462-4e2a-8a0a-4e8fd0d701c1": {
+    "id": "102b0a3f-5462-4e2a-8a0a-4e8fd0d701c1",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-07",
+    "time": "19:00",
+    "description": "Học tiếng Anh vào thứ 2 hàng tuần",
+    "participants": [],
+    "repeat_type": "RECURRING",
+    "created_by": "26062024",
+    "created_on": "2025-04-04T10:32:17.679170"
   }
 }
