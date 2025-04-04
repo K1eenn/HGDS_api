@@ -801,32 +801,52 @@ class WeatherService:
     def get_date_from_relative_term(self, term: str) -> Optional[str]:
         """
         Chuyển đổi từ mô tả tương đối về ngày thành ngày thực tế (YYYY-MM-DD).
-        Hỗ trợ: hôm nay, ngày mai, ngày kia, hôm qua, thứ X tuần sau, thứ X.
+        Hỗ trợ: hôm nay/nay/tối nay/sáng nay..., ngày mai/mai, ngày kia/mốt,
+        hôm qua, thứ X tuần này/sau/tới, DD/MM, DD/MM/YYYY.
         """
-        if not term: return None
+        if not term:
+            logger.warning("get_date_from_relative_term called with empty term.")
+            return None
 
         term = term.lower().strip()
         today = datetime.date.today()
         logger.debug(f"Calculating date for term: '{term}', today is: {today.strftime('%Y-%m-%d %A')}")
 
-        # Basic relative terms
-        if term in ["hôm nay", "today"]: return today.strftime("%Y-%m-%d")
-        if term in ["ngày mai", "mai", "tomorrow"]: return (today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        if term in ["ngày kia", "day after tomorrow"]: return (today + datetime.timedelta(days=2)).strftime("%Y-%m-%d")
-        if term in ["hôm qua", "yesterday"]: return (today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        # --- 1. Direct relative terms ---
+        # Include terms referring to today
+        if term in ["hôm nay", "today", "nay", "tối nay", "sáng nay", "chiều nay", "trưa nay"]:
+            logger.info(f"Term '{term}' interpreted as today: {today.strftime('%Y-%m-%d')}")
+            return today.strftime("%Y-%m-%d")
+        if term in ["ngày mai", "mai", "tomorrow"]:
+            calculated_date = today + datetime.timedelta(days=1)
+            logger.info(f"Term '{term}' interpreted as tomorrow: {calculated_date.strftime('%Y-%m-%d')}")
+            return calculated_date.strftime("%Y-%m-%d")
+        if term in ["ngày kia", "mốt", "ngày mốt", "day after tomorrow"]:
+            calculated_date = today + datetime.timedelta(days=2)
+            logger.info(f"Term '{term}' interpreted as day after tomorrow: {calculated_date.strftime('%Y-%m-%d')}")
+            return calculated_date.strftime("%Y-%m-%d")
+        if term in ["hôm qua", "yesterday"]:
+            calculated_date = today - datetime.timedelta(days=1)
+            logger.info(f"Term '{term}' interpreted as yesterday: {calculated_date.strftime('%Y-%m-%d')}")
+            return calculated_date.strftime("%Y-%m-%d")
 
-        # Specific weekdays
+        # --- 2. Specific weekdays (upcoming or next week) ---
         target_weekday = -1
         is_next_week = False
         term_for_weekday_search = term
 
+        # Check for "next week" indicators
         for kw in ["tuần sau", "tuần tới", "next week"]:
             if kw in term:
                 is_next_week = True
+                # Remove the keyword to isolate the weekday
                 term_for_weekday_search = term.replace(kw, "").strip()
+                logger.debug(f"Detected 'next week' in '{term}', searching for weekday in '{term_for_weekday_search}'")
                 break
 
+        # Find the target weekday number
         for day_str, day_num in self.VIETNAMESE_WEEKDAY_MAP.items():
+            # Use word boundaries to avoid partial matches (e.g., 'tue' in 'statue')
             if re.search(r'\b' + re.escape(day_str) + r'\b', term_for_weekday_search):
                 target_weekday = day_num
                 logger.debug(f"Found target weekday: {day_str} ({target_weekday}) in '{term_for_weekday_search}'")
@@ -834,57 +854,84 @@ class WeatherService:
 
         if target_weekday != -1:
             today_weekday = today.weekday() # Monday is 0, Sunday is 6
+
             if is_next_week:
-                days_to_next_monday = (7 - today_weekday) % 7 # Days until next Monday (0 if today is Monday)
-                if days_to_next_monday == 0: days_to_next_monday = 7 # If today is Monday, jump to next week's Monday
-                next_monday_date = today + datetime.timedelta(days=days_to_next_monday)
-                final_date = next_monday_date + datetime.timedelta(days=target_weekday)
-            else: # Upcoming weekday
+                # Calculate days until the *next* instance of the target weekday
+                # Days until next Monday (0 if today is Monday, 7 if jumping to next week)
+                days_to_next_monday = (7 - today_weekday) % 7
+                if days_to_next_monday == 0 and today_weekday == 0: # If today IS Monday, need to jump 7 days
+                    days_to_next_monday = 7
+                elif days_to_next_monday == 0 and today_weekday != 0: # If today is Sun, next Mon is 1 day away
+                     pass # days_to_next_monday is already correct (e.g. Sunday -> 1 day)
+
+                # Calculate the date of the next Monday (or the Monday of the week requested)
+                base_date_for_next_week = today + datetime.timedelta(days=days_to_next_monday)
+
+                # Calculate the final date by adding the offset of the target weekday from Monday
+                final_date = base_date_for_next_week + datetime.timedelta(days=target_weekday)
+
+            else: # Upcoming weekday (this week or next if past)
+                # Days needed to reach the target weekday from today
                 days_ahead = (target_weekday - today_weekday + 7) % 7
-                if days_ahead == 0: days_ahead = 7 # If asking for today's weekday, mean next week's
+                # If asking for today's weekday name (e.g., "thứ 3" when today is Tuesday), assume next week's
+                if days_ahead == 0:
+                    days_ahead = 7
                 final_date = today + datetime.timedelta(days=days_ahead)
 
-            logger.info(f"Calculated date for '{term}': {final_date.strftime('%Y-%m-%d %A')}")
+            logger.info(f"Calculated date for '{term}' ({'next week' if is_next_week else 'upcoming'} weekday {target_weekday}): {final_date.strftime('%Y-%m-%d %A')}")
             return final_date.strftime("%Y-%m-%d")
 
-        # Fallback general terms
+        # --- 3. General future terms (without specific day) ---
         if any(kw in term for kw in ["tuần sau", "tuần tới", "next week"]):
+            # Default to next Monday if just "next week" is mentioned
             days_to_next_monday = (7 - today.weekday()) % 7
-            if days_to_next_monday == 0: days_to_next_monday = 7
-            calculated_date = today + datetime.timedelta(days=days_to_next_monday) # Next Monday
+            if days_to_next_monday == 0: days_to_next_monday = 7 # Jump full week if today is Monday
+            calculated_date = today + datetime.timedelta(days=days_to_next_monday)
             logger.info(f"Calculated date for general 'next week': {calculated_date.strftime('%Y-%m-%d')} (Next Monday)")
             return calculated_date.strftime("%Y-%m-%d")
         if "tháng tới" in term or "tháng sau" in term or "next month" in term:
              # Calculate first day of next month
+             # Go to day 1 of current month, add 32 days (guaranteed to be in next month), then go back to day 1
              next_month_date = (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
              logger.info(f"Calculated date for 'next month': {next_month_date.strftime('%Y-%m-%d')}")
              return next_month_date.strftime("%Y-%m-%d")
 
-
-        # Check explicit date formats
+        # --- 4. Explicit date formats ---
         try:
-            if re.match(r'\d{4}-\d{2}-\d{2}', term):
+            # YYYY-MM-DD
+            if re.fullmatch(r'\d{4}-\d{2}-\d{2}', term):
                  parsed_date = datetime.datetime.strptime(term, "%Y-%m-%d").date()
-                 logger.info(f"Term '{term}' is YYYY-MM-DD format.")
+                 logger.info(f"Term '{term}' matched YYYY-MM-DD format.")
                  return parsed_date.strftime("%Y-%m-%d")
-            if re.match(r'\d{1,2}/\d{1,2}/\d{4}', term):
+            # DD/MM/YYYY or D/M/YYYY
+            if re.fullmatch(r'\d{1,2}/\d{1,2}/\d{4}', term):
                  parsed_date = datetime.datetime.strptime(term, "%d/%m/%Y").date()
-                 logger.info(f"Term '{term}' is DD/MM/YYYY format, normalized.")
+                 logger.info(f"Term '{term}' matched DD/MM/YYYY format, normalized.")
                  return parsed_date.strftime("%Y-%m-%d")
-            if re.match(r'\d{1,2}/\d{1,2}', term): # e.g., 20/7
+            # DD/MM or D/M (assume current year or next year if past)
+            if re.fullmatch(r'\d{1,2}/\d{1,2}', term):
                  day, month = map(int, term.split('/'))
                  current_year = today.year
-                 parsed_date = datetime.date(current_year, month, day)
-                 # If date is in the past, assume next year
-                 if parsed_date < today:
-                      parsed_date = datetime.date(current_year + 1, month, day)
-                 logger.info(f"Term '{term}' is DD/MM format, assumed year {parsed_date.year}.")
-                 return parsed_date.strftime("%Y-%m-%d")
+                 # Try current year first
+                 try:
+                      parsed_date = datetime.date(current_year, month, day)
+                      # If the date is in the past relative to today, assume next year
+                      if parsed_date < today:
+                           parsed_date = datetime.date(current_year + 1, month, day)
+                           logger.info(f"Term '{term}' (DD/MM) is past, assumed year {current_year + 1}.")
+                      else:
+                           logger.info(f"Term '{term}' (DD/MM) assumed current year {current_year}.")
+                      return parsed_date.strftime("%Y-%m-%d")
+                 except ValueError: # Invalid date for the year (e.g., 30/2)
+                      logger.warning(f"Term '{term}' (DD/MM) resulted in an invalid date.")
+                      pass # Continue to see if other patterns match
 
-        except ValueError:
-            logger.warning(f"Term '{term}' looks like a date but is invalid.")
-            pass # Not a valid date format or value
+        except ValueError as date_parse_error:
+            # Log if it looked like a date but failed parsing
+            logger.warning(f"Term '{term}' resembled a date format but failed parsing: {date_parse_error}")
+            pass # Let it fall through to the final warning
 
+        # --- 5. Fallback ---
         logger.warning(f"Could not interpret relative date term: '{term}'. Returning None.")
         return None
 
