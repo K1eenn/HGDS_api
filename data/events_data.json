@@ -342,5 +342,71 @@
     "repeat_type": "ONCE",
     "created_by": "kienht23",
     "created_on": "2025-04-08T14:30:02.471388"
+  },
+  "4efd8007-6226-4170-b83b-bbe4b189c84c": {
+    "id": "4efd8007-6226-4170-b83b-bbe4b189c84c",
+    "title": "Đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi với gia đình.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht28",
+    "created_on": "2025-04-08T14:59:59.876890"
+  },
+  "d54dc0a7-ba78-40d8-bf46-35980854ae3d": {
+    "id": "d54dc0a7-ba78-40d8-bf46-35980854ae3d",
+    "title": "Đi chơi",
+    "date": "2025-04-09",
+    "time": "19:00",
+    "description": "Đi chơi với gia đình.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht32",
+    "created_on": "2025-04-08T15:14:12.430271"
+  },
+  "0bf77394-2383-4cc7-9607-b75b542feee2": {
+    "id": "0bf77394-2383-4cc7-9607-b75b542feee2",
+    "title": "Đi chơi",
+    "date": "2025-04-16",
+    "time": "19:00",
+    "description": "Đi chơi với gia đình.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht32",
+    "created_on": "2025-04-08T15:14:41.231484"
+  },
+  "db3ae6ca-61e3-4c23-95aa-3efaedf4e465": {
+    "id": "db3ae6ca-61e3-4c23-95aa-3efaedf4e465",
+    "title": "Đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht33",
+    "created_on": "2025-04-08T15:18:59.716963"
+  },
+  "2c113dee-b69a-4799-9582-d26eee29208f": {
+    "id": "2c113dee-b69a-4799-9582-d26eee29208f",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-10",
+    "time": "19:00",
+    "description": "Học tiếng Anh mỗi tối thứ 5 hàng tuần",
+    "participants": [],
+    "repeat_type": "RECURRING",
+    "created_by": "kienht33",
+    "created_on": "2025-04-08T15:19:51.669211"
+  },
+  "4e2a0409-4d7f-496c-9c1d-902bc5c58fa0": {
+    "id": "4e2a0409-4d7f-496c-9c1d-902bc5c58fa0",
+    "title": "Đi chơi",
+    "date": "2025-04-17",
+    "time": "19:00",
+    "description": "Đi chơi",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht33",
+    "created_on": "2025-04-08T15:21:04.600895"
   }
 }

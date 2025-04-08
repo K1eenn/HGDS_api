@@ -9,3 +9,4 @@ pydantic==2.5.0
 httpx==0.27.0
 gtts==2.5.4
 croniter
+dateparser

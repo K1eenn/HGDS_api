@@ -26,6 +26,8 @@ import tempfile
 from gtts import gTTS
 import re
 from html import unescape # For cleaning HTML before TTS
+import dateparser
+from dateutil.relativedelta import relativedelta
 
 # Tải biến môi trường
 dotenv.load_dotenv()
@@ -823,6 +825,427 @@ verify_data_structure() # Verify after loading
 # Initialize Session Manager
 session_manager = SessionManager(SESSIONS_DATA_FILE)
 
+# -------Date -----------
+
+class DateTimeHandler:
+    """Lớp xử lý ngày giờ sử dụng dateparser với hỗ trợ nâng cao cho tiếng Việt."""
+
+    # Ánh xạ thứ tiếng Việt
+    VIETNAMESE_WEEKDAY_MAP = {
+        "thứ 2": 0, "thứ hai": 0, "t2": 0,
+        "thứ 3": 1, "thứ ba": 1, "t3": 1,
+        "thứ 4": 2, "thứ tư": 2, "t4": 2,
+        "thứ 5": 3, "thứ năm": 3, "t5": 3,
+        "thứ 6": 4, "thứ sáu": 4, "t6": 4,
+        "thứ 7": 5, "thứ bảy": 5, "t7": 5,
+        "chủ nhật": 6, "cn": 6,
+    }
+    
+    # Ánh xạ thời gian trong ngày tiếng Việt
+    VIETNAMESE_TIME_OF_DAY = {
+        "sáng": {"start_hour": 6, "end_hour": 11, "default_hour": 8},
+        "trưa": {"start_hour": 11, "end_hour": 14, "default_hour": 12},
+        "chiều": {"start_hour": 14, "end_hour": 18, "default_hour": 16},
+        "tối": {"start_hour": 18, "end_hour": 22, "default_hour": 19},
+        "đêm": {"start_hour": 22, "end_hour": 6, "default_hour": 22},
+    }
+    
+    # Từ khóa thời gian tương đối tiếng Việt
+    VIETNAMESE_RELATIVE_TIME = {
+        "hôm nay": 0,
+        "bây giờ": 0,
+        "hiện tại": 0,
+        "nay": 0, 
+        "ngày mai": 1,
+        "mai": 1,
+        "ngày mốt": 2,
+        "mốt": 2,
+        "ngày kia": 2,
+        "hôm qua": -1,
+        "qua": -1,
+        "hôm kia": -2,
+        "tuần này": 0,
+        "tuần sau": 7,
+        "tuần tới": 7,
+        "tuần trước": -7,
+        "tháng này": 0,
+        "tháng sau": 30,
+        "tháng tới": 30,
+        "tháng trước": -30,
+    }
+
+    # Từ khóa lặp lại
+    RECURRING_KEYWORDS = [
+        "hàng ngày", "mỗi ngày", "hàng tuần", "mỗi tuần", "hàng tháng", "mỗi tháng",
+        "hàng năm", "mỗi năm", "định kỳ", "lặp lại",
+        "mỗi sáng thứ", "mỗi trưa thứ", "mỗi chiều thứ", "mỗi tối thứ",
+        "thứ 2 hàng tuần", "mỗi thứ 2", "mỗi t2", "thứ 3 hàng tuần", "mỗi thứ 3", "mỗi t3",
+        "thứ 4 hàng tuần", "mỗi thứ 4", "mỗi t4", "thứ 5 hàng tuần", "mỗi thứ 5", "mỗi t5",
+        "thứ 6 hàng tuần", "mỗi thứ 6", "mỗi t6", "thứ 7 hàng tuần", "mỗi thứ 7", "mỗi t7",
+        "chủ nhật hàng tuần", "mỗi chủ nhật", "mỗi cn",
+        "daily", "every day", "weekly", "every week", "monthly", "every month",
+        "yearly", "annually", "every year", "recurring", "repeating",
+        "every monday", "every tuesday", "every wednesday", "every thursday",
+        "every friday", "every saturday", "every sunday",
+    ]
+
+    # Cài đặt mặc định cho dateparser
+    DEFAULT_DATEPARSER_SETTINGS = {
+        'TIMEZONE': 'Asia/Ho_Chi_Minh',
+        'RETURN_AS_TIMEZONE_AWARE': True,
+        'PREFER_DAY_OF_MONTH': 'current',
+        'PREFER_DATES_FROM': 'future',
+        'DATE_ORDER': 'DMY',
+        'STRICT_PARSING': False,
+        'RELATIVE_BASE': datetime.datetime.now()
+    }
+
+    @classmethod
+    def parse_date(cls, date_description: str, base_date: Optional[datetime.datetime] = None) -> Optional[datetime.date]:
+        """
+        Phân tích mô tả ngày thành đối tượng datetime.date.
+        Hỗ trợ tiếng Việt và các mô tả tương đối.
+        
+        Args:
+            date_description: Mô tả ngày (ví dụ: "ngày mai", "thứ 6 tuần sau", "25/12/2024")
+            base_date: Ngày cơ sở để tính toán tương đối (mặc định là hôm nay)
+            
+        Returns:
+            datetime.date hoặc None nếu không thể phân tích
+        """
+        if not date_description:
+            logger.warning("Mô tả ngày rỗng.")
+            return None
+            
+        date_description = date_description.lower().strip()
+        today = base_date.date() if base_date else datetime.date.today()
+        
+        # 0. Xử lý nhanh các từ khóa thời gian trong ngày (sáng nay, tối nay, etc.)
+        for time_of_day in cls.VIETNAMESE_TIME_OF_DAY.keys():
+            if f"{time_of_day} nay" in date_description or date_description == time_of_day:
+                logger.info(f"Phát hiện thời điểm trong ngày: '{time_of_day} nay/nay' -> ngày hôm nay")
+                return today
+        
+        # 1. Xử lý trực tiếp các từ khóa thời gian tương đối đặc biệt tiếng Việt
+        for rel_time, days_offset in cls.VIETNAMESE_RELATIVE_TIME.items():
+            if rel_time == date_description or date_description.startswith(f"{rel_time} "):
+                result_date = today + datetime.timedelta(days=days_offset)
+                logger.info(f"Phát hiện từ khóa '{rel_time}' -> {result_date}")
+                return result_date
+        
+        # 2. Thử dùng dateparser trực tiếp
+        settings = cls.DEFAULT_DATEPARSER_SETTINGS.copy()
+        if base_date:
+            settings['RELATIVE_BASE'] = base_date
+        
+        try:
+            # Add some fixes for Vietnamese time expressions
+            dp_input = date_description
+            # Replace 'tối nay' with 'hôm nay' for better date parsing (we'll handle time separately)
+            for time_of_day in cls.VIETNAMESE_TIME_OF_DAY.keys():
+                if f"{time_of_day} nay" in dp_input:
+                    dp_input = "hôm nay"
+                    break
+            
+            parsed_date = dateparser.parse(
+                dp_input,
+                languages=['vi', 'en'],
+                settings=settings
+            )
+            
+            if parsed_date:
+                logger.info(f"Dateparser phân tích '{date_description}' thành: {parsed_date.date()}")
+                return parsed_date.date()
+        except Exception as e:
+            logger.warning(f"Dateparser gặp lỗi khi phân tích '{date_description}': {e}")
+            
+        # 3. Xử lý các trường hợp đặc biệt tiếng Việt mà dateparser có thể không hỗ trợ tốt
+        try:
+            # Xử lý thứ trong tuần
+            for weekday_name, weekday_num in cls.VIETNAMESE_WEEKDAY_MAP.items():
+                is_next_week = "tuần sau" in date_description or "tuần tới" in date_description
+                
+                if weekday_name in date_description:
+                    current_weekday = today.weekday()
+                    
+                    if is_next_week:
+                        # Tính ngày thứ X tuần sau
+                        days_to_next_monday = (7 - current_weekday) % 7
+                        if days_to_next_monday == 0 and current_weekday == 0:
+                            days_to_next_monday = 7
+                            
+                        next_monday = today + datetime.timedelta(days=days_to_next_monday)
+                        target_date = next_monday + datetime.timedelta(days=weekday_num)
+                    else:
+                        # Tính ngày thứ X gần nhất
+                        days_ahead = (weekday_num - current_weekday + 7) % 7
+                        if days_ahead == 0:
+                            days_ahead = 7  # Nếu hôm nay là thứ đó, lấy thứ đó tuần sau
+                            
+                        target_date = today + datetime.timedelta(days=days_ahead)
+                    
+                    logger.info(f"Xử lý thủ công '{date_description}' thành: {target_date}")
+                    return target_date
+            
+            # Xử lý "đầu tháng", "cuối tháng", "giữa tháng"
+            if "đầu tháng" in date_description:
+                # Đầu tháng: ngày 5 của tháng hiện tại hoặc tháng sau
+                if "sau" in date_description or "tới" in date_description:
+                    next_month = today.replace(day=1) + relativedelta(months=1)
+                    return next_month.replace(day=5)
+                return today.replace(day=5) if today.day > 10 else today
+                
+            if "giữa tháng" in date_description:
+                # Giữa tháng: ngày 15
+                if "sau" in date_description or "tới" in date_description:
+                    next_month = today.replace(day=1) + relativedelta(months=1)
+                    return next_month.replace(day=15)
+                return today.replace(day=15) if today.day > 20 else today
+                
+            if "cuối tháng" in date_description:
+                # Cuối tháng: ngày cuối cùng
+                if "sau" in date_description or "tới" in date_description:
+                    next_month = today.replace(day=1) + relativedelta(months=1)
+                    last_day = (next_month.replace(day=1) + relativedelta(months=1, days=-1)).day
+                    return next_month.replace(day=last_day)
+                
+                last_day = (today.replace(day=1) + relativedelta(months=1, days=-1)).day
+                return today.replace(day=last_day)
+                    
+            # Xử lý định dạng DD/MM hoặc D/M
+            if re.fullmatch(r'\d{1,2}/\d{1,2}', date_description):
+                day, month = map(int, date_description.split('/'))
+                
+                try:
+                    parsed_date = datetime.date(today.year, month, day)
+                    # Nếu ngày đã qua, sử dụng năm sau
+                    if parsed_date < today:
+                        parsed_date = datetime.date(today.year + 1, month, day)
+                    
+                    logger.info(f"Xử lý định dạng DD/MM '{date_description}' thành: {parsed_date}")
+                    return parsed_date
+                except ValueError as date_err:
+                    logger.warning(f"Ngày không hợp lệ từ DD/MM '{date_description}': {date_err}")
+                    
+        except Exception as e:
+            logger.warning(f"Xử lý thủ công gặp lỗi với '{date_description}': {e}")
+            
+        # 4. Xử lý đặc biệt cho các mô tả thời gian của ngày (không có từ 'nay')
+        for time_of_day in cls.VIETNAMESE_TIME_OF_DAY.keys():
+            if date_description == time_of_day or date_description.startswith(f"{time_of_day} "):
+                logger.info(f"Phát hiện chỉ có thời điểm trong ngày: '{time_of_day}' -> Giả định ngày hôm nay")
+                return today
+        
+        # 5. Trả về None nếu không thể phân tích
+        logger.warning(f"Không thể phân tích mô tả ngày: '{date_description}'")
+        return None
+    
+    @classmethod
+    def format_date(cls, date_obj: datetime.date) -> str:
+        """
+        Định dạng đối tượng datetime.date thành chuỗi ISO YYYY-MM-DD.
+        
+        Args:
+            date_obj: Đối tượng datetime.date
+            
+        Returns:
+            Chuỗi định dạng YYYY-MM-DD
+        """
+        if not date_obj:
+            return None
+        return date_obj.strftime("%Y-%m-%d")
+    
+    @classmethod
+    def determine_repeat_type(cls, description: str, title: str) -> str:
+        """
+        Xác định kiểu lặp lại dựa trên mô tả và tiêu đề.
+        
+        Args:
+            description: Mô tả sự kiện
+            title: Tiêu đề sự kiện
+            
+        Returns:
+            "RECURRING" hoặc "ONCE"
+        """
+        combined_text = (str(description) + " " + str(title)).lower()
+        
+        for keyword in cls.RECURRING_KEYWORDS:
+            if re.search(r'\b' + re.escape(keyword) + r'\b', combined_text):
+                logger.info(f"Phát hiện từ khóa lặp lại '{keyword}' -> RECURRING")
+                return "RECURRING"
+                
+        logger.info(f"Không tìm thấy từ khóa lặp lại -> ONCE")
+        return "ONCE"
+    
+    @classmethod
+    def generate_cron_expression(cls, date_str: str, time_str: str, repeat_type: str, 
+                                description: str, title: str) -> str:
+        """
+        Tạo biểu thức Quartz cron dựa trên thông tin sự kiện.
+        
+        Args:
+            date_str: Ngày định dạng YYYY-MM-DD
+            time_str: Thời gian định dạng HH:MM
+            repeat_type: Kiểu lặp lại ("RECURRING" hoặc "ONCE")
+            description: Mô tả sự kiện
+            title: Tiêu đề sự kiện
+            
+        Returns:
+            Biểu thức Quartz cron
+        """
+        try:
+            if not time_str or ':' not in time_str:
+                time_str = "19:00"
+                
+            hour, minute = map(int, time_str.split(":"))
+            
+            if repeat_type == "RECURRING":
+                combined_text = (str(description) + " " + str(title)).lower()
+                
+                # 1. Hàng ngày
+                if "hàng ngày" in combined_text or "mỗi ngày" in combined_text or "daily" in combined_text:
+                    cron = f"0 {minute} {hour} ? * * *"
+                    logger.info(f"Tạo cron Quartz HÀNG NGÀY lúc {time_str}: {cron}")
+                    return cron
+                
+                # 2. Hàng tuần vào thứ cụ thể
+                quartz_day_map = {
+                    "chủ nhật": 1, "cn": 1, "sunday": 1, "thứ 2": 2, "t2": 2, "monday": 2,
+                    "thứ 3": 3, "t3": 3, "tuesday": 3, "thứ 4": 4, "t4": 4, "wednesday": 4,
+                    "thứ 5": 5, "t5": 5, "thursday": 5, "thứ 6": 6, "t6": 6, "friday": 6,
+                    "thứ 7": 7, "t7": 7, "saturday": 7
+                }
+                
+                for day_text, day_num in quartz_day_map.items():
+                    if re.search(r'\b' + re.escape(day_text) + r'\b', combined_text):
+                        is_weekly = any(kw in combined_text for kw in ["hàng tuần", "mỗi tuần", "weekly", "every"])
+                        
+                        if is_weekly or any(kw in combined_text for kw in cls.RECURRING_KEYWORDS):
+                            cron = f"0 {minute} {hour} ? * {day_num} *"
+                            logger.info(f"Tạo cron Quartz HÀNG TUẦN vào Thứ {day_text} ({day_num}) lúc {time_str}: {cron}")
+                            return cron
+                
+                # 3. Hàng tháng vào ngày cụ thể
+                monthly_match = re.search(r"(ngày\s+(\d{1,2})|ngày\s+cuối\s+cùng)\s+(hàng\s+tháng|mỗi\s+tháng)", combined_text)
+                if monthly_match:
+                    day_specifier = monthly_match.group(1)
+                    day_of_month = "L" if "cuối cùng" in day_specifier else ""
+                    if not day_of_month:
+                        day_num_match = re.search(r'\d{1,2}', day_specifier)
+                        if day_num_match:
+                            day_of_month = day_num_match.group(0)
+                    
+                    if day_of_month:
+                        cron = f"0 {minute} {hour} {day_of_month} * ? *"
+                        logger.info(f"Tạo cron Quartz HÀNG THÁNG vào ngày {day_of_month} lúc {time_str}: {cron}")
+                        return cron
+                
+                # 4. Fallback: mặc định không cron nếu không xác định được
+                logger.warning(f"Không thể xác định lịch lặp lại cụ thể. Cron sẽ rỗng.")
+                return ""
+                
+            else:  # ONCE - Một lần
+                if not date_str:
+                    logger.warning("Không có ngày cho sự kiện một lần. Cron sẽ rỗng.")
+                    return ""
+                    
+                try:
+                    date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+                    cron = f"0 {minute} {hour} {date_obj.day} {date_obj.month} ? {date_obj.year}"
+                    logger.info(f"Tạo cron Quartz MỘT LẦN cho {date_str} {time_str}: {cron}")
+                    return cron
+                except ValueError as e:
+                    logger.error(f"Lỗi định dạng ngày '{date_str}' khi tạo cron một lần: {e}")
+                    return ""
+        
+        except Exception as e:
+            logger.error(f"Lỗi khi tạo biểu thức cron: {e}")
+            return ""
+    
+    @classmethod
+    def extract_time_from_date_description(cls, date_description: str) -> Tuple[str, str]:
+        """
+        Trích xuất thời gian (nếu có) từ mô tả ngày và trả về mô tả ngày đã làm sạch.
+        
+        Args:
+            date_description: Mô tả ngày có thể chứa thời gian
+            
+        Returns:
+            Tuple (cleaned_date_description, time_str)
+            - time_str sẽ là None nếu không tìm thấy thời gian
+        """
+        cleaned_description = date_description.lower().strip()
+        time_str = None
+        
+        # 1. Tìm định dạng giờ:phút
+        time_pattern = r'(\d{1,2})[:\.](\d{2})(\s*(?:am|pm|sáng|chiều|tối|đêm))?'
+        time_match = re.search(time_pattern, cleaned_description)
+        if time_match:
+            hour = int(time_match.group(1))
+            minute = time_match.group(2)
+            ampm = time_match.group(3)
+            
+            # Xử lý AM/PM
+            if ampm:
+                ampm = ampm.strip().lower()
+                if any(pm in ampm for pm in ['pm', 'chiều', 'tối', 'đêm']) and hour < 12:
+                    hour += 12
+                elif any(am in ampm for pm in ['am', 'sáng']) and hour == 12:
+                    hour = 0
+            
+            time_str = f"{hour:02d}:{minute}"
+            # Loại bỏ phần thời gian từ mô tả
+            cleaned_description = cleaned_description.replace(time_match.group(0), "").strip()
+            logger.info(f"Đã trích xuất thời gian '{time_str}' từ mô tả '{date_description}'")
+            
+        # 2. Tìm thời điểm trong ngày (sáng, trưa, chiều, tối, đêm)
+        else:
+            for time_of_day, time_info in cls.VIETNAMESE_TIME_OF_DAY.items():
+                if time_of_day in cleaned_description:
+                    hour = time_info['default_hour']
+                    time_str = f"{hour:02d}:00"
+                    logger.info(f"Đã ánh xạ '{time_of_day}' thành thời gian '{time_str}'")
+                    break
+        
+        return cleaned_description, time_str
+    
+    @classmethod
+    def parse_and_process_event_date(cls, date_description: str, time_str: str = "19:00", 
+                                    description: str = "", title: str = "") -> Tuple[str, str, str]:
+        """
+        Phân tích mô tả ngày và tạo ngày chuẩn cùng biểu thức cron.
+        
+        Args:
+            date_description: Mô tả ngày (vd: "ngày mai", "thứ 6 tuần sau")
+            time_str: Thời gian định dạng HH:MM
+            description: Mô tả sự kiện
+            title: Tiêu đề sự kiện
+            
+        Returns:
+            Tuple (date_str, repeat_type, cron_expression)
+        """
+        # Trích xuất thời gian từ mô tả ngày nếu có
+        cleaned_date_description, extracted_time = cls.extract_time_from_date_description(date_description)
+        
+        # Ưu tiên thời gian đã trích xuất
+        if extracted_time:
+            time_str = extracted_time
+        
+        # Phân tích ngày
+        date_obj = cls.parse_date(cleaned_date_description)
+        date_str = cls.format_date(date_obj) if date_obj else None
+        
+        if not date_str:
+            logger.warning(f"Không thể xác định ngày từ mô tả: '{date_description}'")
+            return None, "ONCE", ""
+            
+        repeat_type = cls.determine_repeat_type(description, title)
+        cron_expression = cls.generate_cron_expression(date_str, time_str, repeat_type, description, title)
+        
+        logger.info(f"Kết quả xử lý ngày giờ - Mô tả: '{date_description}', Kết quả: {date_str} {time_str}, Lặp lại: {repeat_type}")
+        return date_str, repeat_type, cron_expression
+
+
 # ------- Weather -----------
 
 class WeatherService:
@@ -1314,32 +1737,26 @@ def execute_tool_call(tool_call: ChatCompletionMessageToolCall, current_member_i
                 else:
                     return None, f"Lỗi: Không tìm thấy sự kiện ID '{event_id}' để cập nhật."
 
+            # Sử dụng DateTimeHandler thay cho xử lý thủ công
             if date_description:
-                final_date_str = get_date_from_relative_term(date_description)
+                # Phân tích và xử lý mô tả ngày một lần duy nhất
+                final_date_str, repeat_type, cron_expression = DateTimeHandler.parse_and_process_event_date(
+                    date_description, time_str, description, title
+                )
+                
                 if final_date_str:
-                    logger.info(f"Calculated date '{final_date_str}' from description '{date_description}'")
+                    logger.info(f"Ngày đã xử lý: '{final_date_str}' từ mô tả '{date_description}'")
                     arguments["date"] = final_date_str
                 else:
-                    logger.warning(f"Could not calculate date from '{date_description}'. Event date will be empty or unchanged.")
-                    if "date" in arguments: del arguments["date"]
+                    logger.warning(f"Không thể xác định ngày từ '{date_description}'. Ngày sự kiện sẽ trống hoặc không thay đổi.")
+                    if "date" in arguments: 
+                        del arguments["date"]
 
             if "date_description" in arguments:
                 del arguments["date_description"]
 
-            repeat_type = determine_repeat_type(description, title)
+            # Đặt repeat_type và cron đã được xác định
             arguments['repeat_type'] = repeat_type
-            is_recurring_event = (repeat_type == "RECURRING")
-
-            date_for_cron = final_date_str
-            if function_name == "update_event" and not date_for_cron:
-                event_id = arguments.get("id")
-                if event_id and event_id in events_data:
-                    date_for_cron = events_data[event_id].get('date')
-
-            if is_recurring_event:
-                cron_expression = generate_recurring_cron(description, title, time_str)
-            elif date_for_cron: # ONCE with a valid date
-                cron_expression = date_time_to_cron(date_for_cron, time_str)
 
             logger.info(f"Event type: {repeat_type}, Cron generated: '{cron_expression}'")
 
