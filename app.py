@@ -77,8 +77,8 @@ VIETNAMESE_NEWS_DOMAINS = [
 # --- API Keys ---
 OPENAI_API_KEY_ENV = os.getenv("OPENAI_API_KEY", "")
 TAVILY_API_KEY_ENV = os.getenv("TAVILY_API_KEY", "")
-#OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY") 
-OPENWEATHERMAP_API_KEY = "94c94ebc644d803eef31af2f1d399bd2"
+OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY") 
+#OPENWEATHERMAP_API_KEY = "94c94ebc644d803eef31af2f1d399bd2"
 openai_model = "gpt-4o-mini" # Or your preferred model supporting Tool Calling
 
 # ------- Date/Time Helper Functions (Moved from WeatherService) --------
