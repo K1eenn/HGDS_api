@@ -265,5 +265,82 @@
     "repeat_type": "ONCE",
     "created_by": "kien1234",
     "created_on": "2025-04-04T17:01:56.231881"
+  },
+  "9ccf7307-af27-448c-bb78-08b8a9f10d93": {
+    "id": "9ccf7307-af27-448c-bb78-08b8a9f10d93",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Học tiếng Anh vào buổi tối.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht17",
+    "created_on": "2025-04-08T08:20:07.796136"
+  },
+  "2bc53f85-84e4-47df-a322-260b15af0f77": {
+    "id": "2bc53f85-84e4-47df-a322-260b15af0f77",
+    "title": "Đi chơi",
+    "date": "2025-04-16",
+    "time": "19:00",
+    "description": "Đi chơi vào buổi tối.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht17",
+    "created_on": "2025-04-08T08:20:31.904779"
+  },
+  "29c2d2ef-f5f2-4a20-be74-c69ef54aae63": {
+    "id": "29c2d2ef-f5f2-4a20-be74-c69ef54aae63",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-17",
+    "time": "19:00",
+    "description": "Học tiếng Anh vào mỗi tối thứ 5 hàng tuần.",
+    "participants": [],
+    "repeat_type": "RECURRING",
+    "created_by": "kienht17",
+    "created_on": "2025-04-08T08:24:29.072391"
+  },
+  "f8bbc98d-d216-456f-aa96-9576a16c98ef": {
+    "id": "f8bbc98d-d216-456f-aa96-9576a16c98ef",
+    "title": "Đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi cùng gia đình",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht20",
+    "created_on": "2025-04-08T14:16:08.758475"
+  },
+  "0ec61035-2487-4d5a-ad35-06602ef9569f": {
+    "id": "0ec61035-2487-4d5a-ad35-06602ef9569f",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-11",
+    "time": "19:00",
+    "description": "Học tiếng Anh mỗi tối thứ 6",
+    "participants": [],
+    "repeat_type": "RECURRING",
+    "created_by": "kienht20",
+    "created_on": "2025-04-08T14:16:39.721724"
+  },
+  "6c9fc87a-e995-4ca4-9787-22924c396223": {
+    "id": "6c9fc87a-e995-4ca4-9787-22924c396223",
+    "title": "Học Toán",
+    "date": "2025-04-16",
+    "time": "09:00",
+    "description": "Học Toán vào sáng thứ 4 tuần sau",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht20",
+    "created_on": "2025-04-08T14:17:23.162261"
+  },
+  "95cfb14e-27d5-49d2-96ba-6a4a7ced4579": {
+    "id": "95cfb14e-27d5-49d2-96ba-6a4a7ced4579",
+    "title": "Đi chơi",
+    "date": "2025-04-08",
+    "time": "19:00",
+    "description": "Đi chơi cùng gia đình",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht23",
+    "created_on": "2025-04-08T14:30:02.471388"
   }
 }

@@ -39,8 +39,8 @@ logger = logging.getLogger('family_assistant_api')
 
 # Khởi tạo API
 app = FastAPI(title="Trợ lý Gia đình API (Tool Calling)",
-              description="API cho Trợ lý Gia đình thông minh với khả năng xử lý text, hình ảnh, âm thanh và sử dụng Tool Calling (Không bao gồm thời tiết)",
-              version="1.1.0-no_weather") # Version update
+              description="API cho Trợ lý Gia đình thông minh với khả năng xử lý text, hình ảnh, âm thanh và sử dụng Tool Calling, bao gồm thông tin thời tiết qua OpenWeatherMap.", # CHANGED description
+              version="1.2.0") # CHANGED Version update
 
 # CORS middleware
 app.add_middleware(
@@ -72,6 +72,11 @@ VIETNAMESE_NEWS_DOMAINS = [
     "cand.com.vn", "kenh14.vn", "baophapluat.vn",
 ]
 
+# --- API Keys ---
+OPENAI_API_KEY_ENV = os.getenv("OPENAI_API_KEY", "")
+TAVILY_API_KEY_ENV = os.getenv("TAVILY_API_KEY", "")
+#OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY") 
+OPENWEATHERMAP_API_KEY = "94c94ebc644d803eef31af2f1d399bd2"
 openai_model = "gpt-4o-mini" # Or your preferred model supporting Tool Calling
 
 # ------- Date/Time Helper Functions (Moved from WeatherService) --------
@@ -818,6 +823,391 @@ verify_data_structure() # Verify after loading
 # Initialize Session Manager
 session_manager = SessionManager(SESSIONS_DATA_FILE)
 
+# ------- Weather -----------
+
+class WeatherService:
+    """Dịch vụ lấy dữ liệu thời tiết từ OpenWeatherMap API."""
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.base_url = "https://api.openweathermap.org/data/2.5"
+        
+    async def get_current_weather(self, lat=None, lon=None, location=None, lang="vi"):
+        """
+        Lấy thông tin thời tiết hiện tại. Ưu tiên sử dụng tọa độ (lat/lon) nếu có,
+        nếu không thì dùng location để tìm kiếm.
+        """
+        try:
+            if lat is not None and lon is not None:
+                # Sử dụng tọa độ
+                url = f"{self.base_url}/weather"
+                params = {
+                    "lat": lat,
+                    "lon": lon,
+                    "appid": self.api_key,
+                    "units": "metric",
+                    "lang": lang
+                }
+            elif location:
+                # Sử dụng tên địa điểm
+                url = f"{self.base_url}/weather"
+                params = {
+                    "q": location,
+                    "appid": self.api_key,
+                    "units": "metric",
+                    "lang": lang
+                }
+            else:
+                # Mặc định là Hà Nội
+                url = f"{self.base_url}/weather"
+                params = {
+                    "q": "Hanoi,vn",
+                    "appid": self.api_key,
+                    "units": "metric",
+                    "lang": lang
+                }
+                
+            response = await asyncio.to_thread(
+                requests.get, url, params=params, timeout=10
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"OpenWeatherMap API error: {response.status_code} - {response.text}")
+                return None
+                
+            data = response.json()
+            return self._process_current_weather(data)
+            
+        except Exception as e:
+            logger.error(f"Error fetching weather data: {e}", exc_info=True)
+            return None
+            
+    async def get_forecast(self, lat=None, lon=None, location=None, lang="vi", days=5):
+        """
+        Lấy dự báo thời tiết cho nhiều ngày. Ưu tiên sử dụng tọa độ (lat/lon) nếu có,
+        nếu không thì dùng location để tìm kiếm.
+        """
+        try:
+            if lat is not None and lon is not None:
+                # Sử dụng tọa độ
+                url = f"{self.base_url}/forecast"
+                params = {
+                    "lat": lat,
+                    "lon": lon,
+                    "appid": self.api_key,
+                    "units": "metric",
+                    "lang": lang,
+                    "cnt": days * 8  # API trả về dữ liệu 3 giờ một lần, 8 lần/ngày
+                }
+            elif location:
+                # Sử dụng tên địa điểm
+                url = f"{self.base_url}/forecast"
+                params = {
+                    "q": location,
+                    "appid": self.api_key,
+                    "units": "metric",
+                    "lang": lang,
+                    "cnt": days * 8
+                }
+            else:
+                # Mặc định là Hà Nội
+                url = f"{self.base_url}/forecast"
+                params = {
+                    "q": "Hanoi,vn",
+                    "appid": self.api_key,
+                    "units": "metric",
+                    "lang": lang,
+                    "cnt": days * 8
+                }
+                
+            response = await asyncio.to_thread(
+                requests.get, url, params=params, timeout=10
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"OpenWeatherMap API error: {response.status_code} - {response.text}")
+                return None
+                
+            data = response.json()
+            return self._process_forecast(data)
+            
+        except Exception as e:
+            logger.error(f"Error fetching weather forecast: {e}", exc_info=True)
+            return None
+    
+    def _process_current_weather(self, data):
+        """Xử lý dữ liệu thời tiết hiện tại thành định dạng dễ sử dụng."""
+        try:
+            result = {
+                "location": {
+                    "name": data.get("name", ""),
+                    "country": data.get("sys", {}).get("country", ""),
+                    "lat": data.get("coord", {}).get("lat"),
+                    "lon": data.get("coord", {}).get("lon"),
+                },
+                "current": {
+                    "dt": data.get("dt"),
+                    "date": datetime.datetime.fromtimestamp(data.get("dt", 0)),
+                    "temp": data.get("main", {}).get("temp"),
+                    "feels_like": data.get("main", {}).get("feels_like"),
+                    "temp_min": data.get("main", {}).get("temp_min"),
+                    "temp_max": data.get("main", {}).get("temp_max"),
+                    "humidity": data.get("main", {}).get("humidity"),
+                    "pressure": data.get("main", {}).get("pressure"),
+                    "weather": {
+                        "id": data.get("weather", [{}])[0].get("id"),
+                        "main": data.get("weather", [{}])[0].get("main"),
+                        "description": data.get("weather", [{}])[0].get("description"),
+                        "icon": data.get("weather", [{}])[0].get("icon"),
+                    },
+                    "wind": {
+                        "speed": data.get("wind", {}).get("speed"),
+                        "deg": data.get("wind", {}).get("deg"),
+                    },
+                    "clouds": data.get("clouds", {}).get("all"),
+                    "visibility": data.get("visibility"),
+                    "sunrise": datetime.datetime.fromtimestamp(data.get("sys", {}).get("sunrise", 0)),
+                    "sunset": datetime.datetime.fromtimestamp(data.get("sys", {}).get("sunset", 0)),
+                }
+            }
+            
+            # Thêm đường dẫn đến icon
+            if result["current"]["weather"]["icon"]:
+                result["current"]["weather"]["icon_url"] = f"https://openweathermap.org/img/wn/{result['current']['weather']['icon']}@2x.png"
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error processing weather data: {e}", exc_info=True)
+            return None
+    
+    def _process_forecast(self, data):
+        """Xử lý dữ liệu dự báo thời tiết thành định dạng dễ sử dụng."""
+        try:
+            result = {
+                "location": {
+                    "name": data.get("city", {}).get("name", ""),
+                    "country": data.get("city", {}).get("country", ""),
+                    "lat": data.get("city", {}).get("coord", {}).get("lat"),
+                    "lon": data.get("city", {}).get("coord", {}).get("lon"),
+                },
+                "forecast": []
+            }
+            
+            # Nhóm dự báo theo ngày
+            forecasts_by_day = {}
+            
+            for item in data.get("list", []):
+                dt = datetime.datetime.fromtimestamp(item.get("dt", 0))
+                day_key = dt.strftime("%Y-%m-%d")
+                
+                if day_key not in forecasts_by_day:
+                    forecasts_by_day[day_key] = []
+                
+                forecast_item = {
+                    "dt": item.get("dt"),
+                    "date": dt,
+                    "time": dt.strftime("%H:%M"),
+                    "temp": item.get("main", {}).get("temp"),
+                    "feels_like": item.get("main", {}).get("feels_like"),
+                    "temp_min": item.get("main", {}).get("temp_min"),
+                    "temp_max": item.get("main", {}).get("temp_max"),
+                    "humidity": item.get("main", {}).get("humidity"),
+                    "weather": {
+                        "id": item.get("weather", [{}])[0].get("id"),
+                        "main": item.get("weather", [{}])[0].get("main"),
+                        "description": item.get("weather", [{}])[0].get("description"),
+                        "icon": item.get("weather", [{}])[0].get("icon"),
+                    },
+                    "wind": {
+                        "speed": item.get("wind", {}).get("speed"),
+                        "deg": item.get("wind", {}).get("deg"),
+                    },
+                    "clouds": item.get("clouds", {}).get("all"),
+                    "pop": item.get("pop", 0) * 100,  # Chuyển xác suất mưa từ 0-1 thành phần trăm
+                }
+                
+                # Thêm đường dẫn đến icon
+                if forecast_item["weather"]["icon"]:
+                    forecast_item["weather"]["icon_url"] = f"https://openweathermap.org/img/wn/{forecast_item['weather']['icon']}@2x.png"
+                
+                forecasts_by_day[day_key].append(forecast_item)
+            
+            # Tổng hợp dữ liệu theo ngày
+            for day_key, items in forecasts_by_day.items():
+                day_summary = {
+                    "date": day_key,
+                    "day_of_week": datetime.datetime.strptime(day_key, "%Y-%m-%d").strftime("%A"),
+                    "temp_min": min(item["temp_min"] for item in items if "temp_min" in item),
+                    "temp_max": max(item["temp_max"] for item in items if "temp_max" in item),
+                    "hourly": sorted(items, key=lambda x: x["date"]),
+                    "main_weather": self._get_main_weather_for_day(items),
+                }
+                result["forecast"].append(day_summary)
+            
+            # Sắp xếp dự báo theo ngày
+            result["forecast"] = sorted(result["forecast"], key=lambda x: x["date"])
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error processing forecast data: {e}", exc_info=True)
+            return None
+    
+    def _get_main_weather_for_day(self, hourly_items):
+        """Xác định thời tiết chính trong ngày dựa trên các dự báo theo giờ."""
+        # Ưu tiên thời tiết buổi sáng và chiều (9h-18h)
+        daytime_items = [item for item in hourly_items 
+                        if 9 <= item["date"].hour < 18]
+        
+        if not daytime_items:
+            daytime_items = hourly_items
+            
+        # Đếm tần suất xuất hiện của mỗi loại thời tiết
+        weather_counts = {}
+        for item in daytime_items:
+            weather_id = item["weather"]["id"]
+            weather_counts[weather_id] = weather_counts.get(weather_id, 0) + 1
+            
+        # Lấy loại thời tiết xuất hiện nhiều nhất
+        if weather_counts:
+            most_common_weather_id = max(weather_counts.items(), key=lambda x: x[1])[0]
+            
+            # Tìm item có weather id này
+            for item in daytime_items:
+                if item["weather"]["id"] == most_common_weather_id:
+                    return item["weather"]
+        
+        # Nếu không tìm được, trả về thời tiết của item đầu tiên
+        if daytime_items:
+            return daytime_items[0]["weather"]
+            
+        return {
+            "id": 800,
+            "main": "Clear",
+            "description": "trời quang đãng",
+            "icon": "01d",
+            "icon_url": "https://openweathermap.org/img/wn/01d@2x.png"
+        }
+
+
+def format_weather_for_prompt(current_weather, forecast=None):
+    """Định dạng thông tin thời tiết để đưa vào prompt."""
+    if not current_weather:
+        return "Không có thông tin thời tiết."
+        
+    location_name = current_weather.get("location", {}).get("name", "")
+    country = current_weather.get("location", {}).get("country", "")
+    location_str = f"{location_name}, {country}" if country else location_name
+    
+    current = current_weather.get("current", {})
+    temp = current.get("temp")
+    feels_like = current.get("feels_like")
+    humidity = current.get("humidity")
+    weather_desc = current.get("weather", {}).get("description", "")
+    wind_speed = current.get("wind", {}).get("speed")
+    
+    # Format ngày giờ cập nhật
+    update_time = current.get("date")
+    update_time_str = update_time.strftime("%H:%M, %d/%m/%Y") if update_time else "N/A"
+    
+    # Thông tin mặt trời mọc/lặn
+    sunrise = current.get("sunrise")
+    sunset = current.get("sunset")
+    sunrise_str = sunrise.strftime("%H:%M") if sunrise else "N/A"
+    sunset_str = sunset.strftime("%H:%M") if sunset else "N/A"
+    
+    result = f"""
+Thông tin thời tiết cho {location_str}:
+- Thời điểm cập nhật: {update_time_str}
+- Nhiệt độ hiện tại: {temp}°C (cảm giác như: {feels_like}°C)
+- Thời tiết: {weather_desc}
+- Độ ẩm: {humidity}%
+- Gió: {wind_speed} m/s
+- Mặt trời mọc: {sunrise_str}, mặt trời lặn: {sunset_str}
+"""
+
+    # Thêm thông tin dự báo nếu có
+    if forecast and "forecast" in forecast:
+        result += "\nDự báo thời tiết:"
+        for i, day in enumerate(forecast["forecast"][:3]):  # Chỉ lấy 3 ngày
+            date_obj = datetime.datetime.strptime(day["date"], "%Y-%m-%d")
+            date_str = date_obj.strftime("%d/%m/%Y")
+            day_of_week = day["day_of_week"]
+            
+            if i == 0:
+                day_label = "Hôm nay"
+            elif i == 1:
+                day_label = "Ngày mai"
+            else:
+                day_label = f"{day_of_week}, {date_str}"
+                
+            weather_desc = day["main_weather"]["description"]
+            temp_min = day["temp_min"]
+            temp_max = day["temp_max"]
+            
+            result += f"\n- {day_label}: {weather_desc}, {temp_min}°C đến {temp_max}°C"
+    
+    return result
+
+
+async def detect_weather_query(query, api_key):
+    """Phát hiện nếu query là về thời tiết và trích xuất địa điểm."""
+    if not api_key or not query: 
+        return False, None
+
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        system_prompt = """
+Bạn là một hệ thống phân loại truy vấn thời tiết thông minh. Nhiệm vụ của bạn là:
+1. Xác định xem câu hỏi có phải là về thời tiết hoặc liên quan đến thời tiết không (`is_weather_query`).
+   - Câu hỏi về thời tiết: "thời tiết ở Hà Nội", "trời có mưa không", "nhiệt độ hôm nay", "có nắng không", etc.
+   - Câu hỏi liên quan đến thời tiết: "nên mặc gì hôm nay", "có nên mang ô không", "có nên đi biển cuối tuần", etc.
+2. Nếu là truy vấn thời tiết, xác định địa điểm đề cập trong câu hỏi (`location`).
+   - Trích xuất TÊN ĐỊA ĐIỂM CHÍNH XÁC từ câu hỏi, ví dụ: "Hà Nội", "Đà Nẵng", "Sài Gòn", "Ho Chi Minh City"
+   - Chỉ trả về "Hanoi" khi câu hỏi KHÔNG đề cập đến bất kỳ địa điểm nào cụ thể.
+   - Đối với "Sài Gòn", hãy trả về "Ho Chi Minh City" để API tìm kiếm chính xác.
+
+Ví dụ:
+- User: "thời tiết ở Đà Nẵng hôm nay" -> { "is_weather_query": true, "location": "Da Nang" }
+- User: "trời có mưa không" -> { "is_weather_query": true, "location": "Hanoi" }
+- User: "thời tiết Sài Gòn hôm nay" -> { "is_weather_query": true, "location": "Ho Chi Minh City" }
+- User: "nên mặc áo gì ở Sài Gòn hôm nay" -> { "is_weather_query": true, "location": "Ho Chi Minh City" }
+- User: "kết quả trận MU tối qua" -> { "is_weather_query": false, "location": null }
+
+Trả lời DƯỚI DẠNG JSON HỢP LỆ với 2 trường: is_weather_query (boolean), location (string hoặc null).
+"""
+        response = await asyncio.to_thread(
+             client.chat.completions.create,
+             model="gpt-4o-mini",
+             messages=[
+                 {"role": "system", "content": system_prompt},
+                 {"role": "user", "content": f"Câu hỏi của người dùng: \"{query}\""}
+             ],
+             temperature=0.1,
+             max_tokens=150,
+             response_format={"type": "json_object"}
+        )
+
+        result_str = response.choices[0].message.content
+        logger.info(f"Kết quả detect_weather_query (raw): {result_str}")
+
+        try:
+            result = json.loads(result_str)
+            is_weather_query = result.get("is_weather_query", False)
+            location = result.get("location")
+            
+            if is_weather_query and not location:
+                location = "Hanoi"  # Mặc định là Hà Nội
+                
+            logger.info(f"Phân tích truy vấn '{query}': is_weather_query={is_weather_query}, location='{location}'")
+            return is_weather_query, location
+
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.error(f"Lỗi giải mã JSON từ detect_weather_query: {e}. Raw: {result_str}")
+            return False, None
+    except Exception as e:
+        logger.error(f"Lỗi khi gọi OpenAI trong detect_weather_query: {e}", exc_info=True)
+        return False, None
+
 # ------- Request & Response Models --------
 class MessageContent(BaseModel):
     type: str
@@ -835,11 +1225,13 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     session_id: str
     member_id: Optional[str] = None
-    message: MessageContent # The new message from user
-    content_type: str = "text" # "text", "image", "audio"
+    message: MessageContent  # The new message from user
+    content_type: str = "text"  # "text", "image", "audio"
     openai_api_key: Optional[str] = None
     tavily_api_key: Optional[str] = None
-    messages: Optional[List[Message]] = None # Optional full history from client
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    messages: Optional[List[Message]] = None  # Optional full history from client
 
 
 class ChatResponse(BaseModel):
@@ -1109,7 +1501,13 @@ async def chat_endpoint(chat_request: ChatRequest):
 
 
         # --- Check Search Need ---
-        search_result_for_prompt = await check_search_need(openai_messages, openai_api_key, tavily_api_key)
+        search_result_for_prompt = await check_search_need(
+            openai_messages, 
+            openai_api_key, 
+            tavily_api_key,
+            lat=chat_request.latitude,
+            lon=chat_request.longitude
+        )
         if search_result_for_prompt:
              # Replace or append to system prompt
              openai_messages[0] = {"role": "system", "content": system_prompt_content + search_result_for_prompt}
@@ -1327,7 +1725,13 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
 
         # --- Check Search Need ---
         try:
-             search_result_for_prompt = await check_search_need(openai_messages, openai_api_key, tavily_api_key)
+             search_result_for_prompt = await check_search_need(
+                 openai_messages, 
+                 openai_api_key, 
+                 tavily_api_key,
+                 lat=chat_request.latitude,
+                 lon=chat_request.longitude
+             )
              if search_result_for_prompt:
                   openai_messages[0] = {"role": "system", "content": system_prompt_content + search_result_for_prompt}
         except Exception as search_err:
@@ -1497,6 +1901,45 @@ async def chat_stream_endpoint(chat_request: ChatRequest):
         media_type="application/x-ndjson"
     )
 
+@app.get("/weather")
+async def get_weather(
+    location: Optional[str] = None,
+    lat: Optional[float] = None,
+    lon: Optional[float] = None,
+    type: str = "current",  # "current" hoặc "forecast"
+    lang: str = "vi"
+):
+    """Lấy thông tin thời tiết từ OpenWeatherMap."""
+    api_key = os.getenv("OPENWEATHERMAP_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="OpenWeatherMap API key không có sẵn")
+        
+    weather_service = WeatherService(api_key)
+    
+    # Ưu tiên địa điểm, sau đó đến tọa độ
+    if location:
+        logger.info(f"API call: Sử dụng địa điểm: {location}")
+        if type == "current":
+            result = await weather_service.get_current_weather(location=location, lang=lang)
+        else:
+            result = await weather_service.get_forecast(location=location, lang=lang)
+    elif lat is not None and lon is not None:
+        logger.info(f"API call: Sử dụng tọa độ: lat={lat}, lon={lon}")
+        if type == "current":
+            result = await weather_service.get_current_weather(lat=lat, lon=lon, lang=lang)
+        else:
+            result = await weather_service.get_forecast(lat=lat, lon=lon, lang=lang)
+    else:
+        logger.info("API call: Không có địa điểm/tọa độ, sử dụng mặc định Hà Nội")
+        if type == "current":
+            result = await weather_service.get_current_weather(location="Hanoi", lang=lang)
+        else:
+            result = await weather_service.get_forecast(location="Hanoi", lang=lang)
+        
+    if not result:
+        raise HTTPException(status_code=500, detail="Không thể lấy dữ liệu thời tiết")
+        
+    return result
 
 # ------- Other Helper Functions --------
 
@@ -1540,10 +1983,10 @@ def build_system_prompt(current_member_id=None):
     """Xây dựng system prompt cho trợ lý gia đình (sử dụng Tool Calling)."""
     # Start with the base persona and instructions
     system_prompt_parts = [
-        "Bạn là trợ lý gia đình thông minh, đa năng và thân thiện tên là HGDS. Nhiệm vụ của bạn là giúp quản lý thông tin gia đình, sự kiện, ghi chú, trả lời câu hỏi, tìm kiếm thông tin và phân tích hình ảnh.", # Removed weather mentions
+        "Bạn là trợ lý gia đình thông minh, đa năng và thân thiện tên là HGDS. Nhiệm vụ của bạn là giúp quản lý thông tin gia đình, sự kiện, ghi chú, trả lời câu hỏi, tìm kiếm thông tin, phân tích hình ảnh, và cung cấp thông tin thời tiết.",
         "Giao tiếp tự nhiên, lịch sự và theo phong cách trò chuyện bằng tiếng Việt.",
         "Sử dụng định dạng HTML đơn giản cho phản hồi văn bản (thẻ p, b, i, ul, li, h3, h4, br).",
-        # Removed weather-specific instruction
+        "Bạn có thể cung cấp thông tin thời tiết và đưa ra lời khuyên dựa trên thời tiết khi được hỏi.",
         f"Hôm nay là {datetime.datetime.now().strftime('%A, %d/%m/%Y')}.",
         "\n**Các Công Cụ Có Sẵn:**",
         "Bạn có thể sử dụng các công cụ sau khi cần thiết để thực hiện yêu cầu của người dùng:",
@@ -1556,11 +1999,11 @@ def build_system_prompt(current_member_id=None):
         "\n**QUY TẮC QUAN TRỌNG:**",
         "1.  **Chủ động sử dụng công cụ:** Khi người dùng yêu cầu rõ ràng (thêm, sửa, xóa, tạo...), hãy sử dụng công cụ tương ứng.",
         "2.  **Xử lý ngày/giờ:** KHÔNG tự tính toán ngày YYYY-MM-DD. Hãy gửi mô tả ngày của người dùng (ví dụ 'ngày mai', '20/7', 'thứ 3 tới') trong trường `date_description` của công cụ `add_event` hoặc `update_event`. Nếu sự kiện lặp lại, hãy nêu rõ trong trường `description` (ví dụ 'học tiếng Anh thứ 6 hàng tuần').",
-        "3.  **Tìm kiếm:** Sử dụng thông tin tìm kiếm được cung cấp trong context (đánh dấu bằng --- THÔNG TIN ---) để trả lời các câu hỏi liên quan. Đừng gọi công cụ nếu thông tin đã có sẵn.", # Removed weather reference
+        "3.  **Tìm kiếm và thời tiết:** Sử dụng thông tin tìm kiếm và thời tiết được cung cấp trong context (đánh dấu bằng --- THÔNG TIN ---) để trả lời các câu hỏi liên quan. Đừng gọi công cụ nếu thông tin đã có sẵn.",
         "4.  **Phân tích hình ảnh:** Khi nhận được hình ảnh, hãy mô tả nó và liên kết với thông tin gia đình nếu phù hợp.",
         "5.  **Xác nhận:** Sau khi sử dụng công cụ thành công (nhận được kết quả từ 'tool role'), hãy thông báo ngắn gọn cho người dùng biết hành động đã được thực hiện dựa trên kết quả đó. Nếu tool thất bại, hãy thông báo lỗi một cách lịch sự.",
-        "6. **Độ dài phản hồi:** Giữ phản hồi cuối cùng cho người dùng tương đối ngắn gọn và tập trung vào yêu cầu chính, trừ khi được yêu cầu chi tiết."
-        "7. **Không xử lý thời tiết:** Bạn không có khả năng trực tiếp lấy thông tin thời tiết hoặc đưa ra lời khuyên dựa trên thời tiết. Nếu được hỏi, hãy trả lời rằng bạn không thể cung cấp thông tin này."
+        "6. **Độ dài phản hồi:** Giữ phản hồi cuối cùng cho người dùng tương đối ngắn gọn và tập trung vào yêu cầu chính, trừ khi được yêu cầu chi tiết.",
+        "7. **Thời tiết:** Khi được hỏi về thời tiết hoặc lời khuyên liên quan đến thời tiết, sử dụng thông tin thời tiết được cung cấp để trả lời một cách chính xác và hữu ích."
     ]
 
     # Add current user context
@@ -1608,9 +2051,10 @@ def build_system_prompt(current_member_id=None):
 
 
 # --- Search & Summarize Helpers ---
-async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_api_key: str) -> str:
+async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_api_key: str, lat: Optional[float] = None, lon: Optional[float] = None) -> str:
     """Kiểm tra nhu cầu tìm kiếm từ tin nhắn cuối của người dùng."""
-    if not tavily_api_key: return "" # Need Tavily for web search
+    if not tavily_api_key and not OPENWEATHERMAP_API_KEY: 
+        return ""  # Need Tavily for web search or OpenWeatherMap for weather
 
     last_user_message_content = None
     for message in reversed(messages):
@@ -1618,7 +2062,8 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
             last_user_message_content = message["content"]
             break
 
-    if not last_user_message_content: return ""
+    if not last_user_message_content: 
+        return ""
 
     last_user_text = ""
     if isinstance(last_user_message_content, str):
@@ -1629,11 +2074,47 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
                   last_user_text = item.get("text", "")
                   break
 
-    if not last_user_text: return ""
+    if not last_user_text: 
+        return ""
 
     logger.info(f"Checking search need for: '{last_user_text[:100]}...'")
 
-    # REMOVED Weather/Advice Checks Here
+    # Check for Weather Query
+    is_weather_query, location = await detect_weather_query(last_user_text, openai_api_key)
+    if is_weather_query and OPENWEATHERMAP_API_KEY:
+        logger.info(f"Phát hiện truy vấn thời tiết cho địa điểm: '{location}'")
+        weather_service = WeatherService(OPENWEATHERMAP_API_KEY)
+        
+        # Sửa đổi: Ưu tiên địa điểm trong câu hỏi, chỉ dùng tọa độ khi không có địa điểm cụ thể
+        if location and location.lower() not in ["hanoi", "hà nội"]:
+            # Nếu có địa điểm cụ thể (không phải mặc định Hà Nội)
+            logger.info(f"Sử dụng địa điểm từ câu hỏi: {location}")
+            weather_data = await weather_service.get_current_weather(location=location)
+            forecast_data = await weather_service.get_forecast(location=location, days=3)
+        elif lat is not None and lon is not None:
+            # Nếu không có địa điểm cụ thể trong câu hỏi và có tọa độ
+            logger.info(f"Sử dụng tọa độ: lat={lat}, lon={lon}")
+            weather_data = await weather_service.get_current_weather(lat=lat, lon=lon)
+            forecast_data = await weather_service.get_forecast(lat=lat, lon=lon, days=3)
+        else:
+            # Nếu không có cả hai, mặc định là Hà Nội
+            logger.info("Không có địa điểm và tọa độ, sử dụng mặc định Hà Nội")
+            weather_data = await weather_service.get_current_weather(location="Hanoi")
+            forecast_data = await weather_service.get_forecast(location="Hanoi", days=3)
+            
+        if not weather_data:
+            return "\n\n--- LỖI THỜI TIẾT: Không thể lấy thông tin thời tiết. Hãy báo lại cho người dùng. ---"
+            
+        weather_info = format_weather_for_prompt(weather_data, forecast_data)
+        weather_prompt_addition = f"""
+        \n\n--- THÔNG TIN THỜI TIẾT (DÙNG ĐỂ TRẢ LỜI) ---
+        Người dùng hỏi: "{last_user_text}"
+        {weather_info}
+        --- KẾT THÚC THÔNG TIN THỜI TIẾT ---
+        Hãy sử dụng thông tin thời tiết này để trả lời câu hỏi của người dùng một cách tự nhiên.
+        Đưa ra lời khuyên phù hợp với điều kiện thời tiết nếu người dùng hỏi về việc nên mặc gì, nên đi đâu, nên làm gì, v.v.
+        """
+        return weather_prompt_addition
 
     # Check for General Search Intent
     if tavily_api_key:
