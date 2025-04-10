@@ -3950,7 +3950,7 @@ async def tavily_search(api_key, query, search_depth="advanced", max_results=5, 
     if exclude_domains: data["exclude_domains"] = exclude_domains
     try:
         response = await asyncio.to_thread(
-            requests.post, "https://api.tavily.com/search", headers=headers, json=data, timeout=10
+            requests.post, "https://api.tavily.com/search", headers=headers, json=data, timeout=15
         )
         response.raise_for_status()
         return response.json()

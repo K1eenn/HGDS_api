@@ -12660,6 +12660,41 @@
   ],
   "kienht152": [
     {
+      "timestamp": "2025-04-10T09:55:47.806845",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Thời tiết hôm nay"
+            }
+          ]
+        },
+        {
+          "content": "<p>Hôm nay, thời tiết tại Oslo County, NO là:</p>\n<ul>\n    <li><b>Nhiệt độ hiện tại:</b> 0.34°C (cảm giác như: -1.47°C)</li>\n    <li><b>Thời tiết:</b> mây đen u ám</li>\n    <li><b>Độ ẩm:</b> 75%</li>\n    <li><b>Gió:</b> 1.57 m/s</li>\n    <li><b>Mặt trời mọc:</b> 11:15</li>\n    <li><b>Mặt trời lặn:</b> 01:21</li>\n</ul>\n\n<p>Nếu bạn có kế hoạch ra ngoài, hãy mặc ấm nhé!</p>",
+          "role": "assistant",
+          "annotations": []
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tôi chuẩn bị ký hợp đồng mua nhà trong tuần tới, ngày nào hợp lý"
+            }
+          ]
+        },
+        {
+          "content": "<p>Theo phân tích phong thủy, ngày nào thích hợp để ký hợp đồng mua nhà trong tuần tới (từ 10/04/2025 đến 17/04/2025) như sau:</p>\n\n<table>\n    <tr>\n        <th>Ngày</th>\n        <th>Mức Độ Thuận Lợi</th>\n        <th>Phù Hợp Cho</th>\n        <th>Giờ Tốt</th>\n        <th>Lưu Ý Đặc Biệt</th>\n    </tr>\n    <tr>\n        <td>12/04/2025</td>\n        <td>5</td>\n        <td>Bắt đầu dự án mới, Ký hợp đồng</td>\n        <td>8h - 10h</td>\n        <td>Ngày rất tốt cho khởi nghiệp</td>\n    </tr>\n    <tr>\n        <td>16/04/2025</td>\n        <td>5</td>\n        <td>Gặp gỡ đối tác, Ký hợp đồng</td>\n        <td>8h - 10h</td>\n        <td>Ngày có nhiều thuận lợi tài chính</td>\n    </tr>\n</table>\n\n<p><strong>Đề xuất:</strong> Ngày 12/04/2025 hoặc 16/04/2025 là những ngày rất phù hợp để ký hợp đồng mua nhà. Hãy chọn giờ tốt trong khoảng thời gian đã đề cập nhé!</p>",
+          "role": "assistant",
+          "annotations": []
+        }
+      ],
+      "summary": "Người dùng hỏi về thời tiết và ngày ký hợp đồng mua nhà, trợ lý đề xuất ngày 12/04/2025 hoặc 16/04/2025 là phù hợp để ký hợp đồng.",
+      "session_id": "23025152"
+    },
+    {
       "timestamp": "2025-04-10T09:50:18.278673",
       "messages": [
         {
@@ -12679,6 +12714,38 @@
       ],
       "summary": "Thời tiết hôm nay ở Oslo County, NO là 0.34°C, mây đen u ám, và cần mặc ấm khi ra ngoài.",
       "session_id": "23025152"
+    }
+  ],
+  "kienht153": [
+    {
+      "timestamp": "2025-04-10T09:57:31.351043",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tôi chuẩn bị ký hợp đồng mua nhà trong tuần tới, ngày nào hợp lý"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tôi chuẩn bị ký hợp đồng mua nhà trong tuần tới, ngày nào hợp lý"
+            }
+          ]
+        },
+        {
+          "content": "Dựa trên phân tích phong thủy cho tuần tới từ 10/04/2025 đến 17/04/2025, đây là những ngày tốt để ký hợp đồng mua nhà:\n\n<h3>Đề Xuất Ngày Tốt Nhất</h3>\n<ul>\n    <li><strong>Ký kết hợp đồng quan trọng:</strong> 10/04/2025</li>\n    <li><strong>Gặp gỡ đối tác/khách hàng:</strong> 12/04/2025</li>\n</ul>\n\n- **Ngày 10/04/2025**: Đây là ngày rất tốt cho việc ký kết hợp đồng.\n- **Ngày 12/04/2025**: Ngày này cũng thuận lợi cho các hoạt động liên quan đến giao dịch và làm việc với đối tác.\n\nBạn có thể xem xét ký hợp đồng vào một trong hai ngày này cho sự thuận lợi nhất.",
+          "role": "assistant",
+          "annotations": []
+        }
+      ],
+      "summary": "Người dùng hỏi về ngày tốt để ký hợp đồng mua nhà, và trợ lý đề xuất ký vào ngày 10/04/2025 hoặc 12/04/2025.",
+      "session_id": "23025153"
     }
   ]
 }
