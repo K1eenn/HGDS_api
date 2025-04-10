@@ -105,6 +105,12 @@ RECURRING_KEYWORDS = [
     "yearly", "annually", "every year", "recurring", "repeating",
     "every monday", "every tuesday", "every wednesday", "every thursday",
     "every friday", "every saturday", "every sunday",
+    # Thêm từ khóa mới
+    "tất cả", "mọi", "các", "tất cả thứ", "mọi thứ", "các thứ",
+    "tất cả tối thứ", "mọi tối thứ", "các tối thứ",
+    "tất cả sáng thứ", "mọi sáng thứ", "các sáng thứ",
+    "tất cả chiều thứ", "mọi chiều thứ", "các chiều thứ",
+    "vào các", "vào tất cả", "vào mọi"
 ]
 
 def get_date_from_relative_term(term: str) -> Optional[str]:
@@ -239,10 +245,24 @@ def date_time_to_cron(date_str, time_str="19:00"):
 def determine_repeat_type(description, title):
     """Xác định kiểu lặp lại dựa trên mô tả và tiêu đề."""
     combined_text = (str(description) + " " + str(title)).lower()
+    
+    # Kiểm tra các mẫu đặc biệt của sự kiện lặp lại
+    weekday_patterns = [
+        r"\b(tất cả|mọi|các)\b.*\b(thứ \d|thứ hai|thứ ba|thứ tư|thứ năm|thứ sáu|thứ bảy|chủ nhật|t\d|cn)\b",
+        r"\b(vào|mỗi)\b.*\b(thứ \d|thứ hai|thứ ba|thứ tư|thứ năm|thứ sáu|thứ bảy|chủ nhật|t\d|cn)\b"
+    ]
+    
+    for pattern in weekday_patterns:
+        if re.search(pattern, combined_text):
+            logger.info(f"Phát hiện mẫu lặp lại đặc biệt '{pattern}' trong '{combined_text[:100]}...' -> RECURRING")
+            return "RECURRING"
+    
+    # Kiểm tra danh sách từ khóa
     for keyword in RECURRING_KEYWORDS:
         if re.search(r'\b' + re.escape(keyword) + r'\b', combined_text):
             logger.info(f"Phát hiện từ khóa lặp lại '{keyword}' -> RECURRING")
             return "RECURRING"
+    
     logger.info(f"Không tìm thấy từ khóa lặp lại trong '{combined_text[:100]}...' -> ONCE")
     return "ONCE"
 
@@ -935,18 +955,24 @@ class DateTimeHandler:
 
     # Từ khóa lặp lại
     RECURRING_KEYWORDS = [
-        "hàng ngày", "mỗi ngày", "hàng tuần", "mỗi tuần", "hàng tháng", "mỗi tháng",
-        "hàng năm", "mỗi năm", "định kỳ", "lặp lại",
-        "mỗi sáng thứ", "mỗi trưa thứ", "mỗi chiều thứ", "mỗi tối thứ",
-        "thứ 2 hàng tuần", "mỗi thứ 2", "mỗi t2", "thứ 3 hàng tuần", "mỗi thứ 3", "mỗi t3",
-        "thứ 4 hàng tuần", "mỗi thứ 4", "mỗi t4", "thứ 5 hàng tuần", "mỗi thứ 5", "mỗi t5",
-        "thứ 6 hàng tuần", "mỗi thứ 6", "mỗi t6", "thứ 7 hàng tuần", "mỗi thứ 7", "mỗi t7",
-        "chủ nhật hàng tuần", "mỗi chủ nhật", "mỗi cn",
-        "daily", "every day", "weekly", "every week", "monthly", "every month",
-        "yearly", "annually", "every year", "recurring", "repeating",
-        "every monday", "every tuesday", "every wednesday", "every thursday",
-        "every friday", "every saturday", "every sunday",
-    ]
+    "hàng ngày", "mỗi ngày", "hàng tuần", "mỗi tuần", "hàng tháng", "mỗi tháng",
+    "hàng năm", "mỗi năm", "định kỳ", "lặp lại",
+    "mỗi sáng thứ", "mỗi trưa thứ", "mỗi chiều thứ", "mỗi tối thứ",
+    "thứ 2 hàng tuần", "mỗi thứ 2", "mỗi t2", "thứ 3 hàng tuần", "mỗi thứ 3", "mỗi t3",
+    "thứ 4 hàng tuần", "mỗi thứ 4", "mỗi t4", "thứ 5 hàng tuần", "mỗi thứ 5", "mỗi t5",
+    "thứ 6 hàng tuần", "mỗi thứ 6", "mỗi t6", "thứ 7 hàng tuần", "mỗi thứ 7", "mỗi t7",
+    "chủ nhật hàng tuần", "mỗi chủ nhật", "mỗi cn",
+    "daily", "every day", "weekly", "every week", "monthly", "every month",
+    "yearly", "annually", "every year", "recurring", "repeating",
+    "every monday", "every tuesday", "every wednesday", "every thursday",
+    "every friday", "every saturday", "every sunday",
+    # Thêm từ khóa mới
+    "tất cả", "mọi", "các", "tất cả thứ", "mọi thứ", "các thứ",
+    "tất cả tối thứ", "mọi tối thứ", "các tối thứ",
+    "tất cả sáng thứ", "mọi sáng thứ", "các sáng thứ",
+    "tất cả chiều thứ", "mọi chiều thứ", "các chiều thứ",
+    "vào các", "vào tất cả", "vào mọi"
+]
 
     # Cài đặt mặc định cho dateparser
     DEFAULT_DATEPARSER_SETTINGS = {
