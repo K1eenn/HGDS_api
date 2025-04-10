@@ -666,29 +666,80 @@ def update_preference(details):
          logger.error(f"Lỗi khi cập nhật sở thích: {e}", exc_info=True)
          return False
 
+EVENT_CATEGORIES = {
+    "Health": ["khám sức khỏe", "uống thuốc", "bác sĩ", "nha sĩ", "tái khám", "tập luyện", "gym", "yoga", "chạy bộ", "thể dục"],
+    "Study": ["học", "lớp học", "ôn tập", "bài tập", "deadline", "thuyết trình", "seminar", "workshop", "thi", "kiểm tra"],
+    "Meeting": ["họp", "hội nghị", "phỏng vấn", "gặp mặt", "trao đổi", "thảo luận", "team sync", "standup", "meeting"],
+    "Travel": ["bay", "chuyến bay", "tàu", "xe", "đi công tác", "du lịch", "sân bay", "ga tàu", "di chuyển", "check-in", "check-out"],
+    "Event": ["sinh nhật", "kỷ niệm", "lễ", "tiệc", "liên hoan", "đám cưới", "đám hỏi", "ăn mừng", "tụ tập", "sum họp", "event"],
+    "Personal": ["riêng tư", "cá nhân", "sở thích", "đọc sách", "xem phim", "thời gian riêng", "cắt tóc", "spa", "làm đẹp"],
+    "Reminder": ["nhắc", "nhớ", "mua", "gọi điện", "thanh toán", "đặt lịch", "nộp", "đến hạn", "chuyển tiền", "lấy đồ"],
+    "Break": ["nghỉ ngơi", "thư giãn", "giải lao", "ăn trưa", "ăn tối", "ngủ trưa", "nghỉ phép"],
+    # Thêm một category mặc định cuối cùng
+    "General": [] # Dùng làm fallback
+}
+
+# Ưu tiên các category cụ thể hơn
+CATEGORY_PRIORITY = [
+    "Health", "Study", "Meeting", "Travel", "Reminder", "Event", "Personal", "Break", "General"
+]
+
+def classify_event(title: str, description: Optional[str]) -> str:
+    """
+    Phân loại sự kiện vào một category dựa trên tiêu đề và mô tả.
+    """
+    if not title:
+        return "General" # Không có tiêu đề thì khó phân loại
+
+    combined_text = title.lower()
+    if description:
+        combined_text += " " + description.lower()
+
+    logger.debug(f"Classifying event with text: '{combined_text[:100]}...'")
+
+    for category in CATEGORY_PRIORITY:
+        keywords = EVENT_CATEGORIES.get(category, [])
+        if not keywords and category != "General": # Bỏ qua nếu category (trừ General) không có keyword
+             continue
+        # Kiểm tra các keywords của category hiện tại
+        for keyword in keywords:
+            # Sử dụng regex để tìm từ khóa đứng riêng lẻ (word boundary)
+            if re.search(r'\b' + re.escape(keyword) + r'\b', combined_text):
+                logger.info(f"Event classified as '{category}' based on keyword '{keyword}'")
+                return category
+
+    # Nếu không khớp với category nào có keyword, trả về General
+    logger.info(f"Event could not be specifically classified, defaulting to 'General'")
+    return "General"
 
 def add_event(details):
     """Thêm một sự kiện mới. Expects 'date' to be calculated YYYY-MM-DD."""
     global events_data
     try:
         event_id = str(uuid.uuid4())
-        if not details.get('title') or 'date' not in details or details.get('date') is None:
-            logger.error(f"Thiếu title hoặc date đã tính toán khi thêm sự kiện: {details}")
+        # Kiểm tra các trường bắt buộc cơ bản
+        if not details.get('title') or ('date' not in details and details.get("repeat_type", "ONCE") == "ONCE"): # Cần date nếu là ONCE
+            logger.error(f"Thiếu title hoặc date (cho sự kiện ONCE) khi thêm sự kiện: {details}")
             return False
+
+        # Lấy category từ details, nếu không có thì dùng mặc định 'General'
+        category = details.get("category", "General") # Lấy category đã được phân loại
+        logger.info(f"Adding event with category: {category}")
 
         events_data[event_id] = {
             "id": event_id,
             "title": details.get("title"),
-            "date": details.get("date"),
+            "date": details.get("date"), # Có thể là None nếu là RECURRING không rõ ngày bắt đầu
             "time": details.get("time", "19:00"),
             "description": details.get("description", ""),
             "participants": details.get("participants", []),
             "repeat_type": details.get("repeat_type", "ONCE"),
+            "category": category, # <<< THÊM CATEGORY VÀO ĐÂY
             "created_by": details.get("created_by"),
             "created_on": datetime.datetime.now().isoformat()
         }
         if save_data(EVENTS_DATA_FILE, events_data):
-             logger.info(f"Đã thêm sự kiện ID {event_id}: {details.get('title')}")
+             logger.info(f"Đã thêm sự kiện ID {event_id}: {details.get('title')} (Category: {category})")
              return True
         else:
              logger.error(f"Lưu sự kiện ID {event_id} thất bại.")
@@ -721,14 +772,22 @@ def update_event(details):
             if key == "id": continue
             current_value = event_to_update.get(key)
             if value != current_value:
-                if key == 'date' and not value:
-                    logger.warning(f"Bỏ qua cập nhật date thành giá trị rỗng cho event ID {event_id_str}")
+                if key == 'date' and not value and event_to_update.get("repeat_type", "ONCE") == "ONCE": # Chỉ cảnh báo nếu là ONCE và date bị xóa
+                    logger.warning(f"Bỏ qua cập nhật date thành giá trị rỗng cho event ONCE ID {event_id_str}")
                     continue
                 event_to_update[key] = value
                 updated = True
-                logger.debug(f"Event {event_id_str}: Updated field '{key}'")
+                logger.debug(f"Event {event_id_str}: Updated field '{key}' to '{value}'") # Log giá trị mới
 
         if updated:
+            # Lấy category mới nếu có, nếu không giữ nguyên category cũ
+            new_category = details.get("category", event_to_update.get("category", "General"))
+            if event_to_update.get("category") != new_category:
+                 event_to_update["category"] = new_category
+                 logger.info(f"Event {event_id_str}: Category updated to '{new_category}'")
+            else:
+                 logger.debug(f"Event {event_id_str}: Category remains '{new_category}'")
+
             event_to_update["last_updated"] = datetime.datetime.now().isoformat()
             logger.info(f"Attempting to save updated event ID={event_id_str}")
             if save_data(EVENTS_DATA_FILE, events_data):
@@ -905,138 +964,157 @@ class DateTimeHandler:
         """
         Phân tích mô tả ngày thành đối tượng datetime.date.
         Hỗ trợ tiếng Việt và các mô tả tương đối.
-        
+
         Args:
             date_description: Mô tả ngày (ví dụ: "ngày mai", "thứ 6 tuần sau", "25/12/2024")
             base_date: Ngày cơ sở để tính toán tương đối (mặc định là hôm nay)
-            
+
         Returns:
             datetime.date hoặc None nếu không thể phân tích
         """
         if not date_description:
             logger.warning("Mô tả ngày rỗng.")
             return None
-            
+
         date_description = date_description.lower().strip()
         today = base_date.date() if base_date else datetime.date.today()
-        
-        # 0. Xử lý nhanh các từ khóa thời gian trong ngày (sáng nay, tối nay, etc.)
+
+        # 0. Xử lý nhanh các từ khóa thời gian trong ngày (sáng nay, tối nay, etc.) - Giữ nguyên
         for time_of_day in cls.VIETNAMESE_TIME_OF_DAY.keys():
             if f"{time_of_day} nay" in date_description or date_description == time_of_day:
                 logger.info(f"Phát hiện thời điểm trong ngày: '{time_of_day} nay/nay' -> ngày hôm nay")
                 return today
-        
-        # 1. Xử lý trực tiếp các từ khóa thời gian tương đối đặc biệt tiếng Việt
+
+        # 1. Xử lý trực tiếp các từ khóa thời gian tương đối đặc biệt tiếng Việt - Giữ nguyên
         for rel_time, days_offset in cls.VIETNAMESE_RELATIVE_TIME.items():
+            # Check for exact match or start of string to avoid partial matches in longer descriptions
             if rel_time == date_description or date_description.startswith(f"{rel_time} "):
                 result_date = today + datetime.timedelta(days=days_offset)
-                logger.info(f"Phát hiện từ khóa '{rel_time}' -> {result_date}")
+                logger.info(f"Phát hiện từ khóa tương đối '{rel_time}' -> {result_date}")
                 return result_date
-        
-        # 2. Thử dùng dateparser trực tiếp
-        settings = cls.DEFAULT_DATEPARSER_SETTINGS.copy()
-        if base_date:
-            settings['RELATIVE_BASE'] = base_date
-        
+
+        # --- START: DI CHUYỂN KHỐI XỬ LÝ THỨ LÊN TRÊN ---
+        # 3. Xử lý các trường hợp đặc biệt tiếng Việt (ƯU TIÊN TÊN THỨ)
         try:
-            # Add some fixes for Vietnamese time expressions
-            dp_input = date_description
-            # Replace 'tối nay' with 'hôm nay' for better date parsing (we'll handle time separately)
-            for time_of_day in cls.VIETNAMESE_TIME_OF_DAY.keys():
-                if f"{time_of_day} nay" in dp_input:
-                    dp_input = "hôm nay"
-                    break
-            
-            parsed_date = dateparser.parse(
-                dp_input,
-                languages=['vi', 'en'],
-                settings=settings
-            )
-            
-            if parsed_date:
-                logger.info(f"Dateparser phân tích '{date_description}' thành: {parsed_date.date()}")
-                return parsed_date.date()
-        except Exception as e:
-            logger.warning(f"Dateparser gặp lỗi khi phân tích '{date_description}': {e}")
-            
-        # 3. Xử lý các trường hợp đặc biệt tiếng Việt mà dateparser có thể không hỗ trợ tốt
-        try:
-            # Xử lý thứ trong tuần
+            # Xử lý thứ trong tuần (ƯU TIÊN HÀNG ĐẦU)
             for weekday_name, weekday_num in cls.VIETNAMESE_WEEKDAY_MAP.items():
-                is_next_week = "tuần sau" in date_description or "tuần tới" in date_description
-                
-                if weekday_name in date_description:
-                    current_weekday = today.weekday()
-                    
+                # Use regex for whole word matching to avoid partial matches (e.g., "thứ 2" vs "thứ 20")
+                if re.search(r'\b' + re.escape(weekday_name) + r'\b', date_description):
+                    is_next_week = "tuần sau" in date_description or "tuần tới" in date_description
+                    current_weekday = today.weekday() # Monday is 0, Sunday is 6
+
                     if is_next_week:
                         # Tính ngày thứ X tuần sau
                         days_to_next_monday = (7 - current_weekday) % 7
-                        if days_to_next_monday == 0 and current_weekday == 0:
-                            days_to_next_monday = 7
-                            
+                        # If today is Monday, next Monday is 7 days later
+                        if days_to_next_monday == 0: days_to_next_monday = 7
+
                         next_monday = today + datetime.timedelta(days=days_to_next_monday)
                         target_date = next_monday + datetime.timedelta(days=weekday_num)
                     else:
-                        # Tính ngày thứ X gần nhất
+                        # Tính ngày thứ X gần nhất trong tương lai
                         days_ahead = (weekday_num - current_weekday + 7) % 7
+                        # If asking for today's weekday name, assume next week's
                         if days_ahead == 0:
-                            days_ahead = 7  # Nếu hôm nay là thứ đó, lấy thứ đó tuần sau
-                            
+                             days_ahead = 7
+
                         target_date = today + datetime.timedelta(days=days_ahead)
-                    
-                    logger.info(f"Xử lý thủ công '{date_description}' thành: {target_date}")
-                    return target_date
-            
-            # Xử lý "đầu tháng", "cuối tháng", "giữa tháng"
+
+                    logger.info(f"Xử lý thủ công (Ưu tiên Thứ): '{date_description}' thành: {target_date}")
+                    return target_date # TRẢ VỀ NGAY KHI TÌM THẤY THỨ
+
+            # Xử lý "đầu tháng", "cuối tháng", "giữa tháng" (chỉ khi không có thứ)
             if "đầu tháng" in date_description:
-                # Đầu tháng: ngày 5 của tháng hiện tại hoặc tháng sau
+                target_day = 5 # Default to 5th
                 if "sau" in date_description or "tới" in date_description:
-                    next_month = today.replace(day=1) + relativedelta(months=1)
-                    return next_month.replace(day=5)
-                return today.replace(day=5) if today.day > 10 else today
-                
+                    target_month_base = today.replace(day=1) + relativedelta(months=1)
+                else:
+                    target_month_base = today
+                    # If it's already past the target day this month, use next month
+                    if today.day > target_day + 5: # Add buffer
+                         target_month_base = today.replace(day=1) + relativedelta(months=1)
+                return target_month_base.replace(day=target_day)
+
+
             if "giữa tháng" in date_description:
-                # Giữa tháng: ngày 15
+                target_day = 15
                 if "sau" in date_description or "tới" in date_description:
-                    next_month = today.replace(day=1) + relativedelta(months=1)
-                    return next_month.replace(day=15)
-                return today.replace(day=15) if today.day > 20 else today
-                
+                     target_month_base = today.replace(day=1) + relativedelta(months=1)
+                else:
+                     target_month_base = today
+                     if today.day > target_day + 5: # Add buffer
+                          target_month_base = today.replace(day=1) + relativedelta(months=1)
+                return target_month_base.replace(day=target_day)
+
             if "cuối tháng" in date_description:
-                # Cuối tháng: ngày cuối cùng
                 if "sau" in date_description or "tới" in date_description:
-                    next_month = today.replace(day=1) + relativedelta(months=1)
-                    last_day = (next_month.replace(day=1) + relativedelta(months=1, days=-1)).day
-                    return next_month.replace(day=last_day)
-                
-                last_day = (today.replace(day=1) + relativedelta(months=1, days=-1)).day
-                return today.replace(day=last_day)
-                    
-            # Xử lý định dạng DD/MM hoặc D/M
+                    base_for_last_day = today.replace(day=1) + relativedelta(months=1)
+                else:
+                    base_for_last_day = today
+                last_day_of_month = (base_for_last_day.replace(day=1) + relativedelta(months=1, days=-1)).day
+                return base_for_last_day.replace(day=last_day_of_month)
+
+
+            # Xử lý định dạng DD/MM hoặc D/M (chỉ khi không có thứ)
             if re.fullmatch(r'\d{1,2}/\d{1,2}', date_description):
                 day, month = map(int, date_description.split('/'))
-                
+
                 try:
                     parsed_date = datetime.date(today.year, month, day)
-                    # Nếu ngày đã qua, sử dụng năm sau
+                    # Nếu ngày đã qua trong năm nay, sử dụng năm sau
                     if parsed_date < today:
                         parsed_date = datetime.date(today.year + 1, month, day)
-                    
+
                     logger.info(f"Xử lý định dạng DD/MM '{date_description}' thành: {parsed_date}")
                     return parsed_date
                 except ValueError as date_err:
                     logger.warning(f"Ngày không hợp lệ từ DD/MM '{date_description}': {date_err}")
-                    
+                    # Fall through to dateparser or return None
+
         except Exception as e:
             logger.warning(f"Xử lý thủ công gặp lỗi với '{date_description}': {e}")
-            
-        # 4. Xử lý đặc biệt cho các mô tả thời gian của ngày (không có từ 'nay')
+            # Fall through to dateparser or return None
+
+        # --- END: DI CHUYỂN KHỐI XỬ LÝ THỨ LÊN TRÊN ---
+
+
+        # 2. Thử dùng dateparser (SAU KHI ĐÃ KIỂM TRA THỨ)
+        settings = cls.DEFAULT_DATEPARSER_SETTINGS.copy()
+        if base_date:
+            settings['RELATIVE_BASE'] = base_date
+
+        # Tăng cường PREFER_DATES_FROM để dateparser ít ưu tiên ngày trong tháng hơn khi có từ khác
+        # settings['PREFER_DATES_FROM'] = 'future' # Giữ nguyên hoặc thử 'relative-future'
+
+        try:
+            # Add some fixes for Vietnamese time expressions
+            dp_input = date_description
+            # Replace 'tối nay' etc. only if they affect date parsing significantly
+            # Removed the replacement here as time is handled separately
+
+            parsed_date_obj = dateparser.parse(
+                dp_input,
+                languages=['vi', 'en'],
+                settings=settings
+            )
+
+            if parsed_date_obj:
+                # Convert timezone-aware datetime from dateparser to simple date
+                parsed_date = parsed_date_obj.date()
+                logger.info(f"Dateparser phân tích '{date_description}' thành: {parsed_date}")
+                return parsed_date
+        except Exception as e:
+            logger.warning(f"Dateparser gặp lỗi khi phân tích '{date_description}': {e}")
+
+
+        # 4. Xử lý đặc biệt cho các mô tả thời gian của ngày (nếu chỉ có thời gian) - Giữ nguyên
         for time_of_day in cls.VIETNAMESE_TIME_OF_DAY.keys():
-            if date_description == time_of_day or date_description.startswith(f"{time_of_day} "):
-                logger.info(f"Phát hiện chỉ có thời điểm trong ngày: '{time_of_day}' -> Giả định ngày hôm nay")
-                return today
-        
-        # 5. Trả về None nếu không thể phân tích
+             # Check for exact match to avoid matching parts of other words
+             if date_description == time_of_day:
+                 logger.info(f"Phát hiện chỉ có thời điểm trong ngày: '{time_of_day}' -> Giả định ngày hôm nay")
+                 return today
+
+        # 5. Trả về None nếu không thể phân tích - Giữ nguyên
         logger.warning(f"Không thể phân tích mô tả ngày: '{date_description}'")
         return None
     
@@ -2829,7 +2907,7 @@ class SuggestedQuestionsResponse(BaseModel):
 def execute_tool_call(tool_call: ChatCompletionMessageToolCall, current_member_id: Optional[str]) -> Tuple[Optional[Dict[str, Any]], str]:
     """
     Executes the appropriate Python function based on the tool call.
-    Handles date calculation for event tools.
+    Handles date calculation and event classification for event tools. # MODIFIED
     Returns a tuple: (event_data_for_frontend, tool_result_content_for_llm)
     """
     function_name = tool_call.function.name
@@ -2843,61 +2921,91 @@ def execute_tool_call(tool_call: ChatCompletionMessageToolCall, current_member_i
 
         logger.info(f"Executing tool: {function_name} with args: {arguments}")
 
-        # --- Special Handling for Event Dates ---
+        # --- Special Handling for Event Dates and Classification --- # MODIFIED
         final_date_str = None
         repeat_type = "ONCE"
         cron_expression = ""
+        event_category = "General" # Default category # ADDED
         event_action_data = None
 
         if function_name in ["add_event", "update_event"]:
             date_description = arguments.get("date_description")
             time_str = arguments.get("time", "19:00")
             description = arguments.get("description", "")
-            title = arguments.get("title", "")
+            title = arguments.get("title", "") # Cần title để phân loại
 
+            # Lấy title/description cũ nếu update mà không cung cấp cái mới (để phân loại)
             if function_name == "update_event":
                 event_id = arguments.get("event_id")
                 if event_id and str(event_id) in events_data:
                      event_id_str = str(event_id)
                      if not title: title = events_data[event_id_str].get("title", "")
                      if not description: description = events_data[event_id_str].get("description", "")
-                     arguments["id"] = event_id_str
+                     arguments["id"] = event_id_str # Đảm bảo có id dạng string
                 else:
-                    return None, f"Lỗi: Không tìm thấy sự kiện ID '{event_id}' để cập nhật."
+                    # Quan trọng: Trả về lỗi ngay nếu không tìm thấy event ID khi update
+                    error_msg = f"Lỗi: Không tìm thấy sự kiện ID '{event_id}' để cập nhật."
+                    logger.error(error_msg)
+                    return None, error_msg # Trả về tuple (None, error_message)
 
-            # Sử dụng DateTimeHandler thay cho xử lý thủ công
+            # --- Phân loại sự kiện TRƯỚC khi xử lý ngày giờ ---
+            event_category = classify_event(title, description) # <<< GỌI HÀM PHÂN LOẠI
+            arguments["category"] = event_category # Thêm category vào arguments để lưu
+            logger.info(f"Determined event category: '{event_category}' for title: '{title}'")
+
+            # --- Xử lý ngày giờ (giữ nguyên logic cũ) ---
             if date_description:
                 # Phân tích và xử lý mô tả ngày một lần duy nhất
                 final_date_str, repeat_type, cron_expression = DateTimeHandler.parse_and_process_event_date(
                     date_description, time_str, description, title
                 )
-                
+
                 if final_date_str:
                     logger.info(f"Ngày đã xử lý: '{final_date_str}' từ mô tả '{date_description}'")
                     arguments["date"] = final_date_str
                 else:
                     logger.warning(f"Không thể xác định ngày từ '{date_description}'. Ngày sự kiện sẽ trống hoặc không thay đổi.")
-                    if "date" in arguments: 
-                        del arguments["date"]
+                    # Không xóa date khỏi arguments nếu nó đã tồn tại (trường hợp update không đổi ngày)
+                    if "date" not in arguments and function_name == "add_event":
+                         pass # Cho phép date là None khi thêm mới nếu là recurring
+                    elif "date" in arguments and not final_date_str:
+                         # Nếu update mà date_description không parse được, không nên xóa date cũ
+                         logger.info(f"Update event: date_description '{date_description}' không hợp lệ, giữ nguyên date cũ nếu có.")
+                         # Không cần làm gì thêm, date cũ vẫn trong arguments nếu được truyền
+                    elif "date" in arguments and final_date_str is None and event_to_update.get("repeat_type") == "ONCE":
+                        # Nếu update sự kiện ONCE mà date_desc không parse đc, nên báo lỗi hoặc giữ ngày cũ thay vì xóa?
+                        # Hiện tại đang giữ nguyên date cũ trong arguments nếu có.
+                        pass
+
+
+            # Nếu không có date_description, nhưng là update, cần giữ lại repeat_type cũ nếu có
+            elif function_name == "update_event" and event_id_str in events_data:
+                 repeat_type = events_data[event_id_str].get("repeat_type", "ONCE")
+                 # Lấy lại cron expression cũ nếu không có thay đổi về description/title/time ảnh hưởng cron
+                 # Hoặc đơn giản là không cập nhật cron nếu không có date_description/description mới?
+                 # Hiện tại: Sẽ không tạo cron mới nếu không có date_description.
+                 # Có thể cần logic phức tạp hơn để cập nhật cron nếu chỉ description thay đổi.
 
             if "date_description" in arguments:
                 del arguments["date_description"]
 
-            # Đặt repeat_type và cron đã được xác định
+            # Đặt repeat_type đã được xác định (từ date_description hoặc từ event cũ)
             arguments['repeat_type'] = repeat_type
 
             logger.info(f"Event type: {repeat_type}, Cron generated: '{cron_expression}'")
 
+            # Chuẩn bị data để trả về frontend nếu cần
             event_action_data = {
                 "action": "add" if function_name == "add_event" else "update",
-                "id": arguments.get("id") if function_name == "update_event" else None,
+                "id": arguments.get("id"), # Sẽ là None cho add, có giá trị cho update
                 "title": title,
                 "description": description,
                 "cron_expression": cron_expression,
                 "repeat_type": repeat_type,
-                "original_date": final_date_str,
+                "original_date": final_date_str, # Ngày YYYY-MM-DD đã parse
                 "original_time": time_str,
-                "participants": arguments.get("participants", [])
+                "participants": arguments.get("participants", []),
+                "category": event_category # <<< Thêm category vào dữ liệu trả về
             }
 
         # --- Assign creator/updater ID ---
@@ -2911,22 +3019,32 @@ def execute_tool_call(tool_call: ChatCompletionMessageToolCall, current_member_i
         if function_name in tool_functions:
             func_to_call = tool_functions[function_name]
             try:
-                result = func_to_call(arguments)
+                result = func_to_call(arguments) # arguments giờ đã bao gồm 'category' nếu là event
                 if result is False:
                      tool_result_content = f"Thất bại khi thực thi {function_name}. Chi tiết lỗi đã được ghi lại."
                      logger.error(f"Execution failed for tool {function_name} with args {arguments}")
-                     event_action_data = None
+                     event_action_data = None # Reset event data if execution failed
                 else:
                      tool_result_content = f"Đã thực thi thành công {function_name}."
                      logger.info(f"Successfully executed tool {function_name}")
+                     # Xử lý event_action_data cho delete
                      if function_name == "delete_event":
                          deleted_event_id = arguments.get("event_id")
-                         event_action_data = {"action": "delete", "id": deleted_event_id}
+                         # Cố gắng lấy category của event bị xóa để trả về (nếu cần)
+                         deleted_category = events_data.get(str(deleted_event_id), {}).get("category", "Unknown") if str(deleted_event_id) in events_data else "Unknown" # Lấy trước khi pop
+                         # Logic xóa thực tế nằm trong hàm delete_event được gọi ở trên
+                         # Cập nhật event_action_data sau khi hàm delete_event chạy thành công
+                         event_action_data = {
+                            "action": "delete",
+                            "id": deleted_event_id,
+                            "category": deleted_category # Trả về category của event đã xóa
+                         }
                          tool_result_content = f"Đã xóa thành công sự kiện ID {deleted_event_id}."
 
                 return event_action_data, tool_result_content
             except Exception as func_exc:
                  logger.error(f"Error executing tool function {function_name}: {func_exc}", exc_info=True)
+                 # Giữ lại event_action_data = None ở đây vì tool lỗi
                  return None, f"Lỗi trong quá trình thực thi {function_name}: {str(func_exc)}"
         else:
             logger.error(f"Unknown tool function: {function_name}")
@@ -3538,7 +3656,9 @@ def build_system_prompt(current_member_id=None):
         "- `add_family_member`: Để thêm thành viên mới.",
         "- `update_preference`: Để cập nhật sở thích cho thành viên đã biết.",
         "- `add_event`: Để thêm sự kiện mới. Hãy cung cấp mô tả ngày theo lời người dùng (ví dụ: 'ngày mai', 'thứ 6 tuần sau') vào `date_description`, hệ thống sẽ tính ngày chính xác. Bao gồm mô tả lặp lại (ví dụ 'hàng tuần') trong `description` nếu có.",
+        "**QUAN TRỌNG VỀ LẶP LẠI:** Chỉ bao gồm mô tả sự lặp lại (ví dụ 'hàng tuần', 'mỗi tháng') trong trường `description` **KHI VÀ CHỈ KHI** người dùng **nêu rõ ràng** ý muốn lặp lại. Nếu người dùng chỉ nói một ngày cụ thể (ví dụ 'thứ 3 tới'), thì **KHÔNG được tự ý thêm** 'hàng tuần' hay bất kỳ từ lặp lại nào vào `description`; sự kiện đó là MỘT LẦN (ONCE)."
         "- `update_event`: Để sửa sự kiện. Cung cấp `event_id` và các trường cần thay đổi. Tương tự `add_event` về cách xử lý ngày (`date_description`) và lặp lại (`description`).",
+        "**QUAN TRỌNG VỀ LẶP LẠI:** Nếu cập nhật `description`, chỉ đưa thông tin lặp lại vào đó nếu người dùng **nêu rõ ràng**. Nếu người dùng chỉ thay đổi sang một ngày cụ thể, **KHÔNG tự ý** thêm thông tin lặp lại."
         "- `delete_event`: Để xóa sự kiện.",
         "- `add_note`: Để tạo ghi chú mới.",
         "\n**QUY TẮC QUAN TRỌNG:**",

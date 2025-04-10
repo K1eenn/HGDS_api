@@ -4169,5 +4169,429 @@
     "question_cache": {},
     "created_at": "2025-04-08T16:15:23.909294",
     "last_updated": "2025-04-08T16:21:17.265929"
+  },
+  "23025135": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch học toán vào mỗi thứ 6 hàng tuần "
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_FW3ZQe7violkcMWeLEyZYmb7",
+            "function": {
+              "arguments": "{\"title\":\"Học toán\",\"date_description\":\"thứ 6 hàng tuần\",\"description\":\"Học toán mỗi thứ 6 hàng tuần\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_FW3ZQe7violkcMWeLEyZYmb7",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Lịch học toán đã được đặt vào mỗi thứ 6 hàng tuần. Nếu bạn cần thêm thông tin gì khác, hãy cho tôi biết nhé!",
+        "role": "assistant",
+        "annotations": []
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch đi chơi vào thứ 6 "
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_NnXhRumSA5UziqqfwqiyCrH2",
+            "function": {
+              "arguments": "{\"title\":\"Đi chơi\",\"date_description\":\"thứ 6\",\"description\":\"Đi chơi vào thứ 6\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_NnXhRumSA5UziqqfwqiyCrH2",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Lịch đi chơi vào thứ 6 đã được đặt thành công. Nếu bạn cần thêm bất kỳ điều gì khác, hãy cho tôi biết nhé!",
+        "role": "assistant",
+        "annotations": []
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch học tiếng anh vào thứ 3 tuần sau"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_ohP7VZv2G4864XZ9HkFT8a01",
+            "function": {
+              "arguments": "{\"title\":\"Học tiếng Anh\",\"date_description\":\"thứ 3 tuần sau\",\"description\":\"Học tiếng Anh vào thứ 3 tuần sau\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_ohP7VZv2G4864XZ9HkFT8a01",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Lịch học tiếng Anh vào thứ 3 tuần sau đã được đặt thành công. Nếu bạn cần thêm hỗ trợ gì, hãy cho tôi biết nhé!",
+        "role": "assistant",
+        "annotations": []
+      }
+    ],
+    "current_member": "kienht135",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-10T08:49:53.529919",
+    "last_updated": "2025-04-10T08:51:47.015222"
+  },
+  "23025136": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch học tiếng anh vào thứ 3 tuần sau"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_LNnLI4XPVu95NCxQAEXYFOHs",
+            "function": {
+              "arguments": "{\"title\":\"Học tiếng Anh\",\"date_description\":\"thứ 3 tuần sau\",\"description\":\"Học tiếng Anh hàng tuần\",\"time\":\"19:00\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_LNnLI4XPVu95NCxQAEXYFOHs",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Lịch học tiếng Anh đã được đặt vào thứ 3 tuần sau và sẽ diễn ra hàng tuần. Nếu bạn cần thêm thông tin hay thay đổi gì khác, hãy cho tôi biết nhé!",
+        "role": "assistant",
+        "annotations": []
+      }
+    ],
+    "current_member": "kienht136",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-10T08:53:57.126121",
+    "last_updated": "2025-04-10T08:54:05.288607"
+  },
+  "23025137": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch học tiếng anh vào thứ 3 tuần sau"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_NybXdqdsb2Y9tPIw3xQ3AAJZ",
+            "function": {
+              "arguments": "{\"title\":\"Học tiếng Anh\",\"date_description\":\"thứ 3 tuần sau\",\"time\":\"19:00\",\"description\":\"Học tiếng Anh\",\"participants\":[]}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_NybXdqdsb2Y9tPIw3xQ3AAJZ",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "<b>Lịch học tiếng Anh đã được đặt vào thứ 3 tuần sau lúc 19:00.</b> Nếu bạn cần thêm thông tin hoặc muốn thực hiện hành động khác, hãy cho tôi biết nhé!",
+        "role": "assistant",
+        "annotations": []
+      }
+    ],
+    "current_member": "kienht137",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-10T08:56:42.754720",
+    "last_updated": "2025-04-10T08:56:52.157509"
+  },
+  "23025138": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch học tiếng anh vào thứ 3 tuần sau"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_ZR7aRy1t1hFrhaKBzCkJAPKq",
+            "function": {
+              "arguments": "{\"title\":\"Học tiếng Anh\",\"date_description\":\"thứ 3 tuần sau\",\"description\":\"Học tiếng Anh\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_ZR7aRy1t1hFrhaKBzCkJAPKq",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Lịch học tiếng Anh đã được đặt vào thứ 3 tuần sau. Nếu bạn cần thêm thông tin gì khác, hãy cho tôi biết nhé!",
+        "role": "assistant",
+        "annotations": []
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch học tiếng toán vào mỗi thứ 6 hàng tuần"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_36bZpfRbTXrbNzydpvFwEq1t",
+            "function": {
+              "arguments": "{\"title\":\"Học tiếng Toán\",\"date_description\":\"thứ 6 tuần sau\",\"description\":\"Học tiếng Toán hàng tuần\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_36bZpfRbTXrbNzydpvFwEq1t",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Lịch học tiếng Toán đã được đặt vào mỗi thứ 6 hàng tuần. Nếu bạn cần thêm gì khác, hãy cho tôi biết nhé!",
+        "role": "assistant",
+        "annotations": []
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch đi chơi vào thứ 6"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_x802DplOHvdoBIV60pdkzQdN",
+            "function": {
+              "arguments": "{\"title\":\"Đi chơi\",\"date_description\":\"thứ 6\",\"description\":\"Đi chơi\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_x802DplOHvdoBIV60pdkzQdN",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Lịch đi chơi đã được đặt vào thứ 6. Nếu bạn cần thêm thông tin gì khác, hãy cho tôi biết nhé!",
+        "role": "assistant",
+        "annotations": []
+      }
+    ],
+    "current_member": "kienht138",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-10T08:57:08.317556",
+    "last_updated": "2025-04-10T08:58:45.862310"
+  },
+  "23025139": {
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch đi chơi vào thứ 6"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_hfQLJnIBt27qDIkcRczwL1eY",
+            "function": {
+              "arguments": "{\"title\":\"Đi chơi\",\"date_description\":\"thứ 6\",\"description\":\"Đi chơi cùng gia đình.\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_hfQLJnIBt27qDIkcRczwL1eY",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Đã đặt lịch đi chơi vào thứ 6. Chúc bạn có một ngày vui vẻ cùng gia đình!",
+        "role": "assistant",
+        "annotations": []
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch đi đá bóng vào thứ 3 tuần sau"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_rRsrUHoqCFNHFkwT5rYmuT2f",
+            "function": {
+              "arguments": "{\"title\":\"Đi đá bóng\",\"date_description\":\"thứ 3 tuần sau\",\"description\":\"Đi đá bóng với bạn bè.\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_rRsrUHoqCFNHFkwT5rYmuT2f",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Đã đặt lịch đi đá bóng vào thứ 3 tuần sau. Chúc bạn có một buổi đá bóng vui vẻ!",
+        "role": "assistant",
+        "annotations": []
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Đặt lịch học tiếng anh mỗi thứ 6 hàng tuần"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_lcSY6XeRCs0vmEAuETk43oQo",
+            "function": {
+              "arguments": "{\"title\":\"Học tiếng Anh\",\"date_description\":\"thứ 6\",\"description\":\"Học tiếng Anh mỗi thứ 6 hàng tuần.\"}",
+              "name": "add_event"
+            },
+            "type": "function"
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "tool_call_id": "call_lcSY6XeRCs0vmEAuETk43oQo",
+        "role": "tool",
+        "name": "add_event",
+        "content": "Đã thực thi thành công add_event."
+      },
+      {
+        "content": "Đã đặt lịch học tiếng Anh mỗi thứ 6 hàng tuần. Chúc bạn học tốt và tiến bộ nhanh chóng!",
+        "role": "assistant",
+        "annotations": []
+      }
+    ],
+    "current_member": "kienht139",
+    "suggested_question": null,
+    "process_suggested": false,
+    "question_cache": {},
+    "created_at": "2025-04-10T09:02:06.403013",
+    "last_updated": "2025-04-10T09:03:07.823080"
   }
 }

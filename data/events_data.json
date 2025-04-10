@@ -441,5 +441,129 @@
     "repeat_type": "ONCE",
     "created_by": "kienht35",
     "created_on": "2025-04-08T16:21:13.319112"
+  },
+  "dba5ecdf-079c-4049-8566-9e2a1ad9037b": {
+    "id": "dba5ecdf-079c-4049-8566-9e2a1ad9037b",
+    "title": "Học toán",
+    "date": "2025-04-11",
+    "time": "19:00",
+    "description": "Học toán mỗi thứ 6 hàng tuần",
+    "participants": [],
+    "repeat_type": "RECURRING",
+    "created_by": "kienht135",
+    "created_on": "2025-04-10T08:49:57.623549"
+  },
+  "da094c4b-d956-4733-926d-7167f3572bdb": {
+    "id": "da094c4b-d956-4733-926d-7167f3572bdb",
+    "title": "Đi chơi",
+    "date": "2025-04-06",
+    "time": "19:00",
+    "description": "Đi chơi vào thứ 6",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht135",
+    "created_on": "2025-04-10T08:50:44.017160"
+  },
+  "27479bdc-3afe-40a8-b3e5-04d3e85eadd1": {
+    "id": "27479bdc-3afe-40a8-b3e5-04d3e85eadd1",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-15",
+    "time": "19:00",
+    "description": "Học tiếng Anh vào thứ 3 tuần sau",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht135",
+    "created_on": "2025-04-10T08:51:43.505136"
+  },
+  "3afcab41-2b1b-4bb0-86b2-3fbf818f7722": {
+    "id": "3afcab41-2b1b-4bb0-86b2-3fbf818f7722",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-15",
+    "time": "19:00",
+    "description": "Học tiếng Anh hàng tuần",
+    "participants": [],
+    "repeat_type": "RECURRING",
+    "created_by": "kienht136",
+    "created_on": "2025-04-10T08:54:01.593436"
+  },
+  "d3933e71-8b4d-476c-9926-9c7dd4a86128": {
+    "id": "d3933e71-8b4d-476c-9926-9c7dd4a86128",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-15",
+    "time": "19:00",
+    "description": "Học tiếng Anh",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht137",
+    "created_on": "2025-04-10T08:56:47.730995"
+  },
+  "086c5f17-ca60-44e3-8d6b-ba64f7c74219": {
+    "id": "086c5f17-ca60-44e3-8d6b-ba64f7c74219",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-15",
+    "time": "19:00",
+    "description": "Học tiếng Anh",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht138",
+    "created_on": "2025-04-10T08:57:12.965708"
+  },
+  "f53091e0-127d-4134-bdfc-df8c445ae1ac": {
+    "id": "f53091e0-127d-4134-bdfc-df8c445ae1ac",
+    "title": "Học tiếng Toán",
+    "date": "2025-04-18",
+    "time": "19:00",
+    "description": "Học tiếng Toán hàng tuần",
+    "participants": [],
+    "repeat_type": "RECURRING",
+    "created_by": "kienht138",
+    "created_on": "2025-04-10T08:58:11.144308"
+  },
+  "7e2b2434-3a3f-411b-a129-0c12ebb70eb8": {
+    "id": "7e2b2434-3a3f-411b-a129-0c12ebb70eb8",
+    "title": "Đi chơi",
+    "date": "2025-04-11",
+    "time": "19:00",
+    "description": "Đi chơi",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "created_by": "kienht138",
+    "created_on": "2025-04-10T08:58:42.307034"
+  },
+  "6a02312f-0f2a-473f-889b-7511833faa85": {
+    "id": "6a02312f-0f2a-473f-889b-7511833faa85",
+    "title": "Đi chơi",
+    "date": "2025-04-11",
+    "time": "19:00",
+    "description": "Đi chơi cùng gia đình.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "category": "General",
+    "created_by": "kienht139",
+    "created_on": "2025-04-10T09:02:11.193525"
+  },
+  "5dbc77c7-f9ea-4c7c-bc9d-1cede8e17a9e": {
+    "id": "5dbc77c7-f9ea-4c7c-bc9d-1cede8e17a9e",
+    "title": "Đi đá bóng",
+    "date": "2025-04-15",
+    "time": "19:00",
+    "description": "Đi đá bóng với bạn bè.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "category": "General",
+    "created_by": "kienht139",
+    "created_on": "2025-04-10T09:02:38.809760"
+  },
+  "63766654-919f-453a-9f48-34b12bcf2a98": {
+    "id": "63766654-919f-453a-9f48-34b12bcf2a98",
+    "title": "Học tiếng Anh",
+    "date": "2025-04-11",
+    "time": "19:00",
+    "description": "Học tiếng Anh mỗi thứ 6 hàng tuần.",
+    "participants": [],
+    "repeat_type": "RECURRING",
+    "category": "Study",
+    "created_by": "kienht139",
+    "created_on": "2025-04-10T09:03:04.849870"
   }
 }
