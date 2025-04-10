@@ -78,7 +78,7 @@ VIETNAMESE_NEWS_DOMAINS = [
 OPENAI_API_KEY_ENV = os.getenv("OPENAI_API_KEY", "")
 TAVILY_API_KEY_ENV = os.getenv("TAVILY_API_KEY", "")
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY") 
-#OPENWEATHERMAP_API_KEY = "94c94ebc644d803eef31af2f1d399bd2"
+
 openai_model = "gpt-4o-mini" # Or your preferred model supporting Tool Calling
 
 # ------- Date/Time Helper Functions (Moved from WeatherService) --------
@@ -3897,13 +3897,15 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
 
     # Check for General Search Intent - Phần còn lại giữ nguyên
     if tavily_api_key:
-         need_search, search_query, is_news_query = await detect_search_intent(last_user_text, openai_api_key)
+         need_search, search_query, is_news_query, is_feng_shui_query = await detect_search_intent(last_user_text, openai_api_key)
          if need_search:
-             logger.info(f"Phát hiện nhu cầu tìm kiếm: query='{search_query}', is_news={is_news_query}")
+             logger.info(f"Phát hiện nhu cầu tìm kiếm: query='{search_query}', is_news={is_news_query}, is_feng_shui={is_feng_shui_query}")
              domains_to_include = VIETNAMESE_NEWS_DOMAINS if is_news_query else None
              try:
                 search_summary = await search_and_summarize(
-                    tavily_api_key, search_query, openai_api_key, include_domains=domains_to_include
+                    tavily_api_key, search_query, openai_api_key, 
+                    include_domains=domains_to_include,
+                    is_feng_shui_query=is_feng_shui_query
                 )
                 search_prompt_addition = f"""
                 \n\n--- THÔNG TIN TÌM KIẾM (DÙNG ĐỂ TRẢ LỜI) ---
@@ -3928,7 +3930,7 @@ async def tavily_extract(api_key, urls, include_images=False, extract_depth="adv
     data = {"urls": urls, "include_images": include_images, "extract_depth": extract_depth}
     try:
         response = await asyncio.to_thread(
-             requests.post, "https://api.tavily.com/extract", headers=headers, json=data, timeout=15
+             requests.post, "https://api.tavily.com/extract", headers=headers, json=data, timeout=30
         )
         response.raise_for_status()
         return response.json()
@@ -3960,13 +3962,64 @@ async def tavily_search(api_key, query, search_depth="advanced", max_results=5, 
          return None
 
 
-async def search_and_summarize(tavily_api_key, query, openai_api_key, include_domains=None):
+async def search_and_summarize(tavily_api_key, query, openai_api_key, include_domains=None, is_feng_shui_query=False):
     """Tìm kiếm và tổng hợp."""
     if not tavily_api_key or not openai_api_key or not query:
         return "Thiếu thông tin API key hoặc câu truy vấn."
 
     try:
         logger.info(f"Bắt đầu tìm kiếm Tavily cho: '{query}'" + (f" (Domains: {include_domains})" if include_domains else ""))
+        
+        # Xử lý đặc biệt cho truy vấn phong thủy
+        if is_feng_shui_query:
+            # Tạo prompt mẫu cho phong thủy thay vì tìm kiếm web
+            current_date = datetime.datetime.now()
+            end_date = current_date + datetime.timedelta(days=7)
+            date_range = f"từ {current_date.strftime('%d/%m/%Y')} đến {end_date.strftime('%d/%m/%Y')}"
+            
+            feng_shui_prompt = f"""
+Hãy phân tích chi tiết về các ngày tốt xấu trong tuần này ({date_range}) dựa trên phong thủy và tử vi. Phân tích cần bao gồm:
+
+1. Đánh giá từng ngày trong tuần:
+   - Ngày âm lịch (Can Chi)
+   - Mức độ thuận lợi (thang điểm sao từ 1-5)
+   - Phù hợp cho những việc gì
+   - Không nên làm những việc gì
+   - Giờ tốt trong ngày
+   - Lưu ý đặc biệt
+   - Màu sắc may mắn (nếu có)
+
+2. So sánh các ngày và đưa ra đề xuất ngày tốt nhất cho:
+   - Ký kết hợp đồng quan trọng
+   - Gặp gỡ đối tác/khách hàng
+   - Bắt đầu dự án mới
+   - Đi du lịch/công tác
+
+Trình bày thông tin sử dụng HTML đơn giản và định dạng dễ đọc. Thông tin cần chi tiết, chính xác theo học thuyết phong thủy và tử vi.
+"""
+
+            try:
+                client = OpenAI(api_key=openai_api_key)
+                
+                response = await asyncio.to_thread(
+                     client.chat.completions.create,
+                     model="gpt-4o-mini",
+                     messages=[
+                         {"role": "system", "content": "Bạn là chuyên gia phong thủy và tử vi hàng đầu. Bạn có kiến thức sâu rộng về Ngũ hành, Bát quái, Can Chi, và các học thuyết phong thủy phương Đông. Bạn cung cấp phân tích chi tiết, chính xác và có tính ứng dụng cao về các ngày tốt xấu trong phong thủy."},
+                         {"role": "user", "content": feng_shui_prompt}
+                     ],
+                     temperature=0.7,
+                     max_tokens=2000
+                )
+                
+                feng_shui_analysis = response.choices[0].message.content
+                logger.info(f"Đã tạo phân tích phong thủy (độ dài: {len(feng_shui_analysis)})")
+                return feng_shui_analysis
+            except Exception as feng_shui_err:
+                logger.error(f"Lỗi khi tạo phân tích phong thủy: {feng_shui_err}", exc_info=True)
+                return "Xin lỗi, tôi không thể tạo phân tích phong thủy chi tiết lúc này. Vui lòng thử lại sau."
+            
+        # Tiếp tục với xử lý tìm kiếm bình thường
         search_results = await tavily_search(
             tavily_api_key, query, include_domains=include_domains, max_results=5
         )
@@ -4063,7 +4116,7 @@ async def search_and_summarize(tavily_api_key, query, openai_api_key, include_do
 
 async def detect_search_intent(query, api_key):
     """Phát hiện ý định tìm kiếm (async wrapper)."""
-    if not api_key or not query: return False, query, False
+    if not api_key or not query: return False, query, False, False
 
     try:
         client = OpenAI(api_key=api_key)
@@ -4073,22 +4126,21 @@ Bạn là một hệ thống phân loại và tinh chỉnh câu hỏi thông min
 1. Xác định xem câu hỏi có cần tìm kiếm thông tin thực tế, tin tức mới hoặc dữ liệu cập nhật không (`need_search`). Câu hỏi về kiến thức chung, định nghĩa đơn giản thường không cần tìm kiếm.
 2. Nếu cần tìm kiếm, hãy tinh chỉnh câu hỏi thành một truy vấn tìm kiếm tối ưu (`search_query`), bao gồm yếu tố thời gian nếu có (hôm nay, 26/03...).
 3. Xác định xem câu hỏi có chủ yếu về tin tức, thời sự, thể thao, sự kiện hiện tại không (`is_news_query`). Câu hỏi về giá cả, sản phẩm, hướng dẫn KHÔNG phải là tin tức.
+4. Xác định xem câu hỏi có liên quan đến phong thủy, ngày tốt xấu, ngày thuận lợi, ngày may mắn không (`is_feng_shui_query`). Các câu hỏi như "ngày nào thuận lợi", "ngày nào tốt", "ngày đẹp" đều được xem là yêu cầu về phong thủy.
 
 Hôm nay là ngày: {current_date_str}.
 
 CHÚ Ý QUAN TRỌNG: Các câu hỏi về thời tiết (ví dụ: "thời tiết ở Hà Nội", "trời có mưa không") hoặc yêu cầu tư vấn dựa trên thời tiết (ví dụ: "nên mặc gì hôm nay") KHÔNG cần tìm kiếm (`need_search` = false).
 
 Ví dụ:
-- User: "tin tức covid hôm nay" -> {{ "need_search": true, "search_query": "tin tức covid mới nhất ngày {current_date_str}", "is_news_query": true }}
-- User: "kết quả trận MU tối qua" -> {{ "need_search": true, "search_query": "kết quả Manchester United tối qua", "is_news_query": true }}
-- User: "có phim gì hay tuần này?" -> {{ "need_search": true, "search_query": "phim chiếu rạp hay tuần này", "is_news_query": false }}
-- User: "giá vàng SJC" -> {{ "need_search": true, "search_query": "giá vàng SJC mới nhất", "is_news_query": false }}
-- User: "thủ đô nước Pháp là gì?" -> {{ "need_search": false, "search_query": "thủ đô nước Pháp là gì?", "is_news_query": false }}
-- User: "thời tiết Hà Nội ngày mai" -> {{ "need_search": false, "search_query": "dự báo thời tiết Hà Nội ngày mai", "is_news_query": true }}
-- User: "cách làm bánh cuốn" -> {{ "need_search": true, "search_query": "cách làm bánh cuốn ngon", "is_news_query": false }}
-- User: "sin(pi/2) bằng mấy?" -> {{ "need_search": false, "search_query": "sin(pi/2)", "is_news_query": false }}
+- User: "tin tức covid hôm nay" -> {{ "need_search": true, "search_query": "tin tức covid mới nhất ngày {current_date_str}", "is_news_query": true, "is_feng_shui_query": false }}
+- User: "những ngày nào thuận lợi trong tuần này" -> {{ "need_search": true, "search_query": "ngày tốt xấu phong thủy tuần này từ {current_date_str}", "is_news_query": false, "is_feng_shui_query": true }}
+- User: "tuần này tôi có nhiều việc quan trọng, những ngày nào thuận lợi?" -> {{ "need_search": true, "search_query": "ngày tốt xấu phong thủy tuần này từ {current_date_str}", "is_news_query": false, "is_feng_shui_query": true }}
+- User: "ngày nào hợp cho việc ký kết hợp đồng" -> {{ "need_search": true, "search_query": "ngày tốt để ký kết hợp đồng theo phong thủy tháng hiện tại", "is_news_query": false, "is_feng_shui_query": true }}
+- User: "thủ đô nước Pháp là gì?" -> {{ "need_search": false, "search_query": "thủ đô nước Pháp là gì?", "is_news_query": false, "is_feng_shui_query": false }}
+- User: "thời tiết Hà Nội ngày mai" -> {{ "need_search": false, "search_query": "dự báo thời tiết Hà Nội ngày mai", "is_news_query": true, "is_feng_shui_query": false }}
 
-Trả lời DƯỚI DẠNG JSON HỢP LỆ với 3 trường: need_search (boolean), search_query (string), is_news_query (boolean).
+Trả lời DƯỚI DẠNG JSON HỢP LỆ với 4 trường: need_search (boolean), search_query (string), is_news_query (boolean), is_feng_shui_query (boolean).
 """
         response = await asyncio.to_thread(
              client.chat.completions.create,
@@ -4110,6 +4162,7 @@ Trả lời DƯỚI DẠNG JSON HỢP LỆ với 3 trường: need_search (boole
             need_search = result.get("need_search", False)
             search_query = query
             is_news_query = False
+            is_feng_shui_query = result.get("is_feng_shui_query", False)
 
             # Ensure weather-related queries are explicitly marked as need_search=false
             weather_keywords_for_detection = ["thời tiết", "dự báo", "nhiệt độ", "nắng", "mưa", "gió", "mấy độ", "bao nhiêu độ", "mặc gì", "nên đi"]
@@ -4117,21 +4170,20 @@ Trả lời DƯỚI DẠNG JSON HỢP LỆ với 3 trường: need_search (boole
                  need_search = False
                  logger.info(f"Detected potential weather query '{query}', overriding need_search to False.")
 
-
             if need_search:
                 search_query = result.get("search_query", query)
                 if not search_query: search_query = query
                 is_news_query = result.get("is_news_query", False)
 
-            logger.info(f"Phân tích truy vấn '{query}': need_search={need_search}, search_query='{search_query}', is_news_query={is_news_query}")
-            return need_search, search_query, is_news_query
+            logger.info(f"Phân tích truy vấn '{query}': need_search={need_search}, search_query='{search_query}', is_news_query={is_news_query}, is_feng_shui_query={is_feng_shui_query}")
+            return need_search, search_query, is_news_query, is_feng_shui_query
 
         except (json.JSONDecodeError, TypeError) as e:
             logger.error(f"Lỗi giải mã JSON từ detect_search_intent: {e}. Raw: {result_str}")
-            return False, query, False
+            return False, query, False, False
     except Exception as e:
         logger.error(f"Lỗi khi gọi OpenAI trong detect_search_intent: {e}", exc_info=True)
-        return False, query, False
+        return False, query, False, False
 
 # --- Suggested Questions ---
 def generate_dynamic_suggested_questions(api_key, member_id=None, max_questions=5):

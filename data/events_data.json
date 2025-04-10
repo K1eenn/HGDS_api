@@ -638,16 +638,28 @@
     "created_by": "kienht147",
     "created_on": "2025-04-10T09:13:19.619489"
   },
-  "917f0419-d778-4353-9408-5bf67f7b2bc7": {
-    "id": "917f0419-d778-4353-9408-5bf67f7b2bc7",
-    "title": "Học Tiếng Trung",
-    "date": "2025-04-11",
+  "1a0e6226-31c8-4eae-90b8-ebdf151c7da2": {
+    "id": "1a0e6226-31c8-4eae-90b8-ebdf151c7da2",
+    "title": "Đi du lịch Nha Trang",
+    "date": "2025-06-23",
     "time": "19:00",
-    "description": "Học Tiếng Trung hàng tuần",
+    "description": "",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "category": "Travel",
+    "created_by": "kienht147",
+    "created_on": "2025-04-10T09:17:44.076172"
+  },
+  "acda70b8-bbe1-491e-b067-3ded9c209cd8": {
+    "id": "acda70b8-bbe1-491e-b067-3ded9c209cd8",
+    "title": "Học Toán",
+    "date": "2025-04-17",
+    "time": "19:00",
+    "description": "Học toán hàng tuần",
     "participants": [],
     "repeat_type": "RECURRING",
     "category": "Study",
-    "created_by": "kienht147",
-    "created_on": "2025-04-10T09:13:50.646964"
+    "created_by": "kienht148",
+    "created_on": "2025-04-10T09:20:40.898763"
   }
 }
