@@ -661,5 +661,29 @@
     "category": "Study",
     "created_by": "kienht148",
     "created_on": "2025-04-10T09:20:40.898763"
+  },
+  "05fb321f-7b1a-4bc1-af59-f4bfc1cf08ba": {
+    "id": "05fb321f-7b1a-4bc1-af59-f4bfc1cf08ba",
+    "title": "Đi chơi",
+    "date": "2025-04-15",
+    "time": "19:00",
+    "description": "Đi chơi cùng gia đình",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "category": "General",
+    "created_by": "kienht153",
+    "created_on": "2025-04-10T10:19:11.046548"
+  },
+  "52128166-537a-4382-bfd4-436ec7192226": {
+    "id": "52128166-537a-4382-bfd4-436ec7192226",
+    "title": "Đi chơi",
+    "date": "2025-04-15",
+    "time": "19:00",
+    "description": "Đi chơi cùng gia đình.",
+    "participants": [],
+    "repeat_type": "ONCE",
+    "category": "General",
+    "created_by": "kienht154",
+    "created_on": "2025-04-10T10:58:21.252675"
   }
 }

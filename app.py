@@ -77,7 +77,7 @@ VIETNAMESE_NEWS_DOMAINS = [
 # --- API Keys ---
 OPENAI_API_KEY_ENV = os.getenv("OPENAI_API_KEY", "")
 TAVILY_API_KEY_ENV = os.getenv("TAVILY_API_KEY", "")
-OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY") 
+OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
 
 openai_model = "gpt-4o-mini" # Or your preferred model supporting Tool Calling
 
@@ -1621,6 +1621,12 @@ def format_weather_for_prompt(current_weather, forecast=None):
         
     location_name = current_weather.get("location", {}).get("name", "")
     country = current_weather.get("location", {}).get("country", "")
+    
+    # Đảm bảo luôn có thông tin địa điểm, mặc định là Hà Nội nếu không có
+    if not location_name:
+        location_name = "Hà Nội"
+        country = "VN"
+        
     location_str = f"{location_name}, {country}" if country else location_name
     
     current = current_weather.get("current", {})
@@ -1670,6 +1676,9 @@ Thông tin thời tiết cho {location_str}:
             temp_max = day["temp_max"]
             
             result += f"\n- {day_label}: {weather_desc}, {temp_min}°C đến {temp_max}°C"
+    
+    # Thêm nhắc nhở về địa điểm
+    result += f"\n\n(Dự báo thời tiết cho khu vực: {location_str})"
     
     return result
 
@@ -1760,22 +1769,15 @@ Trả lời DƯỚI DẠNG JSON HỢP LỆ với 3 trường: is_weather_query (
 
     @classmethod
     async def get_forecast_for_specific_date(cls, weather_service, location: str, date_description: str, 
-                                           lat: Optional[float] = None, lon: Optional[float] = None,
-                                           days: int = 7, lang: str = "vi"):
+                                       lat: Optional[float] = None, lon: Optional[float] = None,
+                                       days: int = 7, lang: str = "vi"):
         """
         Lấy dự báo thời tiết cho ngày cụ thể dựa trên mô tả ngày.
-        
-        Args:
-            weather_service: Đối tượng WeatherService đã khởi tạo
-            location: Tên địa điểm 
-            date_description: Mô tả ngày (vd: "thứ 2 tuần sau")
-            lat, lon: Tọa độ (optional)
-            days: Số ngày dự báo tối đa
-            lang: Ngôn ngữ
-            
-        Returns:
-            Tuple (current_weather, forecast, target_date, date_text)
         """
+        # Đảm bảo luôn có location
+        if not location:
+            location = "Hanoi"
+            
         # Sử dụng DateTimeHandler để phân tích mô tả ngày
         try:
             target_date = DateTimeHandler.parse_date(date_description)
@@ -1816,21 +1818,18 @@ Trả lời DƯỚI DẠNG JSON HỢP LỆ với 3 trường: is_weather_query (
     def format_weather_for_date(cls, current_weather, forecast, target_date, date_text=None):
         """
         Định dạng thông tin thời tiết cho ngày cụ thể để đưa vào prompt.
-        
-        Args:
-            current_weather: Dữ liệu thời tiết hiện tại
-            forecast: Dữ liệu dự báo 
-            target_date: Ngày mục tiêu (datetime.date)
-            date_text: Chuỗi biểu diễn ngày (optional)
-            
-        Returns:
-            Văn bản định dạng thông tin thời tiết
         """
         if not current_weather or not forecast:
             return "Không có thông tin thời tiết."
             
         location_name = current_weather.get("location", {}).get("name", "")
         country = current_weather.get("location", {}).get("country", "")
+        
+        # Đảm bảo luôn có thông tin địa điểm, mặc định là Hà Nội nếu không có
+        if not location_name:
+            location_name = "Hà Nội"
+            country = "VN"
+            
         location_str = f"{location_name}, {country}" if country else location_name
         
         if not date_text and target_date:
@@ -1856,13 +1855,13 @@ Trả lời DƯỚI DẠNG JSON HỢP LỆ với 3 trường: is_weather_query (
             sunset_str = sunset.strftime("%H:%M") if sunset else "N/A"
             
             result = f"""
-Thông tin thời tiết cho {location_str} vào {date_text} (hôm nay):
-- Nhiệt độ hiện tại: {temp}°C (cảm giác như: {feels_like}°C)
-- Thời tiết: {weather_desc}
-- Độ ẩm: {humidity}%
-- Gió: {wind_speed} m/s
-- Mặt trời mọc: {sunrise_str}, mặt trời lặn: {sunset_str}
-"""
+    Thông tin thời tiết cho {location_str} vào {date_text} (hôm nay):
+    - Nhiệt độ hiện tại: {temp}°C (cảm giác như: {feels_like}°C)
+    - Thời tiết: {weather_desc}
+    - Độ ẩm: {humidity}%
+    - Gió: {wind_speed} m/s
+    - Mặt trời mọc: {sunrise_str}, mặt trời lặn: {sunset_str}
+    """
         else:
             # Tìm dự báo cho ngày mục tiêu
             target_forecast = None
@@ -1889,10 +1888,10 @@ Thông tin thời tiết cho {location_str} vào {date_text} (hôm nay):
                 }.get(day_of_week, day_of_week)
                 
                 result = f"""
-Dự báo thời tiết cho {location_str} vào {date_text} ({day_of_week_vi}):
-- Nhiệt độ: {temp_min}°C đến {temp_max}°C
-- Thời tiết: {weather_desc}
-"""
+    Dự báo thời tiết cho {location_str} vào {date_text} ({day_of_week_vi}):
+    - Nhiệt độ: {temp_min}°C đến {temp_max}°C
+    - Thời tiết: {weather_desc}
+    """
                 
                 # Thêm thông tin chi tiết theo giờ nếu có
                 hourly_data = target_forecast.get("hourly", [])
@@ -1905,8 +1904,8 @@ Dự báo thời tiết cho {location_str} vào {date_text} ({day_of_week_vi}):
                     
                     for hour in key_hours:
                         closest_forecast = min(hourly_data, 
-                                             key=lambda x: abs(x.get("date").hour - hour) 
-                                             if isinstance(x.get("date"), datetime.datetime) else float('inf'))
+                                            key=lambda x: abs(x.get("date").hour - hour) 
+                                            if isinstance(x.get("date"), datetime.datetime) else float('inf'))
                         
                         if isinstance(closest_forecast.get("date"), datetime.datetime):
                             time_str = closest_forecast.get("date").strftime("%H:%M")
@@ -1928,9 +1927,9 @@ Dự báo thời tiết cho {location_str} vào {date_text} ({day_of_week_vi}):
                     result += "\n".join(key_forecasts)
             else:
                 result = f"""
-Dự báo thời tiết cho {location_str} vào {date_text}:
-- Không có dữ liệu dự báo chi tiết cho ngày này (có thể ngày này quá xa trong tương lai).
-"""
+    Dự báo thời tiết cho {location_str} vào {date_text}:
+    - Không có dữ liệu dự báo chi tiết cho ngày này (có thể ngày này quá xa trong tương lai).
+    """
                 
                 # Thêm dự báo 3 ngày gần nhất
                 result += "\nDự báo 3 ngày tới:\n"
@@ -1954,7 +1953,10 @@ Dự báo thời tiết cho {location_str} vào {date_text}:
                         temp_max = day.get("temp_max", "N/A")
                         
                         result += f"- {day_name_vi}, {date_str}: {weather_desc}, {temp_min}°C đến {temp_max}°C\n"
-    
+        
+        # Thêm nhắc nhở về địa điểm
+        result += f"\n(Dự báo thời tiết cho khu vực: {location_str})"
+        
         return result
 
 class WeatherAdvisor:
@@ -2648,13 +2650,14 @@ class WeatherAdvisor:
         return result
     
     @classmethod
-    def format_advice_for_prompt(cls, advice_data: Dict[str, Any], query_type: str = "general") -> str:
+    def format_advice_for_prompt(cls, advice_data: Dict[str, Any], query_type: str = "general", location: str = None) -> str:
         """
         Định dạng lời khuyên để đưa vào prompt.
         
         Args:
             advice_data: Dữ liệu lời khuyên từ combine_advice
             query_type: Loại truy vấn
+            location: Tên địa điểm (mới thêm)
             
         Returns:
             Chuỗi lời khuyên định dạng
@@ -2666,9 +2669,13 @@ class WeatherAdvisor:
         temp = weather_summary.get("temperature")
         weather_desc = weather_summary.get("weather_desc", "")
         
+        # Nếu không có location, sử dụng mặc định là Hà Nội
+        if not location:
+            location = "Hà Nội"
+        
         # Nếu là truy vấn chung, thêm giới thiệu
         if query_type == "general":
-            intro = "Dựa trên dữ liệu thời tiết"
+            intro = f"Dựa trên dữ liệu thời tiết tại {location}"
             if temp is not None:
                 intro += f" (nhiệt độ {temp}°C, {weather_desc})"
             intro += ", đây là một số gợi ý cho bạn:"
@@ -2678,9 +2685,9 @@ class WeatherAdvisor:
         # Tư vấn trang phục
         if "clothing_advice" in advice_data:
             if query_type == "clothing":
-                result.append(f"### Gợi ý trang phục phù hợp với thời tiết {temp}°C, {weather_desc}:")
+                result.append(f"### Gợi ý trang phục phù hợp với thời tiết tại {location} ({temp}°C, {weather_desc}):")
             else:
-                result.append("### Trang phục nên mặc:")
+                result.append(f"### Trang phục nên mặc khi ở {location}:")
                 
             for item in advice_data["clothing_advice"]:
                 result.append(f"- {item}")
@@ -2690,9 +2697,9 @@ class WeatherAdvisor:
         # Đồ vật nên mang theo
         if "items_to_bring" in advice_data:
             if query_type == "items":
-                result.append(f"### Những thứ nên mang theo trong thời tiết {temp}°C, {weather_desc}:")
+                result.append(f"### Những thứ nên mang theo trong thời tiết tại {location} ({temp}°C, {weather_desc}):")
             else:
-                result.append("### Đồ vật nên mang theo:")
+                result.append(f"### Đồ vật nên mang theo khi đi ra ngoài tại {location}:")
                 
             for item in advice_data["items_to_bring"]:
                 result.append(f"- {item}")
@@ -2702,9 +2709,9 @@ class WeatherAdvisor:
         # Địa điểm đề xuất
         if "places_to_go" in advice_data:
             if query_type == "places":
-                result.append(f"### Địa điểm đề xuất trong thời tiết {temp}°C, {weather_desc}:")
+                result.append(f"### Địa điểm đề xuất trong thời tiết tại {location} ({temp}°C, {weather_desc}):")
             else:
-                result.append("### Địa điểm phù hợp để đi chơi:")
+                result.append(f"### Địa điểm phù hợp để đi chơi tại {location}:")
                 
             for place in advice_data["places_to_go"][:5]:  # Chỉ hiển thị tối đa 5 địa điểm
                 result.append(f"- {place}")
@@ -2714,13 +2721,16 @@ class WeatherAdvisor:
         # Hoạt động đề xuất
         if "activities" in advice_data:
             if query_type == "activities":
-                result.append(f"### Hoạt động phù hợp trong thời tiết {temp}°C, {weather_desc}:")
+                result.append(f"### Hoạt động phù hợp trong thời tiết tại {location} ({temp}°C, {weather_desc}):")
             else:
-                result.append("### Hoạt động đề xuất:")
+                result.append(f"### Hoạt động đề xuất tại {location}:")
                 
             for activity in advice_data["activities"][:5]:  # Chỉ hiển thị tối đa 5 hoạt động
                 result.append(f"- {activity}")
                 
+        # Thêm thông tin về nguồn dữ liệu thời tiết
+        result.append(f"\n(Thông tin dựa trên dữ liệu thời tiết tại {location})")
+        
         return "\n".join(result)
     
     @classmethod
@@ -3777,6 +3787,10 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
         )
         
         if is_advice_query:
+            # Đảm bảo luôn có location (mặc định là Hà Nội)
+            if not location:
+                location = "Hanoi"
+                
             logger.info(f"Phát hiện truy vấn tư vấn thời tiết: type={advice_type}, location={location}, date={date_description}")
             weather_service = WeatherService(OPENWEATHERMAP_API_KEY)
             
@@ -3796,8 +3810,8 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
                         target_date,
                         advice_type
                     )
-                    # Định dạng lời khuyên để đưa vào prompt
-                    advice_text = WeatherAdvisor.format_advice_for_prompt(advice_data, advice_type)
+                    # Định dạng lời khuyên để đưa vào prompt - truyền thêm location
+                    advice_text = WeatherAdvisor.format_advice_for_prompt(advice_data, advice_type, location)
                     
                     advice_prompt_addition = f"""
                     \n\n--- TƯ VẤN THỜI TIẾT (DÙNG ĐỂ TRẢ LỜI) ---
@@ -3807,20 +3821,23 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
                     --- KẾT THÚC TƯ VẤN THỜI TIẾT ---
                     
                     Hãy sử dụng thông tin tư vấn trên để trả lời câu hỏi của người dùng một cách tự nhiên và hữu ích.
-                    Đưa ra lời khuyên chi tiết, cụ thể và phù hợp với tình hình thời tiết hiện tại/dự báo.
+                    Đưa ra lời khuyên chi tiết, cụ thể và phù hợp với tình hình thời tiết hiện tại/dự báo tại {location}.
                     """
                     return advice_prompt_addition
             else:
                 # Sử dụng thời tiết hiện tại
-                if location and location.lower() not in ["hanoi", "hà nội"]:
+                # Đảm bảo luôn có location
+                if not location or location.lower() in ["hanoi", "hà nội"]:
+                    if lat is not None and lon is not None:
+                        weather_data = await weather_service.get_current_weather(lat=lat, lon=lon)
+                        forecast_data = await weather_service.get_forecast(lat=lat, lon=lon, days=3)
+                    else:
+                        location = "Hanoi"
+                        weather_data = await weather_service.get_current_weather(location=location)
+                        forecast_data = await weather_service.get_forecast(location=location, days=3)
+                else:
                     weather_data = await weather_service.get_current_weather(location=location)
                     forecast_data = await weather_service.get_forecast(location=location, days=3)
-                elif lat is not None and lon is not None:
-                    weather_data = await weather_service.get_current_weather(lat=lat, lon=lon)
-                    forecast_data = await weather_service.get_forecast(lat=lat, lon=lon, days=3)
-                else:
-                    weather_data = await weather_service.get_current_weather(location="Hanoi")
-                    forecast_data = await weather_service.get_forecast(location="Hanoi", days=3)
                 
                 if weather_data:
                     # Kết hợp lời khuyên dựa trên loại truy vấn và dữ liệu thời tiết
@@ -3829,8 +3846,8 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
                         None,
                         advice_type
                     )
-                    # Định dạng lời khuyên để đưa vào prompt
-                    advice_text = WeatherAdvisor.format_advice_for_prompt(advice_data, advice_type)
+                    # Định dạng lời khuyên để đưa vào prompt - truyền thêm location
+                    advice_text = WeatherAdvisor.format_advice_for_prompt(advice_data, advice_type, location)
                     
                     advice_prompt_addition = f"""
                     \n\n--- TƯ VẤN THỜI TIẾT (DÙNG ĐỂ TRẢ LỜI) ---
@@ -3840,7 +3857,7 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
                     --- KẾT THÚC TƯ VẤN THỜI TIẾT ---
                     
                     Hãy sử dụng thông tin tư vấn trên để trả lời câu hỏi của người dùng một cách tự nhiên và hữu ích.
-                    Đưa ra lời khuyên chi tiết, cụ thể và phù hợp với tình hình thời tiết hiện tại/dự báo.
+                    Đưa ra lời khuyên chi tiết, cụ thể và phù hợp với tình hình thời tiết hiện tại/dự báo tại {location}.
                     """
                     return advice_prompt_addition
     
@@ -3848,6 +3865,10 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
     is_weather_query, location, date_description = await WeatherQueryParser.parse_weather_query(last_user_text, openai_api_key)
     
     if is_weather_query and OPENWEATHERMAP_API_KEY:
+        # Đảm bảo luôn có location (mặc định là Hà Nội)
+        if not location:
+            location = "Hanoi"
+            
         logger.info(f"Phát hiện truy vấn thời tiết cho địa điểm: '{location}', thời gian: '{date_description}'")
         weather_service = WeatherService(OPENWEATHERMAP_API_KEY)
         
@@ -3877,11 +3898,12 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
                 forecast_data = await weather_service.get_forecast(lat=lat, lon=lon, days=3)
             else:
                 logger.info("Không có địa điểm và tọa độ, sử dụng mặc định Hà Nội")
-                weather_data = await weather_service.get_current_weather(location="Hanoi")
-                forecast_data = await weather_service.get_forecast(location="Hanoi", days=3)
+                location = "Hanoi"
+                weather_data = await weather_service.get_current_weather(location=location)
+                forecast_data = await weather_service.get_forecast(location=location, days=3)
                 
             if not weather_data:
-                return "\n\n--- LỖI THỜI TIẾT: Không thể lấy thông tin thời tiết. Hãy báo lại cho người dùng. ---"
+                return f"\n\n--- LỖI THỜI TIẾT: Không thể lấy thông tin thời tiết cho {location}. Hãy báo lại cho người dùng. ---"
                 
             weather_info = format_weather_for_prompt(weather_data, forecast_data)
             
@@ -3891,6 +3913,7 @@ async def check_search_need(messages: List[Dict], openai_api_key: str, tavily_ap
         {weather_info}
         --- KẾT THÚC THÔNG TIN THỜI TIẾT ---
         Hãy sử dụng thông tin thời tiết này để trả lời câu hỏi của người dùng một cách tự nhiên.
+        Luôn đề cập rõ khu vực địa lý ({location}) trong câu trả lời.
         Đưa ra lời khuyên phù hợp với điều kiện thời tiết nếu người dùng hỏi về việc nên mặc gì, nên đi đâu, nên làm gì, v.v.
         """
         return weather_prompt_addition
