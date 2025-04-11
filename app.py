@@ -738,12 +738,21 @@ def add_event(details):
     try:
         event_id = str(uuid.uuid4())
         # Kiểm tra các trường bắt buộc cơ bản
-        if not details.get('title') or ('date' not in details and details.get("repeat_type", "ONCE") == "ONCE"): # Cần date nếu là ONCE
+        if not details.get('title') or ('date' not in details and details.get("repeat_type", "ONCE") == "ONCE"):
             logger.error(f"Thiếu title hoặc date (cho sự kiện ONCE) khi thêm sự kiện: {details}")
             return False
-
+        
+        # Kiểm tra thời gian trong quá khứ cho sự kiện một lần
+        if details.get("repeat_type", "ONCE") == "ONCE":
+            date_str = details.get("date")
+            time_str = details.get("time", "19:00")
+            
+            if date_str and DateTimeHandler.is_future_datetime(date_str, time_str) == False:
+                logger.error(f"Không thể tạo sự kiện trong quá khứ: {date_str} {time_str}")
+                return False
+        
         # Lấy category từ details, nếu không có thì dùng mặc định 'General'
-        category = details.get("category", "General") # Lấy category đã được phân loại
+        category = details.get("category", "General")
         logger.info(f"Adding event with category: {category}")
 
         events_data[event_id] = {
@@ -1145,6 +1154,48 @@ class DateTimeHandler:
         return None
     
     @classmethod
+    def is_future_datetime(cls, date_str: str, time_str: str) -> bool:
+        """
+        Kiểm tra xem thời điểm (ngày và giờ) có nằm trong tương lai không.
+        
+        Args:
+            date_str: Ngày định dạng YYYY-MM-DD
+            time_str: Thời gian định dạng HH:MM
+            
+        Returns:
+            True nếu thời điểm nằm trong tương lai, False nếu trong quá khứ hoặc hiện tại
+        """
+        try:
+            if not date_str or not time_str:
+                return False
+                
+            # Lấy thời gian hiện tại
+            now = datetime.datetime.now()
+            
+            # Phân tích ngày và giờ từ tham số
+            if ':' not in time_str:
+                time_str = "00:00"  # Giá trị mặc định nếu không có định dạng giờ:phút
+                
+            hour, minute = map(int, time_str.split(":"))
+            date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+            
+            # Tạo đối tượng datetime đầy đủ
+            event_datetime = datetime.datetime(
+                year=date_obj.year,
+                month=date_obj.month,
+                day=date_obj.day,
+                hour=hour,
+                minute=minute
+            )
+            
+            # So sánh với thời điểm hiện tại
+            return event_datetime > now
+            
+        except (ValueError, TypeError) as e:
+            logger.error(f"Lỗi khi kiểm tra thời gian tương lai: {e}")
+            return False  # Mặc định an toàn là False
+
+    @classmethod
     def format_date(cls, date_obj: datetime.date) -> str:
         """
         Định dạng đối tượng datetime.date thành chuỗi ISO YYYY-MM-DD.
@@ -1198,10 +1249,15 @@ class DateTimeHandler:
             Biểu thức Quartz cron
         """
         try:
+            # Đảm bảo time_str có định dạng hợp lệ
             if not time_str or ':' not in time_str:
                 time_str = "19:00"
+                logger.warning("Thời gian không hợp lệ, sử dụng mặc định 19:00")
                 
+            # Phân tích thời gian
             hour, minute = map(int, time_str.split(":"))
+            
+            logger.info(f"Tạo cron với giờ={hour}, phút={minute}")
             
             if repeat_type == "RECURRING":
                 combined_text = (str(description) + " " + str(title)).lower()
@@ -1281,7 +1337,7 @@ class DateTimeHandler:
         cleaned_description = date_description.lower().strip()
         time_str = None
         
-        # 1. Tìm định dạng giờ:phút
+        # 1. Tìm định dạng giờ:phút (ưu tiên cao nhất)
         time_pattern = r'(\d{1,2})[:\.](\d{2})(\s*(?:am|pm|sáng|chiều|tối|đêm))?'
         time_match = re.search(time_pattern, cleaned_description)
         if time_match:
@@ -1300,22 +1356,43 @@ class DateTimeHandler:
             time_str = f"{hour:02d}:{minute}"
             # Loại bỏ phần thời gian từ mô tả
             cleaned_description = cleaned_description.replace(time_match.group(0), "").strip()
-            logger.info(f"Đã trích xuất thời gian '{time_str}' từ mô tả '{date_description}'")
+            logger.info(f"Đã trích xuất thời gian cụ thể '{time_str}' từ mô tả '{date_description}'")
             
-        # 2. Tìm thời điểm trong ngày (sáng, trưa, chiều, tối, đêm)
-        else:
+        # 2. Tìm mẫu giờ (không có phút) - ưu tiên thứ hai
+        hour_pattern = r'(\d{1,2})h(\s*(?:am|pm|sáng|chiều|tối|đêm))?'
+        hour_match = re.search(hour_pattern, cleaned_description)
+        if hour_match and not time_str:  # Chỉ xử lý nếu chưa tìm thấy thời gian ở bước 1
+            hour = int(hour_match.group(1))
+            ampm = hour_match.group(2)
+            
+            # Xử lý AM/PM
+            if ampm:
+                ampm = ampm.strip().lower()
+                if any(pm in ampm for pm in ['pm', 'chiều', 'tối', 'đêm']) and hour < 12:
+                    hour += 12
+                elif any(am in ampm for pm in ['am', 'sáng']) and hour == 12:
+                    hour = 0
+            
+            time_str = f"{hour:02d}:00"
+            # Loại bỏ phần thời gian từ mô tả
+            cleaned_description = cleaned_description.replace(hour_match.group(0), "").strip()
+            logger.info(f"Đã trích xuất giờ '{time_str}' từ mô tả '{date_description}'")
+        
+        # 3. Tìm thời điểm trong ngày (sáng, trưa, chiều, tối, đêm) - ưu tiên thấp nhất
+        # CHỈ áp dụng nếu không có thời gian cụ thể
+        if not time_str:
             for time_of_day, time_info in cls.VIETNAMESE_TIME_OF_DAY.items():
                 if time_of_day in cleaned_description:
                     hour = time_info['default_hour']
                     time_str = f"{hour:02d}:00"
-                    logger.info(f"Đã ánh xạ '{time_of_day}' thành thời gian '{time_str}'")
+                    logger.info(f"Đã ánh xạ từ khóa '{time_of_day}' thành thời gian mặc định '{time_str}' (do không có thời gian cụ thể)")
                     break
         
         return cleaned_description, time_str
     
     @classmethod
     def parse_and_process_event_date(cls, date_description: str, time_str: str = "19:00", 
-                                    description: str = "", title: str = "") -> Tuple[str, str, str]:
+                                    description: str = "", title: str = "") -> Tuple[str, str, str, bool]:
         """
         Phân tích mô tả ngày và tạo ngày chuẩn cùng biểu thức cron.
         
@@ -1326,14 +1403,21 @@ class DateTimeHandler:
             title: Tiêu đề sự kiện
             
         Returns:
-            Tuple (date_str, repeat_type, cron_expression)
+            Tuple (date_str, repeat_type, cron_expression, is_valid_future_time)
         """
+        # Lưu thời gian đầu vào để log và debug
+        original_time_str = time_str
+        
         # Trích xuất thời gian từ mô tả ngày nếu có
         cleaned_date_description, extracted_time = cls.extract_time_from_date_description(date_description)
         
-        # Ưu tiên thời gian đã trích xuất
-        if extracted_time:
+        # CHỈ sử dụng extracted_time nếu không có time_str được cung cấp rõ ràng
+        # hoặc nếu time_str là giá trị mặc định
+        if extracted_time and (not time_str or time_str == "19:00"):
             time_str = extracted_time
+            logger.info(f"Sử dụng thời gian được trích xuất từ mô tả: '{extracted_time}'")
+        else:
+            logger.info(f"Giữ nguyên thời gian đã cung cấp: '{time_str}'")
         
         # Phân tích ngày
         date_obj = cls.parse_date(cleaned_date_description)
@@ -1341,13 +1425,19 @@ class DateTimeHandler:
         
         if not date_str:
             logger.warning(f"Không thể xác định ngày từ mô tả: '{date_description}'")
-            return None, "ONCE", ""
-            
+            return None, "ONCE", "", False
+        
+        # Kiểm tra nếu thời điểm nằm trong quá khứ
+        is_future = cls.is_future_datetime(date_str, time_str)
+        if not is_future:
+            logger.warning(f"Thời điểm '{date_str} {time_str}' nằm trong quá khứ!")
+            # Vẫn trả về thông tin ngày/giờ để thông báo với người dùng
+        
         repeat_type = cls.determine_repeat_type(description, title)
         cron_expression = cls.generate_cron_expression(date_str, time_str, repeat_type, description, title)
         
-        logger.info(f"Kết quả xử lý ngày giờ - Mô tả: '{date_description}', Kết quả: {date_str} {time_str}, Lặp lại: {repeat_type}")
-        return date_str, repeat_type, cron_expression
+        logger.info(f"Kết quả xử lý ngày giờ - Mô tả: '{date_description}', Kết quả: {date_str} {time_str}, Lặp lại: {repeat_type}, Tương lai: {is_future}")
+        return date_str, repeat_type, cron_expression, is_future
 
 # ------- Weather -----------
 
@@ -2991,11 +3081,17 @@ def execute_tool_call(tool_call: ChatCompletionMessageToolCall, current_member_i
 
             # --- Xử lý ngày giờ (giữ nguyên logic cũ) ---
             if date_description:
-                # Phân tích và xử lý mô tả ngày một lần duy nhất
-                final_date_str, repeat_type, cron_expression = DateTimeHandler.parse_and_process_event_date(
+                # Phân tích và xử lý mô tả ngày, thêm tham số is_future
+                final_date_str, repeat_type, cron_expression, is_future = DateTimeHandler.parse_and_process_event_date(
                     date_description, time_str, description, title
                 )
-
+                
+                # Kiểm tra thời gian trong tương lai
+                if not is_future and repeat_type == "ONCE":
+                    error_msg = f"Không thể đặt lịch vào thời điểm trong quá khứ: {final_date_str} {time_str}"
+                    logger.warning(error_msg)
+                    return None, error_msg
+                
                 if final_date_str:
                     logger.info(f"Ngày đã xử lý: '{final_date_str}' từ mô tả '{date_description}'")
                     arguments["date"] = final_date_str
